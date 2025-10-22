@@ -25,6 +25,11 @@ const router = createRouter({
       component: () => import('../views/HomeView.vue'),
     },
     {
+      path: '/activity',
+      name: 'activity',
+      component: () => import('../views/ActivityView.vue'),
+    },
+    {
       path: '/schedule',
       name: 'schedule',
       component: () => import('../views/CalendarView.vue'),
