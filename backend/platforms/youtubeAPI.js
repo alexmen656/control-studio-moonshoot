@@ -3,6 +3,7 @@ import { google } from 'googleapis';
 import fs2 from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { storeToken } from './token_manager.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -75,8 +76,10 @@ export async function getTokenFromCode(code) {
     const tokenResponse = await oAuth2Client.getToken(code);
     oAuth2Client.setCredentials(tokenResponse.tokens);
 
-    await fs.writeFile(TOKEN_PATH, JSON.stringify(tokenResponse.tokens, null, 2));
-    console.log('Token stored to', TOKEN_PATH);
+    //await fs.writeFile(TOKEN_PATH, JSON.stringify(tokenResponse.tokens, null, 2));
+    await storeToken(1, 'youtube_token', tokenResponse.tokens);
+    //   await
+    //     console.log('Token stored to', TOKEN_PATH);
 }
 
 async function uploadToYouTube(auth, videoFile) {

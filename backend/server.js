@@ -14,8 +14,7 @@ import { InstagramAuth, InstagramTokenExchange, uploadReel } from './platforms/I
 import { FacebookAuth, FacebookTokenExchange, uploadVideo as uploadFacebookVideo } from './platforms/FacebookAPI.js'
 import * as tiktokAPI from './platforms/TiktokAPI.js'
 import * as db from './platforms/db.js'
-
-const execPromise = promisify(exec)
+import { storeToken } from './platforms/token_manager.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -380,7 +379,8 @@ app.get('/api/oauth2callback/youtube', async (req, res) => {
   }
 
   try {
-    await fs.promises.writeFile(path.join(TOKENS_DIR, 'youtube_code.json'), JSON.stringify(code));
+    //await fs.promises.writeFile(path.join(TOKENS_DIR, 'youtube_code.json'), JSON.stringify(code));
+    await storeToken(1, 'youtube_code', { code: code });
     await getTokenFromCode(code);
     res.redirect('http://localhost:5185/accounts');
     //res.send('YouTube authorization successful! You can close this tab.');
@@ -425,17 +425,21 @@ app.get('/api/oauth2callback/instagram', async (req, res) => {
   }
 
   try {
-    await fs.promises.writeFile(path.join(TOKENS_DIR, 'instagram_code.json'), JSON.stringify(code));
-    axios.get(InstagramTokenExchange(code)).then(response => {
-      fs.promises.writeFile(path.join(TOKENS_DIR, 'instagram_token.json'), JSON.stringify(response.data));
+    // await fs.promises.writeFile(path.join(TOKENS_DIR, 'instagram_code.json'), JSON.stringify(code));
+    await storeToken(1, 'instagram_code', { code: code });
+    axios.get(InstagramTokenExchange(code)).then(async (response) => {
+      // fs.promises.writeFile(path.join(TOKENS_DIR, 'instagram_token.json'), JSON.stringify(response.data));
+      await storeToken(1, 'instagram_token', response.data);
 
       axios.get(`https://graph.facebook.com/v24.0/me/accounts?access_token=${response.data.access_token}`)
-        .then(response => {
-          fs.promises.writeFile(path.join(TOKENS_DIR, 'facebook_accounts_for_instagram.json'), JSON.stringify(response.data));
+        .then(async (response) => {
+          // fs.promises.writeFile(path.join(TOKENS_DIR, 'facebook_accounts_for_instagram.json'), JSON.stringify(response.data));
+          await storeToken(1, 'facebook_accounts_for_instagram', response.data);
 
           axios.get(`https://graph.facebook.com/v24.0/${response.data.data[0].id}?fields=instagram_business_account&access_token=${response.data.data[0].access_token}`)
-            .then(response => {
-              fs.promises.writeFile(path.join(TOKENS_DIR, 'instagram_business_account.json'), JSON.stringify(response.data));
+            .then(async (response) => {
+              // fs.promises.writeFile(path.join(TOKENS_DIR, 'instagram_business_account.json'), JSON.stringify(response.data));
+              await storeToken(1, 'instagram_business_account', response.data);
             });
         });
     });
@@ -460,14 +464,16 @@ app.get('/api/oauth2callback/facebook', async (req, res) => {
   }
 
   try {
-    await fs.promises.writeFile(path.join(TOKENS_DIR, 'facebook_code.json'), JSON.stringify(code));
-    axios.get(FacebookTokenExchange(code)).then(response => {
-      fs.promises.writeFile(path.join(TOKENS_DIR, 'facebook_token.json'), JSON.stringify(response.data));
-
+    //await fs.promises.writeFile(path.join(TOKENS_DIR, 'facebook_code.json'), JSON.stringify(code));
+    await storeToken(1, 'facebook_code', { code: code });
+    axios.get(FacebookTokenExchange(code)).then(async (response) => {
+      // fs.promises.writeFile(path.join(TOKENS_DIR, 'facebook_token.json'), JSON.stringify(response.data));
+      await storeToken(1, 'facebook_token', response.data);
 
       axios.get(`https://graph.facebook.com/v24.0/me/accounts?access_token=${response.data.access_token}`)
-        .then(response => {
-          fs.promises.writeFile(path.join(TOKENS_DIR, 'facebook_accounts.json'), JSON.stringify(response.data));
+        .then(async (response) => {
+          // fs.promises.writeFile(path.join(TOKENS_DIR, 'facebook_accounts.json'), JSON.stringify(response.data));
+          await storeToken(1, 'facebook_accounts', response.data);
         });
     });
 

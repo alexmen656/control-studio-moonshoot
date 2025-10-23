@@ -2,6 +2,7 @@ import fs from 'fs/promises';
 import crypto from 'crypto';
 import dotenv from 'dotenv';
 import path from 'path';
+import { storeToken } from './token_manager.js';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -51,10 +52,15 @@ export async function authorize() {
         const codeChallenge = generateCodeChallenge(codeVerifier);
         const csrfState = crypto.randomBytes(16).toString('hex');
 
-        await fs.writeFile(path.join(TOKENS_DIR, 'tiktok_oauth_state.json'), JSON.stringify({
+        /* await fs.writeFile(path.join(TOKENS_DIR, 'tiktok_oauth_state.json'), JSON.stringify({
+             code_verifier: codeVerifier,
+             csrf_state: csrfState
+         }));*/
+
+        await storeToken(1, 'tiktok_oauth_state', {
             code_verifier: codeVerifier,
             csrf_state: csrfState
-        }));
+        });
 
         const authUrl = new URL('https://www.tiktok.com/v2/auth/authorize/');
         authUrl.searchParams.append('client_key', TIKTOK_CLIENT_KEY);
@@ -109,7 +115,10 @@ export async function exchangeCodeForToken(code, state) {
             expires_at: Date.now() + (tokenData.expires_in * 1000)
         };
 
-        await fs.writeFile(TOKEN_PATH, JSON.stringify(tokenWithExpiry, null, 2));
+        //await fs.writeFile(TOKEN_PATH, JSON.stringify(tokenWithExpiry, null, 2));
+
+        await storeToken(1, 'tiktok_token', tokenWithExpiry);
+
         console.log('TikTok token stored successfully');
 
         await fs.unlink(path.join(TOKENS_DIR, 'tiktok_oauth_state.json')).catch(() => { });
@@ -156,7 +165,9 @@ export async function refreshAccessToken() {
             expires_at: Date.now() + (newTokenData.expires_in * 1000)
         };
 
-        await fs.writeFile(TOKEN_PATH, JSON.stringify(tokenWithExpiry, null, 2));
+        //await fs.writeFile(TOKEN_PATH, JSON.stringify(tokenWithExpiry, null, 2));
+        await storeToken(1, 'tiktok_token', tokenWithExpiry);
+
         console.log('TikTok token refreshed successfully');
 
         return tokenWithExpiry;
