@@ -145,7 +145,7 @@ app.post('/api/upload', upload.single('video'), async (req, res) => {
 app.get('/api/accounts/status', async (req, res) => {
   try {
     res.json({
-      youtube: fs.existsSync(path.join(TOKENS_DIR, 'youtube_token.json')),
+      youtube: await retrieveToken(1, 'youtube_token') === null ? false : true,
       tiktok: await retrieveToken(1, 'tiktok_token') === null ? false : true,//fs.existsSync(path.join(TOKENS_DIR, 'tiktok_token.json')),
       instagram: await retrieveToken(1, 'instagram_business_account') === null ? false : true,
       facebook: await retrieveToken(1, 'facebook_accounts') === null ? false : true

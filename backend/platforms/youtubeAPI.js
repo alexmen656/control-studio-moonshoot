@@ -3,7 +3,7 @@ import { google } from 'googleapis';
 import fs2 from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { storeToken } from './token_manager.js';
+import { storeToken, retrieveToken } from './token_manager.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -39,8 +39,10 @@ export async function authorize() {
         const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, 'http://localhost:6709/api/oauth2callback/youtube');
 
         try {
-            const token = await fs.readFile(TOKEN_PATH, 'utf-8');
-            const tokenData = JSON.parse(token);
+            //const token = await fs.readFile(TOKEN_PATH, 'utf-8');
+
+            const token = await retrieveToken(1, 'youtube_token');
+            const tokenData = token;
 
             if (!tokenData.refresh_token) {
                 const authUrl = oAuth2Client.generateAuthUrl({
