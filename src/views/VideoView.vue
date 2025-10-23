@@ -157,7 +157,16 @@ const scheduleVideo = async () => {
     if (!currentVideo.value || !scheduleDate.value || !scheduleTime.value) return
 
     try {
-        const scheduledDateTime = new Date(`${scheduleDate.value}T${scheduleTime.value}`)
+        const [year, month, day] = scheduleDate.value.split('-').map(Number)
+        const [hours, minutes] = scheduleTime.value.split(':').map(Number)
+
+        const scheduledDateTime = new Date(
+            year ?? 0,
+            (month ?? 1) - 1,
+            day ?? 1,
+            hours ?? 0,
+            minutes ?? 0
+        )
 
         const response = await axios.patch(`${API_URL}/videos/${currentVideo.value.id}`, {
             status: 'scheduled',
@@ -195,7 +204,7 @@ const openScheduleModal = () => {
     selectedPlatforms.value = currentVideo.value?.platforms || []
     const tomorrow = new Date()
     tomorrow.setDate(tomorrow.getDate() + 1)
-    scheduleDate.value = tomorrow.toISOString().split('T')[0]
+    scheduleDate.value = tomorrow.toISOString().split('T')[0] || ''
     scheduleTime.value = '12:00'
     showScheduleModal.value = true
 }
@@ -510,7 +519,7 @@ const averageEngagement = computed(() => {
                                         <div v-html="getPlatformIcon(platform)"></div>
                                     </div>
                                     <span class="font-medium text-gray-900 dark:text-gray-100 capitalize">{{ platform
-                                    }}</span>
+                                        }}</span>
                                 </div>
                             </div>
                             <p v-else class="text-sm text-gray-500 dark:text-gray-400">No platforms selected</p>
@@ -597,7 +606,7 @@ const averageEngagement = computed(() => {
                                     <div v-html="getPlatformIcon(platform)"></div>
                                 </div>
                                 <span class="font-medium text-gray-900 dark:text-gray-100 capitalize">{{ platform
-                                }}</span>
+                                    }}</span>
                                 <div v-if="selectedPlatforms.includes(platform as any)" class="ml-auto">
                                     <svg class="w-5 h-5 text-red-600" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd"
@@ -682,7 +691,7 @@ const averageEngagement = computed(() => {
                                     <div v-html="getPlatformIcon(platform)"></div>
                                 </div>
                                 <span class="font-medium text-gray-900 dark:text-gray-100 capitalize">{{ platform
-                                }}</span>
+                                    }}</span>
                                 <div v-if="videoDetailsForm.platforms.includes(platform as any)" class="ml-auto">
                                     <svg class="w-5 h-5 text-red-600" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd"

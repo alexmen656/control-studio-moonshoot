@@ -20,6 +20,19 @@ pool.on('error', (err) => {
 
 export const query = (text, params) => pool.query(text, params);
 
+const toCamelCase = (obj) => {
+    if (Array.isArray(obj)) {
+        return obj.map(v => toCamelCase(v));
+    } else if (obj !== null && obj.constructor === Object) {
+        return Object.keys(obj).reduce((result, key) => {
+            const camelKey = key.replace(/_([a-z])/g, (g) => g[1].toUpperCase());
+            result[camelKey] = toCamelCase(obj[key]);
+            return result;
+        }, {});
+    }
+    return obj;
+};
+
 export const getAllVideos = async () => {
     const result = await pool.query(`
     SELECT 
@@ -43,7 +56,7 @@ export const getAllVideos = async () => {
     GROUP BY v.id
     ORDER BY v.upload_date DESC
   `);
-    return result.rows;
+    return result.rows.map(row => toCamelCase(row));
 };
 
 export const getVideoById = async (id) => {
@@ -69,7 +82,7 @@ export const getVideoById = async (id) => {
     WHERE v.id = $1
     GROUP BY v.id
   `, [id]);
-    return result.rows[0];
+    return result.rows[0] ? toCamelCase(result.rows[0]) : null;
 };
 
 export const createVideo = async (videoData) => {

@@ -11,14 +11,14 @@ import { uploadVideo } from './platforms/YoutubeAPI.js'
 import { uploadReel } from './platforms/InstagramAPI.js'
 import * as tiktokAPI from './platforms/TiktokAPI.js'
 import { uploadVideo as uploadFacebookVideo } from './platforms/FacebookAPI.js'
+import * as db from './platforms/db.js';
 
 async function getScheduledVideos() {
     console.log('Fetching scheduled videos...');
     try {
-        const DB_PATH = path.join(__dirname, 'videos.json')
-        const data = fs.readFileSync(DB_PATH, 'utf8')
-        let videos = JSON.parse(data).videos;
+        let videos = await db.getAllVideos()
 
+        console.log(`Total videos fetched: ${videos.length}`);
         videos = videos.filter(video => video.status === 'scheduled');
         videos = videos.filter(video => new Date(video.scheduledDate) > new Date());
         videos = videos.filter(video => new Date(video.scheduledDate) - new Date() < 5 * 60 * 1000);
@@ -172,17 +172,19 @@ async function publishVideo(video) {
 }
 
 (async () => {
-    const videos = await getScheduledVideos();
+    setInterval(async () => {
+        const videos = await getScheduledVideos();
 
-    videos.forEach(async video => {
-        const delay = new Date(video.scheduledDate) - new Date();
-        if (delay > 0) {
-            console.log(`Scheduling video ID: ${video.id} to be published in ${delay} ms`);
-            setTimeout(async () => {
+        videos.forEach(async video => {
+            const delay = new Date(video.scheduledDate) - new Date();
+            if (delay > 0) {
+                console.log(`Scheduling video ID: ${video.id} to be published in ${delay} ms`);
+                setTimeout(async () => {
+                    await publishVideo(video);
+                }, delay);
+            } else {
                 await publishVideo(video);
-            }, delay);
-        } else {
-            await publishVideo(video);
-        }
-    });
+            }
+        });
+    }, 10 * 1000);
 })();
