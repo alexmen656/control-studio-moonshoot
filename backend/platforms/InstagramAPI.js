@@ -3,6 +3,7 @@ import fs from 'fs/promises';
 import axios from 'axios';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { retrieveToken } from './token_manager.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -50,8 +51,10 @@ export async function uploadReel(videoFile, options = {}) {
     try {
         const instagramAccountPath = path.join(TOKENS_DIR, 'instagram_business_account.json');
         const facebookAccountsPath = path.join(TOKENS_DIR, 'facebook_accounts_for_instagram.json');
-        const instagramAccountData = JSON.parse(await fs.readFile(instagramAccountPath, 'utf-8'));
-        const facebookAccountsData = JSON.parse(await fs.readFile(facebookAccountsPath, 'utf-8'));
+        //const instagramAccountData = JSON.parse(await fs.readFile(instagramAccountPath, 'utf-8'));
+        //const facebookAccountsData = JSON.parse(await fs.readFile(facebookAccountsPath, 'utf-8'));
+        const instagramAccountData = await retrieveToken(1, 'instagram_business_account');
+        const facebookAccountsData = await retrieveToken(1, 'facebook_accounts_for_instagram');
         const instagramUserId = instagramAccountData.instagram_business_account.id;
         const accessToken = facebookAccountsData.data[0].access_token;
 
@@ -194,8 +197,10 @@ export async function checkPublishingLimit() {
     try {
         const instagramAccountPath = path.join(TOKENS_DIR, 'instagram_business_account.json');
         const facebookAccountsPath = path.join(TOKENS_DIR, 'facebook_accounts_for_instagram.json');
-        const instagramAccountData = JSON.parse(await fs.readFile(instagramAccountPath, 'utf-8'));
-        const facebookAccountsData = JSON.parse(await fs.readFile(facebookAccountsPath, 'utf-8'));
+        //const instagramAccountData = JSON.parse(await fs.readFile(instagramAccountPath, 'utf-8'));
+        //const facebookAccountsData = JSON.parse(await fs.readFile(facebookAccountsPath, 'utf-8'));
+        const instagramAccountData = await retrieveToken(1, 'instagram_business_account');
+        const facebookAccountsData = await retrieveToken(1, 'facebook_accounts_for_instagram');
         const instagramUserId = instagramAccountData.instagram_business_account.id;
         const accessToken = facebookAccountsData.data[0].access_token;
 
