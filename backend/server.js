@@ -14,7 +14,7 @@ import { InstagramAuth, InstagramTokenExchange, uploadReel } from './platforms/I
 import { FacebookAuth, FacebookTokenExchange, uploadVideo as uploadFacebookVideo } from './platforms/FacebookAPI.js'
 import * as tiktokAPI from './platforms/TiktokAPI.js'
 import * as db from './platforms/db.js'
-import { storeToken } from './platforms/token_manager.js'
+import { storeToken, retrieveToken } from './platforms/token_manager.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -142,11 +142,11 @@ app.post('/api/upload', upload.single('video'), async (req, res) => {
   }
 })
 
-app.get('/api/accounts/status', (req, res) => {
+app.get('/api/accounts/status', async (req, res) => {
   try {
     res.json({
       youtube: fs.existsSync(path.join(TOKENS_DIR, 'youtube_token.json')),
-      tiktok: fs.existsSync(path.join(TOKENS_DIR, 'tiktok_token.json')),
+      tiktok: await retrieveToken(1, 'tiktok_token') === null ? false : true,//fs.existsSync(path.join(TOKENS_DIR, 'tiktok_token.json')),
       instagram: fs.existsSync(path.join(TOKENS_DIR, 'instagram_business_account.json')),
       facebook: fs.existsSync(path.join(TOKENS_DIR, 'facebook_accounts.json'))
     })

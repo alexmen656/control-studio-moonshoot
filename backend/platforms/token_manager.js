@@ -60,3 +60,8 @@ export async function deleteToken(userId, serviceName) {
     const values = [userId, serviceName];
     await db.query(query, values);
 }
+
+//storeToken(1, 'tiktossk', { access_token: 'abc123', refresh_token: 'def456' });
+//console.log('-------------------------------------');
+//retrieveToken(1, 'tiktossk').then(token => console.log('Retrieved token:', token));
+//console.log(deleteToken(1, 'tiktok'));`

@@ -30,6 +30,4 @@ coverage
 *.tsbuildinfo
 .env
 
-backend/tokens/*
-
 src/views/PlanView copy.vue

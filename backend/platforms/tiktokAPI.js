@@ -2,7 +2,7 @@ import fs from 'fs/promises';
 import crypto from 'crypto';
 import dotenv from 'dotenv';
 import path from 'path';
-import { storeToken } from './token_manager.js';
+import { storeToken, retrieveToken } from './token_manager.js';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -35,7 +35,11 @@ function generateCodeChallenge(verifier) {
 export async function authorize() {
     try {
         try {
-            const token = await fs.readFile(TOKEN_PATH, 'utf-8');
+            // const token = await fs.readFile(TOKEN_PATH, 'utf-8');
+
+            const token = await retrieveToken(1, 'tiktok_token');
+
+
             console.log('TikTok token found');
             const tokenData = JSON.parse(token);
 
@@ -80,7 +84,8 @@ export async function authorize() {
 
 export async function exchangeCodeForToken(code, state) {
     try {
-        const oauthState = JSON.parse(await fs.readFile(path.join(TOKENS_DIR, 'tiktok_oauth_state.json'), 'utf-8'));
+        //  const oauthState = JSON.parse(await fs.readFile(path.join(TOKENS_DIR, 'tiktok_oauth_state.json'), 'utf-8'));
+        const oauthState = await retrieveToken(1, 'tiktok_oauth_state');
 
         if (state !== oauthState.csrf_state) {
             throw new Error('State mismatch - possible CSRF attack');
@@ -132,7 +137,8 @@ export async function exchangeCodeForToken(code, state) {
 
 export async function refreshAccessToken() {
     try {
-        const tokenData = JSON.parse(await fs.readFile(TOKEN_PATH, 'utf-8'));
+        //const tokenData = JSON.parse(await fs.readFile(TOKEN_PATH, 'utf-8'));
+        const tokenData = await retrieveToken(1, 'tiktok_token');
 
         if (!tokenData.refresh_token) {
             throw new Error('No refresh token available');
@@ -179,7 +185,8 @@ export async function refreshAccessToken() {
 
 export async function uploadVideo(videoPath, title, description, privacyLevel = 'SELF_ONLY') {
     try {
-        const tokenData = JSON.parse(await fs.readFile(TOKEN_PATH, 'utf-8'));
+        //const tokenData = JSON.parse(await fs.readFile(TOKEN_PATH, 'utf-8'));
+        const tokenData = await retrieveToken(1, 'tiktok_token');
         const accessToken = tokenData.access_token;
 
         let chunkSize = 128 * 1024 * 1024; // 4MB
@@ -279,7 +286,8 @@ export async function uploadVideo(videoPath, title, description, privacyLevel = 
 
 export async function getUserInfo() {
     try {
-        const tokenData = JSON.parse(await fs.readFile(TOKEN_PATH, 'utf-8'));
+        //const tokenData = JSON.parse(await fs.readFile(TOKEN_PATH, 'utf-8'));
+        const tokenData = await retrieveToken(1, 'tiktok_token');
         const accessToken = tokenData.access_token;
 
         const response = await fetch('https://open.tiktokapis.com/v2/user/info/', {
