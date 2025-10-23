@@ -148,7 +148,7 @@ app.get('/api/accounts/status', async (req, res) => {
       youtube: fs.existsSync(path.join(TOKENS_DIR, 'youtube_token.json')),
       tiktok: await retrieveToken(1, 'tiktok_token') === null ? false : true,//fs.existsSync(path.join(TOKENS_DIR, 'tiktok_token.json')),
       instagram: await retrieveToken(1, 'instagram_business_account') === null ? false : true,
-      facebook: fs.existsSync(path.join(TOKENS_DIR, 'facebook_accounts.json'))
+      facebook: await retrieveToken(1, 'facebook_accounts') === null ? false : true
     })
   } catch (error) {
     console.error('Error checking account status:', error)

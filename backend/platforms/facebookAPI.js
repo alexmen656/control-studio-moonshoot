@@ -4,6 +4,7 @@ import axios from 'axios';
 import FormData from 'form-data';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { retrieveToken } from './token_manager.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -48,7 +49,8 @@ export async function uploadVideo(videoFile, options = {}) {
 
     try {
         const facebookAccountsPath = path.join(TOKENS_DIR, 'facebook_accounts.json');
-        const facebookAccountsData = JSON.parse(await fs.readFile(facebookAccountsPath, 'utf-8'));
+        //const facebookAccountsData = JSON.parse(await fs.readFile(facebookAccountsPath, 'utf-8'));
+        const facebookAccountsData = await retrieveToken(1, 'facebook_accounts');
         const accessToken = facebookAccountsData.data[0].access_token;
         const pageId = facebookAccountsData.data[0].id;
 
@@ -197,7 +199,8 @@ export async function getVideos(limit = 25) {
 
     try {
         const facebookAccountsPath = path.join(TOKENS_DIR, 'facebook_accounts.json');
-        const facebookAccountsData = JSON.parse(await fs.readFile(facebookAccountsPath, 'utf-8'));
+        //const facebookAccountsData = JSON.parse(await fs.readFile(facebookAccountsPath, 'utf-8'));
+        const facebookAccountsData = await retrieveToken(1, 'facebook_accounts');
         const accessToken = facebookAccountsData.data[0].access_token;
         const pageId = facebookAccountsData.data[0].id;
 
