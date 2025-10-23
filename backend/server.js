@@ -13,6 +13,7 @@ import { uploadVideo, authorize, getTokenFromCode } from './platforms/YoutubeAPI
 import { InstagramAuth, InstagramTokenExchange, uploadReel } from './platforms/InstagramAPI.js'
 import { FacebookAuth, FacebookTokenExchange, uploadVideo as uploadFacebookVideo } from './platforms/FacebookAPI.js'
 import * as tiktokAPI from './platforms/TiktokAPI.js'
+import * as db from './platforms/db.js'
 
 const execPromise = promisify(exec)
 
@@ -33,12 +34,6 @@ if (!fs.existsSync(uploadsDir)) {
 
 if (!fs.existsSync(TOKENS_DIR)) {
   fs.mkdirSync(TOKENS_DIR, { recursive: true })
-}
-
-const DB_PATH = path.join(__dirname, 'videos.json')
-
-if (!fs.existsSync(DB_PATH)) {
-  fs.writeFileSync(DB_PATH, JSON.stringify({ videos: [] }, null, 2))
 }
 
 const storage = multer.diskStorage({
@@ -73,19 +68,6 @@ app.use(cors())
 app.use(bodyParser.json())
 app.use('/uploads', express.static(uploadsDir))
 
-const readVideos = () => {
-  try {
-    const data = fs.readFileSync(DB_PATH, 'utf8')
-    return JSON.parse(data)
-  } catch (error) {
-    return { videos: [] }
-  }
-}
-
-const writeVideos = (data) => {
-  fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2))
-}
-
 const getVideoStats = (filePath) => {
   const stats = fs.statSync(filePath)
   const fileSizeInBytes = stats.size
@@ -100,20 +82,19 @@ app.get('/', (req, res) => {
   res.send('Control Studio API - Social Media Manager')
 })
 
-app.get('/api/videos', (req, res) => {
+app.get('/api/videos', async (req, res) => {
   try {
-    const data = readVideos()
-    res.json(data.videos)
+    const videos = await db.getAllVideos()
+    res.json(videos)
   } catch (error) {
     console.error('Error reading videos:', error)
     res.status(500).json({ error: 'Error reading videos' })
   }
 })
 
-app.get('/api/videos/:id', (req, res) => {
+app.get('/api/videos/:id', async (req, res) => {
   try {
-    const data = readVideos()
-    const video = data.videos.find(v => v.id === req.params.id)
+    const video = await db.getVideoById(req.params.id)
     if (video) {
       res.json(video)
     } else {
@@ -125,13 +106,12 @@ app.get('/api/videos/:id', (req, res) => {
   }
 })
 
-app.post('/api/upload', upload.single('video'), (req, res) => {
+app.post('/api/upload', upload.single('video'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No video file uploaded' })
     }
 
-    const data = readVideos()
     const stats = getVideoStats(req.file.path)
 
     const newVideo = {
@@ -151,12 +131,11 @@ app.post('/api/upload', upload.single('video'), (req, res) => {
       path: req.file.path
     }
 
-    data.videos.push(newVideo)
-    writeVideos(data)
+    const video = await db.createVideo(newVideo)
 
     res.status(201).json({
       message: 'Video uploaded successfully',
-      video: newVideo
+      video: video
     })
   } catch (error) {
     console.error('Error uploading video:', error)
@@ -178,16 +157,16 @@ app.get('/api/accounts/status', (req, res) => {
   }
 })
 
-app.post('/api/upload-multiple', upload.array('videos', 10), (req, res) => {
+app.post('/api/upload-multiple', upload.array('videos', 10), async (req, res) => {
   try {
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({ error: 'No video files uploaded' })
     }
 
-    const data = readVideos()
     const uploadedVideos = []
 
-    req.files.forEach((file, index) => {
+    for (let index = 0; index < req.files.length; index++) {
+      const file = req.files[index]
       const stats = getVideoStats(file.path)
       const newVideo = {
         id: (Date.now() + index).toString(),
@@ -206,11 +185,9 @@ app.post('/api/upload-multiple', upload.array('videos', 10), (req, res) => {
         path: file.path
       }
 
-      data.videos.push(newVideo)
-      uploadedVideos.push(newVideo)
-    })
-
-    writeVideos(data)
+      const video = await db.createVideo(newVideo)
+      uploadedVideos.push(video)
+    }
 
     res.status(201).json({
       message: `${uploadedVideos.length} videos uploaded successfully`,
@@ -222,7 +199,7 @@ app.post('/api/upload-multiple', upload.array('videos', 10), (req, res) => {
   }
 })
 
-app.patch('/api/videos/:id/duration', (req, res) => {
+app.patch('/api/videos/:id/duration', async (req, res) => {
   try {
     const { id } = req.params
     const { duration } = req.body
@@ -231,19 +208,15 @@ app.patch('/api/videos/:id/duration', (req, res) => {
       return res.status(400).json({ error: 'Duration is required' })
     }
 
-    const data = readVideos()
-    const videoIndex = data.videos.findIndex(v => v.id === id)
+    const video = await db.updateVideo(id, { duration })
 
-    if (videoIndex === -1) {
+    if (!video) {
       return res.status(404).json({ error: 'Video not found' })
     }
 
-    data.videos[videoIndex].duration = duration
-    writeVideos(data)
-
     res.status(200).json({
       message: 'Duration updated successfully',
-      video: data.videos[videoIndex]
+      video: video
     })
   } catch (error) {
     console.error('Error updating duration:', error)
@@ -251,25 +224,17 @@ app.patch('/api/videos/:id/duration', (req, res) => {
   }
 })
 
-app.put('/api/videos/:id', (req, res) => {
+app.put('/api/videos/:id', async (req, res) => {
   try {
-    const data = readVideos()
-    const videoIndex = data.videos.findIndex(v => v.id === req.params.id)
+    const video = await db.updateVideo(req.params.id, req.body)
 
-    if (videoIndex === -1) {
+    if (!video) {
       return res.status(404).json({ error: 'Video not found' })
     }
 
-    data.videos[videoIndex] = {
-      ...data.videos[videoIndex],
-      ...req.body,
-      id: req.params.id
-    }
-
-    writeVideos(data)
     res.json({
       message: 'Video updated successfully',
-      video: data.videos[videoIndex]
+      video: video
     })
   } catch (error) {
     console.error('Error updating video:', error)
@@ -277,26 +242,17 @@ app.put('/api/videos/:id', (req, res) => {
   }
 })
 
-app.patch('/api/videos/:id', (req, res) => {
+app.patch('/api/videos/:id', async (req, res) => {
   try {
-    const data = readVideos()
-    const videoIndex = data.videos.findIndex(v => v.id === req.params.id)
+    const video = await db.updateVideo(req.params.id, req.body)
 
-    if (videoIndex === -1) {
+    if (!video) {
       return res.status(404).json({ error: 'Video not found' })
     }
 
-    data.videos[videoIndex] = {
-      ...data.videos[videoIndex],
-      ...req.body,
-      id: req.params.id,
-      updatedAt: new Date().toISOString()
-    }
-
-    writeVideos(data)
     res.json({
       message: 'Video details updated successfully',
-      video: data.videos[videoIndex]
+      video: video
     })
   } catch (error) {
     console.error('Error updating video:', error)
@@ -304,23 +260,19 @@ app.patch('/api/videos/:id', (req, res) => {
   }
 })
 
-app.delete('/api/videos/:id', (req, res) => {
+app.delete('/api/videos/:id', async (req, res) => {
   try {
-    const data = readVideos()
-    const videoIndex = data.videos.findIndex(v => v.id === req.params.id)
+    const video = await db.getVideoById(req.params.id)
 
-    if (videoIndex === -1) {
+    if (!video) {
       return res.status(404).json({ error: 'Video not found' })
     }
-
-    const video = data.videos[videoIndex]
 
     if (fs.existsSync(video.path)) {
       fs.unlinkSync(video.path)
     }
 
-    data.videos.splice(videoIndex, 1)
-    writeVideos(data)
+    await db.deleteVideo(req.params.id)
 
     res.json({ message: 'Video deleted successfully' })
   } catch (error) {
@@ -329,10 +281,9 @@ app.delete('/api/videos/:id', (req, res) => {
   }
 })
 
-app.get('/api/used-storage', (req, res) => {
+app.get('/api/used-storage', async (req, res) => {
   try {
-    const data = readVideos()
-    const totalBytes = data.videos.reduce((acc, video) => acc + (video.sizeBytes || 0), 0)
+    const totalBytes = await db.getTotalStorageUsed()
 
     res.json({ used_storage: totalBytes, total_storage: 5 * 1024 * 1024 * 1024 })
   } catch (error) {
@@ -341,31 +292,27 @@ app.get('/api/used-storage', (req, res) => {
   }
 })
 
-app.post('/api/videos/bulk-delete', (req, res) => {
+app.post('/api/videos/bulk-delete', async (req, res) => {
   try {
     const { videoIds } = req.body
     if (!videoIds || !Array.isArray(videoIds)) {
       return res.status(400).json({ error: 'Invalid video IDs' })
     }
 
-    const data = readVideos()
     let deletedCount = 0
 
-    videoIds.forEach(id => {
-      const videoIndex = data.videos.findIndex(v => v.id === id)
-      if (videoIndex !== -1) {
-        const video = data.videos[videoIndex]
-
+    for (const id of videoIds) {
+      const video = await db.getVideoById(id)
+      if (video) {
         if (fs.existsSync(video.path)) {
           fs.unlinkSync(video.path)
         }
-
-        data.videos.splice(videoIndex, 1)
         deletedCount++
       }
-    })
+    }
 
-    writeVideos(data)
+    await db.bulkDeleteVideos(videoIds)
+
     res.json({
       message: `${deletedCount} videos deleted successfully`,
       deletedCount
@@ -539,8 +486,7 @@ app.post('/api/publish', async (req, res) => {
       return res.status(400).send('videoId is required')
     }
 
-    const data = readVideos()
-    const video = data.videos.find(v => v.id === req.body.videoId)
+    const video = await db.getVideoById(req.body.videoId)
 
     if (!video) {
       return res.status(404).send('Video not found')
@@ -609,39 +555,32 @@ app.post('/api/publish', async (req, res) => {
       }
     }
 
-    const updatedData = readVideos()
-    const videoIndex = updatedData.videos.findIndex(v => v.id === req.body.videoId)
+    const currentDate = new Date().toISOString()
 
-    if (videoIndex !== -1) {
-      const currentDate = new Date().toISOString()
-
-      const publishStatusWithDates = {}
-      Object.entries(platformStatuses).forEach(([platform, status]) => {
-        if (status === 'success') {
-          publishStatusWithDates[platform] = currentDate
-        } else {
-          publishStatusWithDates[platform] = 'failed'
-        }
-      })
-
-      updatedData.videos[videoIndex].publishStatus = publishStatusWithDates
-      updatedData.videos[videoIndex].updatedAt = currentDate
-
-      const allSuccess = Object.values(platformStatuses).every(status => status === 'success')
-      const anySuccess = Object.values(platformStatuses).some(status => status === 'success')
-
-      if (allSuccess) {
-        updatedData.videos[videoIndex].status = 'published'
-        updatedData.videos[videoIndex].publishedAt = currentDate
-      } else if (anySuccess) {
-        updatedData.videos[videoIndex].status = 'partially-published'
-        updatedData.videos[videoIndex].publishedAt = currentDate
+    const publishStatusWithDates = {}
+    Object.entries(platformStatuses).forEach(([platform, status]) => {
+      if (status === 'success') {
+        publishStatusWithDates[platform] = currentDate
       } else {
-        updatedData.videos[videoIndex].status = 'failed'
+        publishStatusWithDates[platform] = 'failed'
       }
+    })
 
-      writeVideos(updatedData)
+    const allSuccess = Object.values(platformStatuses).every(status => status === 'success')
+    const anySuccess = Object.values(platformStatuses).some(status => status === 'success')
+
+    let newStatus = 'failed'
+    if (allSuccess) {
+      newStatus = 'published'
+    } else if (anySuccess) {
+      newStatus = 'partially-published'
     }
+
+    await db.updateVideo(req.body.videoId, {
+      publishStatus: publishStatusWithDates,
+      status: newStatus,
+      publishedAt: anySuccess ? currentDate : null
+    })
 
     const successPlatforms = Object.entries(platformStatuses)
       .filter(([_, status]) => status === 'success')
@@ -676,5 +615,5 @@ app.post('/api/publish', async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`)
   console.log(`Uploads directory: ${uploadsDir}`)
-  console.log(`Database file: ${DB_PATH}`)
+  console.log(`Database: PostgreSQL`)
 })
