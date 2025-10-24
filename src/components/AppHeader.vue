@@ -51,10 +51,10 @@
                             class="flex items-center space-x-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg px-3 py-2 transition-colors">
                             <div
                                 class="w-8 h-8 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
-                                A
+                                {{ user.username.charAt(0).toUpperCase() }}
                             </div>
                             <span class="hidden sm:block text-md font-medium text-gray-700 dark:text-gray-200">
-                                Alex </span>
+                                {{ user.username }} </span>
                             <svg class="w-4 h-4 text-gray-400 dark:text-gray-500" fill="currentColor"
                                 viewBox="0 0 20 20">
                                 <path fill-rule="evenodd"
@@ -65,7 +65,7 @@
                         <div v-if="userMenuOpen"
                             class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
                             <div class="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
-                                <p class="text-sm font-medium text-gray-900 dark:text-gray-100">Alex</p>
+                                <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ user.username }}</p>
                                 <p class="text-xs text-gray-500 dark:text-gray-400">user</p>
                             </div>
                             <button @click="handleLogout"
@@ -171,6 +171,8 @@ const userMenuOpen = ref(false)
 const searchQuery = ref('')
 const isSearchFocused = ref(false)
 const searchResults = ref<any[]>([])
+
+const user = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user') as string) : { username: 'Guest', email: 'guest@example.com' }
 
 const toggleMobileMenu = () => {
     mobileMenuOpen.value = !mobileMenuOpen.value
