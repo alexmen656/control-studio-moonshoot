@@ -160,10 +160,10 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, defineComponent, h } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
-
+import { useAuthStore } from '../stores/auth'
 
 const router = useRouter()
-
+const authStore = useAuthStore()
 
 const mobileMenuOpen = ref(false)
 const userMenuOpen = ref(false)
@@ -184,6 +184,11 @@ const closeMobileMenu = () => {
 
 const toggleUserMenu = () => {
     userMenuOpen.value = !userMenuOpen.value
+}
+
+const handleLogout = async () => {
+    await authStore.logout()
+    router.push('/login')
 }
 
 const FolderIcon = defineComponent({
