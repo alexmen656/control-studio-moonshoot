@@ -67,13 +67,13 @@
                             email</span>
                     </div>
                 </div>
-                <form class="space-y-4" :class="{ 'opacity-50 cursor-not-allowed': isLoading }"
+                <form class="space-y-4" :class="{ 'opacity-50 cursor-not-allowed': authStore.isLoading }"
                     @submit.prevent="register">
                     <div>
                         <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                             Full name
                         </label>
-                        <input id="name" name="name" type="text" :disabled="isLoading"
+                        <input id="name" name="name" type="text" :disabled="authStore.isLoading"
                             class="appearance-none block w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm disabled:bg-gray-100 dark:disabled:bg-gray-700 disabled:cursor-not-allowed bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                             placeholder="John Doe" v-model="name">
                     </div>
@@ -81,7 +81,7 @@
                         <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                             Email address
                         </label>
-                        <input id="email" name="email" type="email" required :disabled="isLoading"
+                        <input id="email" name="email" type="email" required :disabled="authStore.isLoading"
                             class="appearance-none block w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm disabled:bg-gray-100 dark:disabled:bg-gray-700 disabled:cursor-not-allowed bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                             placeholder="you@example.com" v-model="email">
                     </div>
@@ -89,7 +89,7 @@
                         <label for="username" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                             User name
                         </label>
-                        <input id="username" name="username" type="text" :disabled="isLoading"
+                        <input id="username" name="username" type="text" :disabled="authStore.isLoading"
                             class="appearance-none block w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm disabled:bg-gray-100 dark:disabled:bg-gray-700 disabled:cursor-not-allowed bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                             placeholder="john_doe" v-model="username">
                     </div>
@@ -97,7 +97,7 @@
                         <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                             Password
                         </label>
-                        <input id="password" name="password" type="password" required :disabled="isLoading"
+                        <input id="password" name="password" type="password" required :disabled="authStore.isLoading"
                             class="appearance-none block w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm disabled:bg-gray-100 dark:disabled:bg-gray-700 disabled:cursor-not-allowed bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                             placeholder="••••••••" v-model="password">
                     </div>
@@ -107,7 +107,7 @@
                             Confirm password
                         </label>
                         <input id="confirm-password" name="confirm-password" type="password" required
-                            :disabled="isLoading"
+                            :disabled="authStore.isLoading"
                             class="appearance-none block w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm disabled:bg-gray-100 dark:disabled:bg-gray-700 disabled:cursor-not-allowed bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                             placeholder="••••••••" v-model="confirmPassword">
                     </div>
@@ -130,9 +130,9 @@
                             </label>
                         </div>
                     </div>-->
-                    <button type="submit" :disabled="isLoading"
+                    <button type="submit" :disabled="authStore.isLoading"
                         class="w-full flex justify-center items-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium dark:text-white bg-primary-600 dark:bg-primary-700 hover:bg-primary-700 dark:hover:bg-primary-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors disabled:bg-primary-400 dark:disabled:bg-primary-600 disabled:cursor-not-allowed">
-                        <svg v-if="isLoading" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                        <svg v-if="authStore.isLoading" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
                             xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
                             </circle>
@@ -140,7 +140,7 @@
                                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
                             </path>
                         </svg>
-                        {{ isLoading ? 'Creating account...' : 'Create account' }}
+                        {{ authStore.isLoading ? 'Creating account...' : 'Create account' }}
                     </button>
                 </form>
                 <div class="text-center">
@@ -159,9 +159,8 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-/*import { useRouter } from 'vue-router'
-import { useAuthStore } from '../stores/auth'
-import axiosInstance from '../axios'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 import {
     useTokenClient,
     type AuthCodeFlowSuccessResponse,
@@ -170,25 +169,15 @@ import {
 
 const router = useRouter()
 const authStore = useAuthStore()
-*/
+
 const name = ref('')
 const email = ref('')
 const username = ref('')
 const password = ref('')
 const confirmPassword = ref('')
 //const termsAccepted = ref(false)
-const isLoading = ref(false)
 const error = ref<string | null>(null)
-const isReady = ref(true)
 
-const login = async () => {
-    console.log("Google sign up triggered");
-}
-
-const register = async () => {
-    console.log('Register function triggered');
-}
-/*
 const handleOnSuccess = async (response: AuthCodeFlowSuccessResponse) => {
     console.log("Access Token: ", response.access_token);
     error.value = null;
@@ -214,7 +203,7 @@ const handleOnSuccess = async (response: AuthCodeFlowSuccessResponse) => {
             );
 
             if (success) {
-                router.push('/dashboard');
+                router.push('/');
             } else {
                 error.value = 'Google sign up failed. Please try again.';
             }
@@ -246,42 +235,22 @@ const register = async () => {
         return;
     }
 
-    isLoading.value = true;
-
-    try {
-        const response = await axiosInstance.post('users.php', {
-            action: 'register',
-            email: email.value,
-            fullName: name.value,
-            username: username.value,
-            password: password.value
-        });
-
-        if (response.data) {
-            const loginSuccess = await authStore.login({
-                action: 'login',
-                username: email.value,
-                password: password.value,
-            });
-
-            if (loginSuccess) {
-                router.push('/dashboard');
-            } else {
-                error.value = 'Registration successful but login failed. Please try logging in.';
-                setTimeout(() => {
-                    router.push('/login');
-                }, 2000);
-            }
-        }
-    } catch (err: any) {
-        console.error('Registration error:', err);
-        if (err.response?.status === 409) {
-            error.value = 'An account with this email already exists.';
-        } else {
-            error.value = err.response?.data?.message || 'Registration failed. Please try again.';
-        }
-    } finally {
-        isLoading.value = false;
+    if (password.value.length < 6) {
+        error.value = 'Password must be at least 6 characters long';
+        return;
     }
-}*/
+
+    const success = await authStore.register(
+        email.value,
+        username.value,
+        password.value,
+        name.value || undefined
+    );
+
+    if (success) {
+        router.push('/');
+    } else {
+        error.value = authStore.error || 'Registration failed';
+    }
+}
 </script>

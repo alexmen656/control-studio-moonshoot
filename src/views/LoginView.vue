@@ -131,30 +131,21 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-//import { useRouter } from 'vue-router'
-//import { useAuthStore } from '../stores/auth'
-/*import {
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
+import {
     useTokenClient,
     type AuthCodeFlowSuccessResponse,
     type AuthCodeFlowErrorResponse,
-} from "vue3-google-signin";*/
+} from "vue3-google-signin";
 
-//const router = useRouter()
-const authStore = { isLoading: false, error: '' } //useAuthStore()
+const router = useRouter()
+const authStore = useAuthStore()
 
 const username = ref('')
 const password = ref('')
 //const rememberMe = ref(false)
-const isReady = ref(true)
 
-const login = async () => {
-    console.log("Google login triggered");
-}
-
-const handleLogin = async () => {
-    console.log('hello')
-}
-/*
 const handleOnSuccess = async (response: AuthCodeFlowSuccessResponse) => {
     console.log("Access Token: ", response.access_token);
 
@@ -176,7 +167,7 @@ const handleOnSuccess = async (response: AuthCodeFlowSuccessResponse) => {
             );
 
             if (success) {
-                router.push('/dashboard');
+                router.push('/');
             }
         } else {
             authStore.error = 'Failed to fetch user information from Google';
@@ -199,14 +190,10 @@ const { isReady, login } = useTokenClient({
 });
 
 const handleLogin = async () => {
-    const success = await authStore.login({
-        action: 'login',
-        username: username.value,
-        password: password.value,
-    })
+    const success = await authStore.login(username.value, password.value)
 
     if (success) {
-        router.push('/dashboard')
+        router.push('/')
     }
-}*/
+}
 </script>

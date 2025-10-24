@@ -15,6 +15,7 @@ import { FacebookAuth, FacebookTokenExchange, uploadVideo as uploadFacebookVideo
 import * as tiktokAPI from './platforms/TiktokAPI.js'
 import * as db from './platforms/db.js'
 import { storeToken, retrieveToken } from './platforms/token_manager.js'
+import { registerUser, loginUser, loginWithGoogle, authMiddleware, getUserById } from './platforms/auth.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -80,6 +81,85 @@ const getVideoStats = (filePath) => {
 app.get('/', (req, res) => {
   res.send('Control Studio API - Social Media Manager')
 })
+
+
+
+// ============================================
+// AUTH ROUTES
+// ============================================
+
+app.post('/api/auth/register', async (req, res) => {
+  try {
+    const { email, username, password, fullName } = req.body;
+
+    if (!email || !username || !password) {
+      return res.status(400).json({ error: 'Email, username and password are required' });
+    }
+
+    const result = await registerUser(email, username, password, fullName);
+    res.status(201).json(result);
+  } catch (error) {
+    console.error('Registration error:', error);
+    if (error.message.includes('already exists')) {
+      res.status(409).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: 'Registration failed' });
+    }
+  }
+});
+
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const { identifier, password } = req.body;
+
+    if (!identifier || !password) {
+      return res.status(400).json({ error: 'Email/username and password are required' });
+    }
+
+    const result = await loginUser(identifier, password);
+    res.json(result);
+  } catch (error) {
+    console.error('Login error:', error);
+    if (error.message === 'Invalid credentials') {
+      res.status(401).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: 'Login failed' });
+    }
+  }
+});
+
+app.post('/api/auth/google', async (req, res) => {
+  try {
+    const { email, fullName, googleId } = req.body;
+
+    if (!email || !googleId) {
+      return res.status(400).json({ error: 'Email and Google ID are required' });
+    }
+
+    const result = await loginWithGoogle(email, fullName, googleId);
+    res.json(result);
+  } catch (error) {
+    console.error('Google login error:', error);
+    res.status(500).json({ error: 'Google login failed' });
+  }
+});
+
+app.get('/api/auth/me', authMiddleware, async (req, res) => {
+  try {
+    const user = await getUserById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    res.json(user);
+  } catch (error) {
+    console.error('Get user error:', error);
+    res.status(500).json({ error: 'Failed to get user' });
+  }
+});
+
+// ============================================
+// VIDEO ROUTES
+// ============================================
 
 app.get('/api/videos', async (req, res) => {
   try {
