@@ -4,7 +4,7 @@ import axios from 'axios';
 import FormData from 'form-data';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { retrieveToken } from './token_manager.js';
+import { retrieveToken } from '../utils/token_manager.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

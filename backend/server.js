@@ -13,14 +13,13 @@ import youtube from './platforms/Youtube.js'
 import instagram from './platforms/Instagram.js'
 import facebook from './platforms/Facebook.js'
 import tiktok from './platforms/Tiktok.js'
-import * as db from './platforms/db.js'
-import { storeTokenByProjectID, retrieveTokenByProjectID } from './platforms/token_manager.js'
-import { registerUser, loginUser, loginWithGoogle, authMiddleware, getUserById } from './platforms/auth.js'
+import * as db from './utils/db.js'
+import { storeTokenByProjectID, retrieveTokenByProjectID } from './utils/token_manager.js'
+import { registerUser, loginUser, loginWithGoogle, authMiddleware, getUserById } from './utils/auth.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 const PROJECT_ROOT = path.join(__dirname, '..')
-const TOKENS_DIR = path.join(__dirname, 'tokens')
 
 dotenv.config({ path: path.join(PROJECT_ROOT, '.env') })
 
@@ -30,10 +29,6 @@ const PORT = process.env.PORT || 6709
 const uploadsDir = path.join(__dirname, 'uploads')
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true })
-}
-
-if (!fs.existsSync(TOKENS_DIR)) {
-  fs.mkdirSync(TOKENS_DIR, { recursive: true })
 }
 
 const storage = multer.diskStorage({
@@ -662,7 +657,6 @@ app.get('/api/oauth2callback/youtube', async (req, res) => {
 
   try {
     const PROJECT_ID = localStorage.getItem('currentProjectId') || 1;
-    //await fs.promises.writeFile(path.join(TOKENS_DIR, 'youtube_code.json'), JSON.stringify(code));
     await storeTokenByProjectID(1, 'youtube_code', { code: code }, PROJECT_ID);
     await youtube.getTokenFromCode(code, PROJECT_ID);
     res.redirect('http://localhost:5185/accounts');
@@ -708,22 +702,18 @@ app.get('/api/oauth2callback/instagram', async (req, res) => {
   }
 
   try {
-    // await fs.promises.writeFile(path.join(TOKENS_DIR, 'instagram_code.json'), JSON.stringify(code));
     const PROJECT_ID = localStorage.getItem('currentProjectId') || 1;
 
     await storeTokenByProjectID(1, 'instagram_code', { code: code }, PROJECT_ID);
     axios.get(instagram.InstagramTokenExchange(code)).then(async (response) => {
-      // fs.promises.writeFile(path.join(TOKENS_DIR, 'instagram_token.json'), JSON.stringify(response.data));
       await storeTokenByProjectID(1, 'instagram_token', response.data, PROJECT_ID);
 
       axios.get(`https://graph.facebook.com/v24.0/me/accounts?access_token=${response.data.access_token}`)
         .then(async (response) => {
-          // fs.promises.writeFile(path.join(TOKENS_DIR, 'facebook_accounts_for_instagram.json'), JSON.stringify(response.data));
           await storeTokenByProjectID(1, 'facebook_accounts_for_instagram', response.data, PROJECT_ID);
 
           axios.get(`https://graph.facebook.com/v24.0/${response.data.data[0].id}?fields=instagram_business_account&access_token=${response.data.data[0].access_token}`)
             .then(async (response) => {
-              // fs.promises.writeFile(path.join(TOKENS_DIR, 'instagram_business_account.json'), JSON.stringify(response.data));
               await storeTokenByProjectID(1, 'instagram_business_account', response.data, PROJECT_ID);
             });
         });
@@ -751,15 +741,12 @@ app.get('/api/oauth2callback/facebook', async (req, res) => {
   try {
     const PROJECT_ID = localStorage.getItem('currentProjectId') || 1;
 
-    //await fs.promises.writeFile(path.join(TOKENS_DIR, 'facebook_code.json'), JSON.stringify(code));
     await storeTokenByProjectID(1, 'facebook_code', { code: code }, PROJECT_ID);
     axios.get(facebook.FacebookTokenExchange(code)).then(async (response) => {
-      // fs.promises.writeFile(path.join(TOKENS_DIR, 'facebook_token.json'), JSON.stringify(response.data));
       await storeTokenByProjectID(1, 'facebook_token', response.data);
 
       axios.get(`https://graph.facebook.com/v24.0/me/accounts?access_token=${response.data.access_token}`)
         .then(async (response) => {
-          // fs.promises.writeFile(path.join(TOKENS_DIR, 'facebook_accounts.json'), JSON.stringify(response.data));
           await storeTokenByProjectID(1, 'facebook_accounts', response.data, PROJECT_ID);
         });
     });

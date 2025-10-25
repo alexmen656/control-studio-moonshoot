@@ -2,7 +2,7 @@ import fs from 'fs/promises';
 import crypto from 'crypto';
 import dotenv from 'dotenv';
 import path from 'path';
-import { storeToken, retrieveToken } from './token_manager.js';
+import { storeToken, retrieveToken } from '../utils/token_manager.js';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
