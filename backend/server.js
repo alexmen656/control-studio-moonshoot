@@ -203,7 +203,12 @@ app.post('/api/projects', async (req, res) => {
     `;
 
     const result = await db.query(query, [name, initials, color1, color2, user_id]);
-    res.status(201).json(result.rows[0]);
+    const project = result.rows[0];
+
+    const memberQuery = 'INSERT INTO project_users (project_id, user_id) VALUES ($1, $2)';
+    await db.query(memberQuery, [project.id, user_id]);
+
+    res.status(201).json(project);
   } catch (error) {
     console.error('Error creating project:', error);
     res.status(500).json({ error: 'Failed to create project' });
@@ -250,6 +255,103 @@ app.delete('/api/projects/:id', async (req, res) => {
   } catch (error) {
     console.error('Error deleting project:', error);
     res.status(500).json({ error: 'Failed to delete project' });
+  }
+});
+
+app.get('/api/projects/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const query = 'SELECT * FROM projects WHERE id = $1';
+    const result = await db.query(query, [id]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Error fetching project:', error);
+    res.status(500).json({ error: 'Failed to fetch project' });
+  }
+});
+
+app.get('/api/projects/:id/users', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const query = `
+      SELECT u.id, u.username, u.email 
+      FROM users u
+      INNER JOIN project_users pu ON u.id = pu.user_id
+      WHERE pu.project_id = $1
+      ORDER BY u.username
+    `;
+    const result = await db.query(query, [id]);
+
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching project users:', error);
+    res.status(500).json({ error: 'Failed to fetch project users' });
+  }
+});
+
+app.post('/api/projects/:id/users', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { user_id } = req.body;
+
+    const checkQuery = 'SELECT * FROM project_users WHERE project_id = $1 AND user_id = $2';
+    const checkResult = await db.query(checkQuery, [id, user_id]);
+
+    if (checkResult.rows.length > 0) {
+      return res.status(400).json({ error: 'User already in project' });
+    }
+
+    const query = 'INSERT INTO project_users (project_id, user_id) VALUES ($1, $2) RETURNING *';
+    await db.query(query, [id, user_id]);
+
+    res.json({ message: 'User added to project successfully' });
+  } catch (error) {
+    console.error('Error adding user to project:', error);
+    res.status(500).json({ error: 'Failed to add user to project' });
+  }
+});
+
+app.delete('/api/projects/:id/users/:userId', async (req, res) => {
+  try {
+    const { id, userId } = req.params;
+
+    const query = 'DELETE FROM project_users WHERE project_id = $1 AND user_id = $2 RETURNING *';
+    const result = await db.query(query, [id, userId]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found in project' });
+    }
+
+    res.json({ message: 'User removed from project successfully' });
+  } catch (error) {
+    console.error('Error removing user from project:', error);
+    res.status(500).json({ error: 'Failed to remove user from project' });
+  }
+});
+
+app.get('/api/users/search', async (req, res) => {
+  try {
+    const { q } = req.query;
+
+    const query = `
+      SELECT id, username, email 
+      FROM users 
+      WHERE username ILIKE $1 OR email ILIKE $1
+      ORDER BY username
+      LIMIT 20
+    `;
+    const result = await db.query(query, [`%${q}%`]);
+
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error searching users:', error);
+    res.status(500).json({ error: 'Failed to search users' });
   }
 });
 
