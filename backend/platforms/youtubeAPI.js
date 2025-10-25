@@ -3,7 +3,7 @@ import { google } from 'googleapis';
 import fs2 from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { storeToken, retrieveToken } from './token_manager.js';
+import { storeTokenByProjectID, retrieveTokenByProjectID } from './token_manager.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -32,7 +32,7 @@ export async function uploadVideo(videoFile) {
     }
 }
 
-export async function authorize() {
+export async function authorize(PROJECT_ID = 1) {
     try {
         const content = await fs.readFile(CREDENTIALS_PATH, 'utf-8');
         const { client_secret, client_id, redirect_uris } = JSON.parse(content);
@@ -41,7 +41,7 @@ export async function authorize() {
         try {
             //const token = await fs.readFile(TOKEN_PATH, 'utf-8');
 
-            const token = await retrieveToken(1, 'youtube_token');
+            const token = await retrieveTokenByProjectID(1, 'youtube_token', PROJECT_ID);
             const tokenData = token;
 
             if (!tokenData.refresh_token) {
@@ -70,7 +70,7 @@ export async function authorize() {
     }
 }
 
-export async function getTokenFromCode(code) {
+export async function getTokenFromCode(code, PROJECT_ID = 1) {
     const content = await fs.readFile(CREDENTIALS_PATH, 'utf-8');
     const { client_secret, client_id, redirect_uris } = JSON.parse(content);
     const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, 'http://localhost:6709/api/oauth2callback/youtube');
@@ -79,7 +79,7 @@ export async function getTokenFromCode(code) {
     oAuth2Client.setCredentials(tokenResponse.tokens);
 
     //await fs.writeFile(TOKEN_PATH, JSON.stringify(tokenResponse.tokens, null, 2));
-    await storeToken(1, 'youtube_token', tokenResponse.tokens);
+    await storeTokenByProjectID(1, 'youtube_token', tokenResponse.tokens, PROJECT_ID);
     //   await
     //     console.log('Token stored to', TOKEN_PATH);
 }

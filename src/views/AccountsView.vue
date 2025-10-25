@@ -457,7 +457,8 @@ const connectedAccounts = ref({
 })
 
 const checkConnectedAccounts = () => {
-    axios.get(`${baseurl}accounts/status`)
+    const projectId = localStorage.getItem('currentProjectId') || 1;
+    axios.get(`${baseurl}accounts/status?project_id=${projectId}`)
         .then(response => {
             connectedAccounts.value.youtube = response.data.youtube || false
             connectedAccounts.value.instagram = response.data.instagram || false

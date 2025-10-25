@@ -14,7 +14,7 @@ import { InstagramAuth, InstagramTokenExchange, uploadReel } from './platforms/I
 import { FacebookAuth, FacebookTokenExchange, uploadVideo as uploadFacebookVideo } from './platforms/FacebookAPI.js'
 import * as tiktokAPI from './platforms/TiktokAPI.js'
 import * as db from './platforms/db.js'
-import { storeToken, retrieveToken } from './platforms/token_manager.js'
+import { storeTokenByProjectID, retrieveTokenByProjectID } from './platforms/token_manager.js'
 import { registerUser, loginUser, loginWithGoogle, authMiddleware, getUserById } from './platforms/auth.js'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -319,12 +319,13 @@ app.post('/api/upload', upload.single('video'), async (req, res) => {
 })
 
 app.get('/api/accounts/status', async (req, res) => {
+  const PROJECT_ID = req.query.project_id || 1
   try {
     res.json({
-      youtube: await retrieveToken(1, 'youtube_token') === null ? false : true,
-      tiktok: await retrieveToken(1, 'tiktok_token') === null ? false : true,//fs.existsSync(path.join(TOKENS_DIR, 'tiktok_token.json')),
-      instagram: await retrieveToken(1, 'instagram_business_account') === null ? false : true,
-      facebook: await retrieveToken(1, 'facebook_accounts') === null ? false : true
+      youtube: await retrieveTokenByProjectID(1, 'youtube_token', PROJECT_ID) === null ? false : true,
+      tiktok: await retrieveTokenByProjectID(1, 'tiktok_token', PROJECT_ID) === null ? false : true,
+      instagram: await retrieveTokenByProjectID(1, 'instagram_business_account', PROJECT_ID) === null ? false : true,
+      facebook: await retrieveTokenByProjectID(1, 'facebook_accounts', PROJECT_ID) === null ? false : true
     })
   } catch (error) {
     console.error('Error checking account status:', error)
@@ -502,10 +503,11 @@ app.post('/api/connect/:platform', async (req, res) => {
   try {
 
     const { platform } = req.params
+    const PROJECT_ID = req.query.project_id || 1
 
     switch (platform) {
       case 'youtube':
-        const result = await authorize();
+        const result = await authorize(PROJECT_ID);
 
         if (result.authUrl) {
           return res.json({ authUrl: result.authUrl });
@@ -549,15 +551,18 @@ app.post('/api/connect/:platform', async (req, res) => {
 
 app.get('/api/oauth2callback/youtube', async (req, res) => {
   const { code } = req.query;
+  //fuck this wont work because the request is comming grom google redirect, how to figure it out with state later
+  const PROJECT_ID = req.query.project_id || 1;
 
   if (!code) {
     return res.status(400).send('Authorization code not provided');
   }
 
   try {
+    const PROJECT_ID = localStorage.getItem('currentProjectId') || 1;
     //await fs.promises.writeFile(path.join(TOKENS_DIR, 'youtube_code.json'), JSON.stringify(code));
-    await storeToken(1, 'youtube_code', { code: code });
-    await getTokenFromCode(code);
+    await storeTokenByProjectID(1, 'youtube_code', { code: code }, PROJECT_ID);
+    await getTokenFromCode(code, PROJECT_ID);
     res.redirect('http://localhost:5185/accounts');
     //res.send('YouTube authorization successful! You can close this tab.');
   } catch (error) {
@@ -602,20 +607,22 @@ app.get('/api/oauth2callback/instagram', async (req, res) => {
 
   try {
     // await fs.promises.writeFile(path.join(TOKENS_DIR, 'instagram_code.json'), JSON.stringify(code));
-    await storeToken(1, 'instagram_code', { code: code });
+    const PROJECT_ID = localStorage.getItem('currentProjectId') || 1;
+
+    await storeTokenByProjectID(1, 'instagram_code', { code: code }, PROJECT_ID);
     axios.get(InstagramTokenExchange(code)).then(async (response) => {
       // fs.promises.writeFile(path.join(TOKENS_DIR, 'instagram_token.json'), JSON.stringify(response.data));
-      await storeToken(1, 'instagram_token', response.data);
+      await storeTokenByProjectID(1, 'instagram_token', response.data, PROJECT_ID);
 
       axios.get(`https://graph.facebook.com/v24.0/me/accounts?access_token=${response.data.access_token}`)
         .then(async (response) => {
           // fs.promises.writeFile(path.join(TOKENS_DIR, 'facebook_accounts_for_instagram.json'), JSON.stringify(response.data));
-          await storeToken(1, 'facebook_accounts_for_instagram', response.data);
+          await storeTokenByProjectID(1, 'facebook_accounts_for_instagram', response.data, PROJECT_ID);
 
           axios.get(`https://graph.facebook.com/v24.0/${response.data.data[0].id}?fields=instagram_business_account&access_token=${response.data.data[0].access_token}`)
             .then(async (response) => {
               // fs.promises.writeFile(path.join(TOKENS_DIR, 'instagram_business_account.json'), JSON.stringify(response.data));
-              await storeToken(1, 'instagram_business_account', response.data);
+              await storeTokenByProjectID(1, 'instagram_business_account', response.data, PROJECT_ID);
             });
         });
     });
@@ -640,16 +647,18 @@ app.get('/api/oauth2callback/facebook', async (req, res) => {
   }
 
   try {
+    const PROJECT_ID = localStorage.getItem('currentProjectId') || 1;
+
     //await fs.promises.writeFile(path.join(TOKENS_DIR, 'facebook_code.json'), JSON.stringify(code));
-    await storeToken(1, 'facebook_code', { code: code });
+    await storeTokenByProjectID(1, 'facebook_code', { code: code }, PROJECT_ID);
     axios.get(FacebookTokenExchange(code)).then(async (response) => {
       // fs.promises.writeFile(path.join(TOKENS_DIR, 'facebook_token.json'), JSON.stringify(response.data));
-      await storeToken(1, 'facebook_token', response.data);
+      await storeTokenByProjectID(1, 'facebook_token', response.data);
 
       axios.get(`https://graph.facebook.com/v24.0/me/accounts?access_token=${response.data.access_token}`)
         .then(async (response) => {
           // fs.promises.writeFile(path.join(TOKENS_DIR, 'facebook_accounts.json'), JSON.stringify(response.data));
-          await storeToken(1, 'facebook_accounts', response.data);
+          await storeTokenByProjectID(1, 'facebook_accounts', response.data, PROJECT_ID);
         });
     });
 
