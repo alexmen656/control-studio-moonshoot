@@ -221,3 +221,11 @@ export async function getVideos(limit = 25) {
         throw error;
     }
 }
+
+export default {
+    uploadVideo,
+    FacebookAuth,
+    FacebookTokenExchange,
+    getPages,
+    getVideos
+}

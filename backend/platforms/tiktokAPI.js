@@ -32,7 +32,7 @@ function generateCodeChallenge(verifier) {
     return crypto.createHash('sha256').update(verifier).digest('base64url');
 }
 
-export async function authorize() {
+async function authorize() {
     try {
         try {
             // const token = await fs.readFile(TOKEN_PATH, 'utf-8');
@@ -82,7 +82,7 @@ export async function authorize() {
     }
 }
 
-export async function exchangeCodeForToken(code, state) {
+async function exchangeCodeForToken(code, state) {
     try {
         //  const oauthState = JSON.parse(await fs.readFile(path.join(TOKENS_DIR, 'tiktok_oauth_state.json'), 'utf-8'));
         const oauthState = await retrieveToken(1, 'tiktok_oauth_state');
@@ -135,7 +135,7 @@ export async function exchangeCodeForToken(code, state) {
     }
 }
 
-export async function refreshAccessToken() {
+async function refreshAccessToken() {
     try {
         //const tokenData = JSON.parse(await fs.readFile(TOKEN_PATH, 'utf-8'));
         const tokenData = await retrieveToken(1, 'tiktok_token');
@@ -183,7 +183,7 @@ export async function refreshAccessToken() {
     }
 }
 
-export async function uploadVideo(videoPath, title, description, privacyLevel = 'SELF_ONLY') {
+async function uploadVideo(videoPath, title, description, privacyLevel = 'SELF_ONLY') {
     try {
         //const tokenData = JSON.parse(await fs.readFile(TOKEN_PATH, 'utf-8'));
         const tokenData = await retrieveToken(1, 'tiktok_token');
@@ -284,7 +284,7 @@ export async function uploadVideo(videoPath, title, description, privacyLevel = 
     }
 }
 
-export async function getUserInfo() {
+async function getUserInfo() {
     try {
         //const tokenData = JSON.parse(await fs.readFile(TOKEN_PATH, 'utf-8'));
         const tokenData = await retrieveToken(1, 'tiktok_token');
@@ -309,4 +309,12 @@ export async function getUserInfo() {
         throw err;
 
     }
+}
+
+export default {
+    authorize,
+    exchangeCodeForToken,
+    refreshAccessToken,
+    uploadVideo,
+    getUserInfo
 }

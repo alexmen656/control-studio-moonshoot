@@ -28,7 +28,7 @@
                                 project</p>
                         </div>
                         <button @click="showAddUserModal = true"
-                            class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-black rounded-lg transition-colors flex items-center gap-2">
+                            class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-black dark:text-white rounded-lg transition-colors flex items-center gap-2">
                             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd"
                                     d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
@@ -46,11 +46,11 @@
                                 <div
                                     class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
                                     <span class="text-white font-semibold text-lg">{{ getUserInitials(user.username)
-                                    }}</span>
+                                        }}</span>
                                 </div>
                                 <div>
                                     <h4 class="text-base font-semibold text-gray-900 dark:text-white">{{ user.username
-                                    }}</h4>
+                                        }}</h4>
                                     <p class="text-sm text-gray-500 dark:text-gray-400">{{ user.email }}</p>
                                 </div>
                             </div>

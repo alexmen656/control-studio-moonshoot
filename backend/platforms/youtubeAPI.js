@@ -14,7 +14,7 @@ const SCOPES = ['https://www.googleapis.com/auth/youtube.upload'];
 const TOKEN_PATH = path.join(TOKENS_DIR, 'youtube_token.json');
 const CREDENTIALS_PATH = path.join(__dirname, 'credentials.json');
 
-export async function uploadVideo(videoFile) {
+async function uploadVideo(videoFile) {
     console.log('Starting upload process...');
     try {
         const auth = await authorize();
@@ -32,7 +32,7 @@ export async function uploadVideo(videoFile) {
     }
 }
 
-export async function authorize(PROJECT_ID = 1) {
+async function authorize(PROJECT_ID = 1) {
     try {
         const content = await fs.readFile(CREDENTIALS_PATH, 'utf-8');
         const { client_secret, client_id, redirect_uris } = JSON.parse(content);
@@ -70,7 +70,7 @@ export async function authorize(PROJECT_ID = 1) {
     }
 }
 
-export async function getTokenFromCode(code, PROJECT_ID = 1) {
+async function getTokenFromCode(code, PROJECT_ID = 1) {
     const content = await fs.readFile(CREDENTIALS_PATH, 'utf-8');
     const { client_secret, client_id, redirect_uris } = JSON.parse(content);
     const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, 'http://localhost:6709/api/oauth2callback/youtube');
@@ -117,4 +117,10 @@ async function uploadToYouTube(auth, videoFile) {
             }
         );
     });
+}
+
+export default {
+    uploadVideo,
+    authorize,
+    getTokenFromCode
 }

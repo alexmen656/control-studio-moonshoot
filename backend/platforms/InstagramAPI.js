@@ -12,7 +12,7 @@ const PROJECT_ROOT = path.join(__dirname, '..', '..');
 
 dotenv.config({ path: path.join(PROJECT_ROOT, '.env') })
 
-export function InstagramAuth() {
+function InstagramAuth() {
     const appId = process.env.IG_APP_ID;
     const appSecret = process.env.IG_APP_SECRET;
     const redirectUri = 'http://localhost:6709/api/oauth2callback/instagram';
@@ -32,7 +32,7 @@ export function InstagramAuth() {
     return { auth_url: authUrl };
 }
 
-export function InstagramTokenExchange(code) {
+function InstagramTokenExchange(code) {
     const appId = process.env.IG_APP_ID;
     const appSecret = process.env.IG_APP_SECRET;
     const redirectUri = 'http://localhost:6709/api/oauth2callback/instagram';
@@ -45,7 +45,7 @@ export function InstagramTokenExchange(code) {
     return tokenUrl;
 }
 
-export async function uploadReel(videoFile, options = {}) {
+async function uploadReel(videoFile, options = {}) {
     console.log('Starting Instagram Reel upload process...');
 
     try {
@@ -191,7 +191,7 @@ async function publishContainer(containerId, accessToken, instagramUserId) {
     }
 }
 
-export async function checkPublishingLimit() {
+async function checkPublishingLimit() {
     const apiVersion = 'v21.0';
 
     try {
@@ -219,4 +219,11 @@ export async function checkPublishingLimit() {
         console.error('Error checking publishing limit:', error.response?.data || error.message);
         throw error;
     }
+}
+
+export default {
+    checkPublishingLimit,
+    uploadReel,
+    InstagramAuth,
+    InstagramTokenExchange
 }
