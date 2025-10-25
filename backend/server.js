@@ -9,10 +9,10 @@ import { fileURLToPath } from 'url'
 import dotenv from 'dotenv'
 import { exec } from 'child_process'
 import { promisify } from 'util'
-import youtube from './platforms/YoutubeAPI.js'
-import instagram from './platforms/InstagramAPI.js'
-import facebook from './platforms/FacebookAPI.js'
-import tiktokAPI from './platforms/TiktokAPI.js'
+import youtube from './platforms/Youtube.js'
+import instagram from './platforms/Instagram.js'
+import facebook from './platforms/Facebook.js'
+import tiktok from './platforms/Tiktok.js'
 import * as db from './platforms/db.js'
 import { storeTokenByProjectID, retrieveTokenByProjectID } from './platforms/token_manager.js'
 import { registerUser, loginUser, loginWithGoogle, authMiddleware, getUserById } from './platforms/auth.js'
@@ -633,7 +633,7 @@ app.post('/api/connect/:platform', async (req, res) => {
           res.json({ message: 'Connected to Facebook successfully' });
         }
       case 'tiktok':
-        const tiktokResult = await tiktokAPI.authorize();
+        const tiktokResult = await tiktok.authorize();
 
         if (tiktokResult.authUrl) {
           return res.json({ authUrl: tiktokResult.authUrl });
@@ -686,7 +686,7 @@ app.get('/api/oauth2callback/tiktok', async (req, res) => {
   }
 
   try {
-    await tiktokAPI.exchangeCodeForToken(code, state);
+    await tiktok.exchangeCodeForToken(code, state);
 
     res.redirect('http://localhost:5185/accounts?tiktok=connected');
   } catch (error) {
@@ -804,7 +804,7 @@ app.post('/api/publish', async (req, res) => {
     if (video.platforms.includes('tiktok')) {
       console.log('Publishing to TikTok:', video.title);
       try {
-        await tiktokAPI.uploadVideo(video.path, video.title)
+        await tiktok.uploadVideo(video.path, video.title)
         platformStatuses.tiktok = 'success'
         console.log(`✓ TikTok: Published successfully at ${new Date().toLocaleString()}`)
       } catch (error) {
