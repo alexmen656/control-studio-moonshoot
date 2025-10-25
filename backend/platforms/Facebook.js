@@ -48,8 +48,6 @@ export async function uploadVideo(videoFile, options = {}) {
     console.log('Starting Facebook Video upload process...');
 
     try {
-        const facebookAccountsPath = path.join(TOKENS_DIR, 'facebook_accounts.json');
-        //const facebookAccountsData = JSON.parse(await fs.readFile(facebookAccountsPath, 'utf-8'));
         const facebookAccountsData = await retrieveToken(1, 'facebook_accounts');
         const accessToken = facebookAccountsData.data[0].access_token;
         const pageId = facebookAccountsData.data[0].id;
@@ -72,7 +70,6 @@ async function initializeUpload(videoFile, accessToken, pageId, options) {
     console.log('pageeeeeeid:', pageId);
     const apiVersion = 'v21.0';
     const url = `https://graph.facebook.com/${apiVersion}/${pageId}/videos`;
-
     const stats = await fs.stat(videoFile.path);
     const fileSize = stats.size;
 
@@ -102,7 +99,6 @@ async function uploadVideoChunks(videoFile, uploadSessionId, startOffset, access
 
     try {
         console.log('Uploading video chunk at offset:', startOffset);
-
         const fileBuffer = await fs.readFile(videoFile.path);
 
         const formData = new FormData();
@@ -198,12 +194,9 @@ export async function getVideos(limit = 25) {
     const apiVersion = 'v21.0';
 
     try {
-        const facebookAccountsPath = path.join(TOKENS_DIR, 'facebook_accounts.json');
-        //const facebookAccountsData = JSON.parse(await fs.readFile(facebookAccountsPath, 'utf-8'));
         const facebookAccountsData = await retrieveToken(1, 'facebook_accounts');
         const accessToken = facebookAccountsData.data[0].access_token;
         const pageId = facebookAccountsData.data[0].id;
-
         const url = `https://graph.facebook.com/${apiVersion}/${pageId}/videos`;
 
         const response = await axios.get(url, {

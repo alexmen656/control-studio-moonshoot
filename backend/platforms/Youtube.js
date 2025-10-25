@@ -39,8 +39,6 @@ async function authorize(PROJECT_ID = 1) {
         const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, 'http://localhost:6709/api/oauth2callback/youtube');
 
         try {
-            //const token = await fs.readFile(TOKEN_PATH, 'utf-8');
-
             const token = await retrieveTokenByProjectID(1, 'youtube_token', PROJECT_ID);
             const tokenData = token;
 
@@ -78,10 +76,7 @@ async function getTokenFromCode(code, PROJECT_ID = 1) {
     const tokenResponse = await oAuth2Client.getToken(code);
     oAuth2Client.setCredentials(tokenResponse.tokens);
 
-    //await fs.writeFile(TOKEN_PATH, JSON.stringify(tokenResponse.tokens, null, 2));
     await storeTokenByProjectID(1, 'youtube_token', tokenResponse.tokens, PROJECT_ID);
-    //   await
-    //     console.log('Token stored to', TOKEN_PATH);
 }
 
 async function uploadToYouTube(auth, videoFile) {

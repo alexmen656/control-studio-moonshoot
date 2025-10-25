@@ -36,5 +36,3 @@ export function decrypt(encrypted) {
     decrypted += decipher.final('utf8');
     return decrypted;
 }
-
-console.log(encrypt('Hello, World!'));

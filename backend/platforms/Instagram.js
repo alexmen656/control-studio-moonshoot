@@ -51,13 +51,10 @@ async function uploadReel(videoFile, options = {}) {
     try {
         const instagramAccountPath = path.join(TOKENS_DIR, 'instagram_business_account.json');
         const facebookAccountsPath = path.join(TOKENS_DIR, 'facebook_accounts_for_instagram.json');
-        //const instagramAccountData = JSON.parse(await fs.readFile(instagramAccountPath, 'utf-8'));
-        //const facebookAccountsData = JSON.parse(await fs.readFile(facebookAccountsPath, 'utf-8'));
         const instagramAccountData = await retrieveToken(1, 'instagram_business_account');
         const facebookAccountsData = await retrieveToken(1, 'facebook_accounts_for_instagram');
         const instagramUserId = instagramAccountData.instagram_business_account.id;
         const accessToken = facebookAccountsData.data[0].access_token;
-
         console.log('Using Instagram Business Account ID:', instagramUserId);
 
         const containerId = await createReelContainer(accessToken, instagramUserId, options);
@@ -116,7 +113,6 @@ async function uploadVideoToContainer(videoFile, containerId, accessToken) {
     try {
         const stats = await fs.stat(videoFile.path);
         const fileSize = stats.size;
-
         const fileBuffer = await fs.readFile(videoFile.path);
 
         const response = await axios.post(url, fileBuffer, {
@@ -197,13 +193,10 @@ async function checkPublishingLimit() {
     try {
         const instagramAccountPath = path.join(TOKENS_DIR, 'instagram_business_account.json');
         const facebookAccountsPath = path.join(TOKENS_DIR, 'facebook_accounts_for_instagram.json');
-        //const instagramAccountData = JSON.parse(await fs.readFile(instagramAccountPath, 'utf-8'));
-        //const facebookAccountsData = JSON.parse(await fs.readFile(facebookAccountsPath, 'utf-8'));
         const instagramAccountData = await retrieveToken(1, 'instagram_business_account');
         const facebookAccountsData = await retrieveToken(1, 'facebook_accounts_for_instagram');
         const instagramUserId = instagramAccountData.instagram_business_account.id;
         const accessToken = facebookAccountsData.data[0].access_token;
-
         const url = `https://graph.facebook.com/${apiVersion}/${instagramUserId}/content_publishing_limit`;
 
         const response = await axios.get(url, {

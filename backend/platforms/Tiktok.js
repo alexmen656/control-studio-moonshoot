@@ -35,15 +35,11 @@ function generateCodeChallenge(verifier) {
 async function authorize() {
     try {
         try {
-            // const token = await fs.readFile(TOKEN_PATH, 'utf-8');
-
             const token = await retrieveToken(1, 'tiktok_token');
-
-
-            console.log('TikTok token found');
             const tokenData = JSON.parse(token);
 
             if (tokenData.expires_at && Date.now() < tokenData.expires_at) {
+                console.log('TikTok token found, and is still valid');
                 return { accessToken: tokenData.access_token };
             } else {
                 console.log('TikTok token expired, need to refresh or get new one');
@@ -84,7 +80,6 @@ async function authorize() {
 
 async function exchangeCodeForToken(code, state) {
     try {
-        //  const oauthState = JSON.parse(await fs.readFile(path.join(TOKENS_DIR, 'tiktok_oauth_state.json'), 'utf-8'));
         const oauthState = await retrieveToken(1, 'tiktok_oauth_state');
 
         if (state !== oauthState.csrf_state) {
@@ -120,8 +115,6 @@ async function exchangeCodeForToken(code, state) {
             expires_at: Date.now() + (tokenData.expires_in * 1000)
         };
 
-        //await fs.writeFile(TOKEN_PATH, JSON.stringify(tokenWithExpiry, null, 2));
-
         await storeToken(1, 'tiktok_token', tokenWithExpiry);
 
         console.log('TikTok token stored successfully');
@@ -137,7 +130,6 @@ async function exchangeCodeForToken(code, state) {
 
 async function refreshAccessToken() {
     try {
-        //const tokenData = JSON.parse(await fs.readFile(TOKEN_PATH, 'utf-8'));
         const tokenData = await retrieveToken(1, 'tiktok_token');
 
         if (!tokenData.refresh_token) {
@@ -171,9 +163,7 @@ async function refreshAccessToken() {
             expires_at: Date.now() + (newTokenData.expires_in * 1000)
         };
 
-        //await fs.writeFile(TOKEN_PATH, JSON.stringify(tokenWithExpiry, null, 2));
         await storeToken(1, 'tiktok_token', tokenWithExpiry);
-
         console.log('TikTok token refreshed successfully');
 
         return tokenWithExpiry;
@@ -185,7 +175,6 @@ async function refreshAccessToken() {
 
 async function uploadVideo(videoPath, title, description, privacyLevel = 'SELF_ONLY') {
     try {
-        //const tokenData = JSON.parse(await fs.readFile(TOKEN_PATH, 'utf-8'));
         const tokenData = await retrieveToken(1, 'tiktok_token');
         const accessToken = tokenData.access_token;
 
@@ -198,6 +187,7 @@ async function uploadVideo(videoPath, title, description, privacyLevel = 'SELF_O
         }
 
         console.log(`Uploading video of size ${fileSize} bytes in chunks of ${chunkSize} bytes`, String(Math.ceil(fileSize / chunkSize)));
+
         const initResponse = await fetch('https://open.tiktokapis.com/v2/post/publish/video/init/', {
             method: 'POST',
             headers: {
@@ -220,8 +210,6 @@ async function uploadVideo(videoPath, title, description, privacyLevel = 'SELF_O
                     total_chunk_count: Math.ceil(fileSize / chunkSize)
                 }
             })
-
-
         });
 
         if (!initResponse.ok) {
@@ -286,7 +274,6 @@ async function uploadVideo(videoPath, title, description, privacyLevel = 'SELF_O
 
 async function getUserInfo() {
     try {
-        //const tokenData = JSON.parse(await fs.readFile(TOKEN_PATH, 'utf-8'));
         const tokenData = await retrieveToken(1, 'tiktok_token');
         const accessToken = tokenData.access_token;
 

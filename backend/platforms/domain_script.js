@@ -1,19 +1,16 @@
 import axios from "axios";
 import fs from "fs";
 
-const API_KEY = "ff47cf5a375211fdbcab483f73c411f5";
+const API_KEY = "";
 
-// Größere Silbenliste, inspiriert von Digmio-Style
 const syllables = [
     "di", "gi", "mi", "mo", "vi", "vo", "ly", "na", "ra", "ze", "ky", "lo",
     "ti", "li", "do", "no", "ri", "si", "fi", "ba", "ka", "nu", "xo", "pa",
     "ce", "ve", "jo", "mu", "zu", "ya", "ta", "li", "ki", "mo", "ra"
 ];
 
-// Endungen
 const endings = ["io", "ia", "o", "a"];
 
-// Generiert Kandidaten mit 4-5 Buchstaben
 function generateCandidates() {
     const domains = new Set();
 
@@ -31,7 +28,6 @@ function generateCandidates() {
     return Array.from(domains);
 }
 
-// Prüft Domain-Verfügbarkeit via WhoAPI
 async function checkDomain(domain) {
     try {
         const res = await axios.get(
@@ -51,7 +47,6 @@ async function checkDomain(domain) {
     }
 }
 
-// Main
 async function main() {
     const domains = generateCandidates();
     console.log("Generierte Kandidaten:", domains.length);
