@@ -37,10 +37,18 @@ const viewMode = ref<'calendar' | 'list'>('calendar')
 const currentDate = ref(new Date())
 const isLoading = ref(false)
 
+function handleProjectChanged(event) {
+    const project = event.detail
+    console.log('Project changed to:', project)
+    loadVideos()
+}
+
 const loadVideos = async () => {
+    const PROJECT_ID = localStorage.getItem('currentProjectId') ? `project_id=${localStorage.getItem('currentProjectId')}` : ''
+
     try {
         isLoading.value = true
-        const response = await fetch(`${API_URL}/videos`)
+        const response = await fetch(`${API_URL}/videos?${PROJECT_ID}`)
         if (response.ok) {
             const data = await response.json()
             videos.value = data.map((v: any) => ({
@@ -248,6 +256,12 @@ const getPlatformName = (platform: string) => {
 
 onMounted(() => {
     loadVideos()
+
+    window.addEventListener('project-changed', handleProjectChanged)
+
+    return () => {
+        window.removeEventListener('project-changed', handleProjectChanged)
+    }
 })
 </script>
 
