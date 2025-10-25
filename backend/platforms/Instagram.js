@@ -7,9 +7,7 @@ import { retrieveToken } from '../utils/token_manager.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const TOKENS_DIR = path.join(__dirname, '..', 'tokens');
 const PROJECT_ROOT = path.join(__dirname, '..', '..');
-
 dotenv.config({ path: path.join(PROJECT_ROOT, '.env') })
 
 function InstagramAuth() {
@@ -49,8 +47,6 @@ async function uploadReel(videoFile, options = {}) {
     console.log('Starting Instagram Reel upload process...');
 
     try {
-        const instagramAccountPath = path.join(TOKENS_DIR, 'instagram_business_account.json');
-        const facebookAccountsPath = path.join(TOKENS_DIR, 'facebook_accounts_for_instagram.json');
         const instagramAccountData = await retrieveToken(1, 'instagram_business_account');
         const facebookAccountsData = await retrieveToken(1, 'facebook_accounts_for_instagram');
         const instagramUserId = instagramAccountData.instagram_business_account.id;
@@ -191,8 +187,6 @@ async function checkPublishingLimit() {
     const apiVersion = 'v21.0';
 
     try {
-        const instagramAccountPath = path.join(TOKENS_DIR, 'instagram_business_account.json');
-        const facebookAccountsPath = path.join(TOKENS_DIR, 'facebook_accounts_for_instagram.json');
         const instagramAccountData = await retrieveToken(1, 'instagram_business_account');
         const facebookAccountsData = await retrieveToken(1, 'facebook_accounts_for_instagram');
         const instagramUserId = instagramAccountData.instagram_business_account.id;

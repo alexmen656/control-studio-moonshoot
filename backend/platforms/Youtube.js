@@ -7,12 +7,8 @@ import { storeTokenByProjectID, retrieveTokenByProjectID } from '../utils/token_
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const BACKEND_DIR = path.join(__dirname, '..');
-const TOKENS_DIR = path.join(BACKEND_DIR, 'tokens');
-
-const SCOPES = ['https://www.googleapis.com/auth/youtube.upload'];
-const TOKEN_PATH = path.join(TOKENS_DIR, 'youtube_token.json');
 const CREDENTIALS_PATH = path.join(__dirname, 'credentials.json');
+const SCOPES = ['https://www.googleapis.com/auth/youtube.upload'];
 
 async function uploadVideo(videoFile) {
     console.log('Starting upload process...');

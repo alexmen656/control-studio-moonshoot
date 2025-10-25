@@ -8,9 +8,8 @@ import { retrieveToken } from '../utils/token_manager.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const TOKENS_DIR = path.join(__dirname, '..', 'tokens');
-
-dotenv.config({ path: '.env' })
+const PROJECT_ROOT = path.join(__dirname, '..', '..');
+dotenv.config({ path: path.join(PROJECT_ROOT, '.env') })
 
 export function FacebookAuth() {
     const appId = process.env.IG_APP_ID;
