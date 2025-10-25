@@ -259,7 +259,7 @@ app.delete('/api/projects/:id', async (req, res) => {
 
 app.get('/api/videos', async (req, res) => {
   try {
-    const videos = await db.getAllVideos()
+    const videos = await db.getVideosByProjectId(req.query.project_id)
     res.json(videos)
   } catch (error) {
     console.error('Error reading videos:', error)

@@ -221,4 +221,31 @@ export const getTotalStorageUsed = async () => {
     return parseInt(result.rows[0].total);
 };
 
+export const getVideosByProjectId = async (projectId) => {
+    const result = await pool.query(`
+    SELECT 
+      v.*,
+      COALESCE(
+        json_agg(DISTINCT vp.platform) FILTER (WHERE vp.platform IS NOT NULL),
+        '[]'
+      ) as platforms,
+      COALESCE(
+        json_agg(DISTINCT vt.tag) FILTER (WHERE vt.tag IS NOT NULL),
+        '[]'
+      ) as tags,
+      COALESCE(
+        json_object_agg(ps.platform, ps.status) FILTER (WHERE ps.platform IS NOT NULL),
+        '{}'
+      ) as publish_status
+    FROM videos v
+    LEFT JOIN video_platforms vp ON v.id = vp.video_id
+    LEFT JOIN video_tags vt ON v.id = vt.video_id
+    LEFT JOIN publish_status ps ON v.id = ps.video_id
+    WHERE v.project_id = $1
+    GROUP BY v.id
+    ORDER BY v.upload_date DESC
+  `, [projectId]);
+    return result.rows.map(row => toCamelCase(row));
+};
+
 export default pool;

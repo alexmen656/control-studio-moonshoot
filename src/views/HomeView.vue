@@ -45,10 +45,12 @@ const videoDetailsForm = ref({
   platforms: [] as Array<'instagram' | 'tiktok' | 'youtube' | 'facebook'>
 })
 
+const PROJECT_ID = localStorage.getItem('currentProjectId') ? `project_id=${localStorage.getItem('currentProjectId')}` : ''
+
 const loadVideos = async () => {
   try {
     isLoading.value = true
-    const response = await fetch(`${API_URL}/videos`)
+    const response = await fetch(`${API_URL}/videos?${PROJECT_ID}`)
     if (response.ok) {
       const data = await response.json()
       videos.value = data.map((v: any) => ({
