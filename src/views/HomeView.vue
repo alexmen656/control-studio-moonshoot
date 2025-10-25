@@ -45,9 +45,9 @@ const videoDetailsForm = ref({
   platforms: [] as Array<'instagram' | 'tiktok' | 'youtube' | 'facebook'>
 })
 
-const PROJECT_ID = localStorage.getItem('currentProjectId') ? `project_id=${localStorage.getItem('currentProjectId')}` : ''
-
 const loadVideos = async () => {
+  const PROJECT_ID = localStorage.getItem('currentProjectId') ? `project_id=${localStorage.getItem('currentProjectId')}` : ''
+
   try {
     isLoading.value = true
     const response = await fetch(`${API_URL}/videos?${PROJECT_ID}`)
@@ -212,6 +212,12 @@ const handleDrop = (event: DragEvent) => {
   }
 }
 
+function handleProjectChanged(event) {
+  const project = event.detail
+  console.log('Project changed to:', project)
+  loadVideos()
+}
+
 onMounted(() => {
   loadVideos()
 
@@ -220,9 +226,11 @@ onMounted(() => {
   }
 
   window.addEventListener('open-upload-modal', handleOpenUploadModal)
+  window.addEventListener('project-changed', handleProjectChanged)
 
   return () => {
     window.removeEventListener('open-upload-modal', handleOpenUploadModal)
+    window.removeEventListener('project-changed', handleProjectChanged)
   }
 })
 
