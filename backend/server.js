@@ -158,6 +158,102 @@ app.get('/api/auth/me', authMiddleware, async (req, res) => {
 });
 
 // ============================================
+// PROJECT ROUTES
+// ============================================
+
+app.get('/api/projects', async (req, res) => {
+  try {
+    const { user_id } = req.query;
+
+    if (!user_id) {
+      return res.status(400).json({ error: 'User ID is required' });
+    }
+
+    const query = `
+      SELECT 
+        p.*,
+        COUNT(v.id) as video_count
+      FROM projects p
+      LEFT JOIN videos v ON v.project_id = p.id
+      WHERE p.user_id = $1
+      GROUP BY p.id
+      ORDER BY p.created_at DESC
+    `;
+
+    const result = await db.query(query, [user_id]);
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching projects:', error);
+    res.status(500).json({ error: 'Failed to fetch projects' });
+  }
+});
+
+app.post('/api/projects', async (req, res) => {
+  try {
+    const { name, initials, color1, color2, user_id } = req.body;
+
+    if (!name || !initials || !color1 || !color2 || !user_id) {
+      return res.status(400).json({ error: 'All fields are required' });
+    }
+
+    const query = `
+      INSERT INTO projects (name, initials, color1, color2, user_id)
+      VALUES ($1, $2, $3, $4, $5)
+      RETURNING *
+    `;
+
+    const result = await db.query(query, [name, initials, color1, color2, user_id]);
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    console.error('Error creating project:', error);
+    res.status(500).json({ error: 'Failed to create project' });
+  }
+});
+
+app.put('/api/projects/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, initials, color1, color2 } = req.body;
+
+    const query = `
+      UPDATE projects 
+      SET name = $1, initials = $2, color1 = $3, color2 = $4, updated_at = CURRENT_TIMESTAMP
+      WHERE id = $5
+      RETURNING *
+    `;
+
+    const result = await db.query(query, [name, initials, color1, color2, id]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Error updating project:', error);
+    res.status(500).json({ error: 'Failed to update project' });
+  }
+});
+
+app.delete('/api/projects/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const query = 'DELETE FROM projects WHERE id = $1 RETURNING *';
+    const result = await db.query(query, [id]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+
+    res.json({ message: 'Project deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting project:', error);
+    res.status(500).json({ error: 'Failed to delete project' });
+  }
+});
+
+// ============================================
 // VIDEO ROUTES
 // ============================================
 
