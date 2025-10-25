@@ -68,20 +68,42 @@ export const verifyPasskeyRegistration = async (userId, response, expectedChalle
             throw new Error('No registration info in verification response');
         }
 
-        const {
-            credentialPublicKey,
-            credentialID,
-            counter,
-        } = registrationInfo;
+        const credentialID = registrationInfo.credential?.id || registrationInfo.credentialID;
+        const credentialPublicKey = registrationInfo.credential?.publicKey || registrationInfo.credentialPublicKey;
+        const counter = registrationInfo.credential?.counter ?? registrationInfo.counter ?? 0;
+
+        console.log('Extracted credentialID:', credentialID);
+        //console.log('Extracted credentialPublicKey:', credentialPublicKey);
+        //console.log('Extracted counter:', counter);
 
         if (!credentialID) {
+            console.error('Available registrationInfo:', registrationInfo);
             throw new Error('No credentialID in registration info');
         }
+
         if (!credentialPublicKey) {
+            console.error('Available registrationInfo:', registrationInfo);
             throw new Error('No credentialPublicKey in registration info');
         }
 
-        const transports = response.transports || response.response?.transports || [];
+        let credentialIdBase64;
+        let publicKeyBase64;
+
+        if (typeof credentialID === 'string') {
+            credentialIdBase64 = Buffer.from(credentialID, 'base64url').toString('base64');
+        } else {
+            credentialIdBase64 = Buffer.from(credentialID).toString('base64');
+        }
+
+        if (typeof credentialPublicKey === 'string') {
+            publicKeyBase64 = Buffer.from(credentialPublicKey, 'base64url').toString('base64');
+        } else {
+            publicKeyBase64 = Buffer.from(credentialPublicKey).toString('base64');
+        }
+
+        console.log('Stored credentialID (base64):', credentialIdBase64);
+
+        const transports = response.response?.transports || [];
 
         const result = await query(
             `INSERT INTO passkeys (user_id, credential_id, public_key, counter, transports)
@@ -89,8 +111,8 @@ export const verifyPasskeyRegistration = async (userId, response, expectedChalle
              RETURNING id`,
             [
                 userId,
-                Buffer.from(credentialID).toString('base64'),
-                Buffer.from(credentialPublicKey).toString('base64'),
+                credentialIdBase64,
+                publicKeyBase64,
                 counter,
                 transports
             ]
@@ -131,30 +153,43 @@ export const generatePasskeyAuthenticationOptions = async (userId = null) => {
 
 export const verifyPasskeyAuthentication = async (response, expectedChallenge) => {
     try {
-        const credentialId = Buffer.from(response.id, 'base64url').toString('base64');
+        const credentialIdBase64 = Buffer.from(response.id, 'base64url').toString('base64');
 
         const result = await query(
             'SELECT * FROM passkeys WHERE credential_id = $1',
-            [credentialId]
+            [credentialIdBase64]
         );
 
-        if (result.rows.length === 0) {
-            throw new Error('Passkey not found');
+        if (result.rows.length > 0) {
+            console.log('Found passkey, with id:', result.rows[0].id);
+        } else {
+            throw new Error(`Passkey not found. Searched for: ${credentialIdBase64}`);
         }
 
         const passkey = result.rows[0];
+
+        const credential = {
+            id: Buffer.from(passkey.credential_id, 'base64'),
+            publicKey: Buffer.from(passkey.public_key, 'base64'),
+            counter: parseInt(passkey.counter, 10),
+        };
+
+        console.log('Credential object:', {
+            id_length: credential.id.length,
+            publicKey_length: credential.publicKey.length,
+            counter: credential.counter,
+            counter_type: typeof credential.counter
+        });
 
         const verification = await verifyAuthenticationResponse({
             response,
             expectedChallenge,
             expectedOrigin: ORIGIN,
             expectedRPID: RP_ID,
-            authenticator: {
-                credentialID: Buffer.from(passkey.credential_id, 'base64'),
-                credentialPublicKey: Buffer.from(passkey.public_key, 'base64'),
-                counter: parseInt(passkey.counter),
-            },
+            credential,
         });
+
+        console.log('Verification successful:', verification.verified);
 
         if (!verification.verified) {
             throw new Error('Passkey authentication verification failed');
