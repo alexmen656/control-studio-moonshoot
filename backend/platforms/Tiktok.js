@@ -14,8 +14,8 @@ const PROJECT_ROOT = path.join(__dirname, '..', '..');
 dotenv.config({ path: path.join(PROJECT_ROOT, '.env') })
 
 const TOKEN_PATH = path.join(TOKENS_DIR, 'tiktok_token.json');
-const TIKTOK_CLIENT_KEY = process.env.TIKTOK_CLIENT_KEY || '';
-const TIKTOK_CLIENT_SECRET = process.env.TIKTOK_CLIENT_SECRET || '';
+const CLIENT_KEY = process.env.TIKTOK_CLIENT_KEY || '';
+const CLIENT_SECRET = process.env.TIKTOK_CLIENT_SECRET || '';
 const REDIRECT_URI = 'https://alex.polan.sk/tiktok_redirect.php';
 
 const SCOPES = [
@@ -63,7 +63,7 @@ async function authorize() {
         });
 
         const authUrl = new URL('https://www.tiktok.com/v2/auth/authorize/');
-        authUrl.searchParams.append('client_key', TIKTOK_CLIENT_KEY);
+        authUrl.searchParams.append('client_key', CLIENT_KEY);
         authUrl.searchParams.append('scope', SCOPES);
         authUrl.searchParams.append('response_type', 'code');
         authUrl.searchParams.append('redirect_uri', REDIRECT_URI);
@@ -94,8 +94,8 @@ async function exchangeCodeForToken(code, state) {
                 'Cache-Control': 'no-cache'
             },
             body: new URLSearchParams({
-                client_key: TIKTOK_CLIENT_KEY,
-                client_secret: TIKTOK_CLIENT_SECRET,
+                client_key: CLIENT_KEY,
+                client_secret: CLIENT_SECRET,
                 code: code,
                 grant_type: 'authorization_code',
                 redirect_uri: REDIRECT_URI,
@@ -144,8 +144,8 @@ async function refreshAccessToken() {
                 'Cache-Control': 'no-cache'
             },
             body: new URLSearchParams({
-                client_key: TIKTOK_CLIENT_KEY,
-                client_secret: TIKTOK_CLIENT_SECRET,
+                client_key: CLIENT_KEY,
+                client_secret: CLIENT_SECRET,
                 grant_type: 'refresh_token',
                 refresh_token: tokenData.refresh_token
             })

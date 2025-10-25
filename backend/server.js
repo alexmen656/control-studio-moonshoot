@@ -613,7 +613,7 @@ app.post('/api/connect/:platform', async (req, res) => {
         }
 
       case 'instagram':
-        const instagramAuth = instagram.InstagramAuth();
+        const instagramAuth = instagram.auth();
         if (instagramAuth.auth_url) {
           return res.json({ authUrl: instagramAuth.auth_url });
         } else {
@@ -621,7 +621,7 @@ app.post('/api/connect/:platform', async (req, res) => {
         }
 
       case 'facebook':
-        const facebookAuth = facebook.FacebookAuth();
+        const facebookAuth = facebook.auth();
         if (facebookAuth.auth_url) {
           return res.json({ authUrl: facebookAuth.auth_url });
         } else {
@@ -705,7 +705,7 @@ app.get('/api/oauth2callback/instagram', async (req, res) => {
     const PROJECT_ID = localStorage.getItem('currentProjectId') || 1;
 
     await storeTokenByProjectID(1, 'instagram_code', { code: code }, PROJECT_ID);
-    axios.get(instagram.InstagramTokenExchange(code)).then(async (response) => {
+    axios.get(instagram.tokenExchange(code)).then(async (response) => {
       await storeTokenByProjectID(1, 'instagram_token', response.data, PROJECT_ID);
 
       axios.get(`https://graph.facebook.com/v24.0/me/accounts?access_token=${response.data.access_token}`)
@@ -742,7 +742,7 @@ app.get('/api/oauth2callback/facebook', async (req, res) => {
     const PROJECT_ID = localStorage.getItem('currentProjectId') || 1;
 
     await storeTokenByProjectID(1, 'facebook_code', { code: code }, PROJECT_ID);
-    axios.get(facebook.FacebookTokenExchange(code)).then(async (response) => {
+    axios.get(facebook.tokenExchange(code)).then(async (response) => {
       await storeTokenByProjectID(1, 'facebook_token', response.data);
 
       axios.get(`https://graph.facebook.com/v24.0/me/accounts?access_token=${response.data.access_token}`)

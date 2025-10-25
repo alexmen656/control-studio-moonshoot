@@ -11,7 +11,7 @@ const __dirname = path.dirname(__filename);
 const PROJECT_ROOT = path.join(__dirname, '..', '..');
 dotenv.config({ path: path.join(PROJECT_ROOT, '.env') })
 
-export function FacebookAuth() {
+export function auth() {
     const appId = process.env.IG_APP_ID;
     const appSecret = process.env.IG_APP_SECRET;
     const redirectUri = 'http://localhost:6709/api/oauth2callback/facebook';
@@ -30,7 +30,7 @@ export function FacebookAuth() {
     return { auth_url: authUrl };
 }
 
-export function FacebookTokenExchange(code) {
+export function tokenExchange(code) {
     const appId = process.env.IG_APP_ID;
     const appSecret = process.env.IG_APP_SECRET;
     const redirectUri = 'http://localhost:6709/api/oauth2callback/facebook';
@@ -216,8 +216,8 @@ export async function getVideos(limit = 25) {
 
 export default {
     uploadVideo,
-    FacebookAuth,
-    FacebookTokenExchange,
+    auth,
+    tokenExchange,
     getPages,
     getVideos
 }

@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { query } from '../platforms/db.js';
+import { query } from './db.js';
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
 import path from 'path';

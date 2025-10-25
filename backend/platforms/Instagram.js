@@ -10,7 +10,7 @@ const __dirname = path.dirname(__filename);
 const PROJECT_ROOT = path.join(__dirname, '..', '..');
 dotenv.config({ path: path.join(PROJECT_ROOT, '.env') })
 
-function InstagramAuth() {
+function auth() {
     const appId = process.env.IG_APP_ID;
     const appSecret = process.env.IG_APP_SECRET;
     const redirectUri = 'http://localhost:6709/api/oauth2callback/instagram';
@@ -19,7 +19,6 @@ function InstagramAuth() {
         console.error('Instagram App ID and App Secret must be set in environment variables.');
         process.exit(1);
     }
-
 
     const scope = 'instagram_basic,instagram_content_publish,pages_read_engagement';
     let authUrl = 'https://www.facebook.com/v14.0/dialog/oauth';
@@ -30,7 +29,7 @@ function InstagramAuth() {
     return { auth_url: authUrl };
 }
 
-function InstagramTokenExchange(code) {
+function tokenExchange(code) {
     const appId = process.env.IG_APP_ID;
     const appSecret = process.env.IG_APP_SECRET;
     const redirectUri = 'http://localhost:6709/api/oauth2callback/instagram';
@@ -51,9 +50,8 @@ async function uploadReel(videoFile, options = {}) {
         const facebookAccountsData = await retrieveToken(1, 'facebook_accounts_for_instagram');
         const instagramUserId = instagramAccountData.instagram_business_account.id;
         const accessToken = facebookAccountsData.data[0].access_token;
-        console.log('Using Instagram Business Account ID:', instagramUserId);
-
         const containerId = await createReelContainer(accessToken, instagramUserId, options);
+        console.log('Using Instagram Business Account ID:', instagramUserId);
 
         await uploadVideoToContainer(videoFile, containerId, accessToken);
         await waitForContainerReady(containerId, accessToken);
@@ -211,6 +209,6 @@ async function checkPublishingLimit() {
 export default {
     checkPublishingLimit,
     uploadReel,
-    InstagramAuth,
-    InstagramTokenExchange
+    auth,
+    tokenExchange
 }
