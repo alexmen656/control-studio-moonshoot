@@ -18,7 +18,7 @@
                     Welcome back
                 </h2>
                 <p class="mt-2 text-sm text-primary-100 dark:text-gray-300">
-                    Sign in to your Control Cloud account
+                    Sign in to your Control Studio account
                 </p>
             </div>
             <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 space-y-6">
@@ -68,7 +68,7 @@
                     </div>
                 </div>
                 <form class="space-y-4" @submit.prevent="handleLogin">
-                    <div>
+                    <div v-if="!showTwoFactor">
                         <label for="username" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                             Email or Username
                         </label>
@@ -77,7 +77,7 @@
                             class="appearance-none block w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm disabled:bg-gray-100 dark:disabled:bg-gray-700 disabled:cursor-not-allowed bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                             placeholder="your@email.com or username">
                     </div>
-                    <div>
+                    <div v-if="!showTwoFactor">
                         <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                             Password
                         </label>
@@ -85,6 +85,34 @@
                             :disabled="authStore.isLoading"
                             class="appearance-none block w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm disabled:bg-gray-100 dark:disabled:bg-gray-700 disabled:cursor-not-allowed bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                             placeholder="••••••••">
+                    </div>
+                    <div v-if="showTwoFactor" class="space-y-4">
+                        <div
+                            class="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                            <p class="text-sm text-blue-800 dark:text-blue-300">
+                                Two-factor authentication is enabled for this account.
+                            </p>
+                        </div>
+                        <div>
+                            <label for="twoFactorToken"
+                                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                {{ isBackupCode ? 'Backup Code' : 'Authenticator Code' }}
+                            </label>
+                            <input id="twoFactorToken" v-model="twoFactorToken" name="twoFactorToken"
+                                :type="isBackupCode ? 'text' : 'text'" :maxlength="isBackupCode ? 8 : 6"
+                                :pattern="isBackupCode ? '[A-Z0-9]{8}' : '[0-9]{6}'" inputmode="numeric" required
+                                :disabled="authStore.isLoading"
+                                class="appearance-none block w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm disabled:bg-gray-100 dark:disabled:bg-gray-700 disabled:cursor-not-allowed bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                                :placeholder="isBackupCode ? 'ABCD1234' : '000000'">
+                        </div>
+                        <button type="button" @click="toggleBackupCode"
+                            class="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-500 dark:hover:text-primary-300">
+                            {{ isBackupCode ? 'Use authenticator code' : 'Use backup code' }}
+                        </button>
+                        <button type="button" @click="showTwoFactor = false"
+                            class="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200">
+                            ← Back to login
+                        </button>
                     </div>
                     <!--<div class="flex items-center justify-between">
                         <div class="flex items-center">
@@ -114,6 +142,25 @@
                         </svg>
                         {{ authStore.isLoading ? 'Signing in...' : 'Sign in' }}
                     </button>
+                    <div v-if="!showTwoFactor" class="relative">
+                        <div class="absolute inset-0 flex items-center">
+                            <div class="w-full border-t border-gray-300 dark:border-gray-600"></div>
+                        </div>
+                        <div class="relative flex justify-center text-sm">
+                            <span class="px-2 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400">Or use
+                                passkey</span>
+                        </div>
+                    </div>
+
+                    <button v-if="!showTwoFactor" type="button" @click="loginWithPasskey"
+                        :disabled="authStore.isLoading"
+                        class="w-full flex justify-center items-center py-2.5 px-4 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                        </svg>
+                        Sign in with Passkey
+                    </button>
                 </form>
                 <div class="text-center">
                     <p class="text-sm text-gray-600 dark:text-gray-400">
@@ -138,12 +185,17 @@ import {
     type AuthCodeFlowSuccessResponse,
     type AuthCodeFlowErrorResponse,
 } from "vue3-google-signin";
+import { startAuthentication } from '@simplewebauthn/browser'
 
 const router = useRouter()
 const authStore = useAuthStore()
 
 const username = ref('')
 const password = ref('')
+const twoFactorToken = ref('')
+const showTwoFactor = ref(false)
+const pendingUserId = ref<number | null>(null)
+const isBackupCode = ref(false)
 //const rememberMe = ref(false)
 
 const handleOnSuccess = async (response: AuthCodeFlowSuccessResponse) => {
@@ -190,10 +242,42 @@ const { isReady, login } = useTokenClient({
 });
 
 const handleLogin = async () => {
-    const success = await authStore.login(username.value, password.value)
+    const result = await authStore.login(
+        username.value,
+        password.value,
+        showTwoFactor.value ? twoFactorToken.value : undefined,
+        isBackupCode.value
+    )
 
-    if (success) {
+    if (result.requires2FA) {
+        showTwoFactor.value = true
+        pendingUserId.value = result.userId
+        authStore.error = null
+    } else if (result.success) {
         router.push('/')
+    }
+}
+
+const toggleBackupCode = () => {
+    isBackupCode.value = !isBackupCode.value
+    twoFactorToken.value = ''
+}
+
+const loginWithPasskey = async () => {
+    try {
+        authStore.error = null
+        const options = await authStore.getPasskeyAuthenticationOptions(username.value || undefined)
+        const asseResp = await startAuthentication(options)
+        await authStore.verifyPasskeyAuthentication(asseResp, options.challengeKey)
+
+        router.push('/')
+    } catch (error: any) {
+        console.error('Passkey login error:', error)
+        if (error.name === 'NotAllowedError') {
+            authStore.error = 'Passkey authentication was cancelled'
+        } else {
+            authStore.error = error.response?.data?.error || 'Passkey login failed'
+        }
     }
 }
 </script>

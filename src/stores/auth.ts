@@ -55,7 +55,12 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  const login = async (identifier: string, password: string) => {
+  const login = async (
+    identifier: string,
+    password: string,
+    twoFactorToken?: string,
+    isBackupCode?: boolean,
+  ) => {
     isLoading.value = true
     error.value = null
 
@@ -63,7 +68,16 @@ export const useAuthStore = defineStore('auth', () => {
       const response = await apiClient.post('/auth/login', {
         identifier,
         password,
+        twoFactorToken,
+        isBackupCode,
       })
+
+      if (response.data.requires2FA) {
+        return {
+          requires2FA: true,
+          userId: response.data.userId,
+        }
+      }
 
       token.value = response.data.token
       user.value = response.data.user
@@ -71,11 +85,11 @@ export const useAuthStore = defineStore('auth', () => {
       localStorage.setItem('auth_token', response.data.token)
       localStorage.setItem('user', JSON.stringify(response.data.user))
 
-      return true
+      return { success: true }
     } catch (err: any) {
       console.error('Login error:', err)
       error.value = err.response?.data?.error || 'Login failed'
-      return false
+      return { success: false, error: error.value }
     } finally {
       isLoading.value = false
     }
@@ -128,6 +142,132 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.removeItem('user')
   }
 
+  const setup2FA = async () => {
+    try {
+      const response = await apiClient.post('/auth/2fa/setup')
+      return response.data
+    } catch (err: any) {
+      console.error('2FA setup error:', err)
+      throw err
+    }
+  }
+
+  const enable2FA = async (token: string) => {
+    try {
+      const response = await apiClient.post('/auth/2fa/enable', { token })
+      return response.data
+    } catch (err: any) {
+      console.error('2FA enable error:', err)
+      throw err
+    }
+  }
+
+  const disable2FA = async (token?: string, password?: string) => {
+    try {
+      const response = await apiClient.post('/auth/2fa/disable', { token, password })
+      return response.data
+    } catch (err: any) {
+      console.error('2FA disable error:', err)
+      throw err
+    }
+  }
+
+  const get2FAStatus = async () => {
+    try {
+      const response = await apiClient.get('/auth/2fa/status')
+      return response.data
+    } catch (err: any) {
+      console.error('2FA status error:', err)
+      throw err
+    }
+  }
+
+  const getPasskeyRegistrationOptions = async () => {
+    try {
+      const response = await apiClient.post('/auth/passkey/register/options')
+      return response.data
+    } catch (err: any) {
+      console.error('Passkey registration options error:', err)
+      throw err
+    }
+  }
+
+  const verifyPasskeyRegistration = async (response: any, deviceName?: string) => {
+    try {
+      const result = await apiClient.post('/auth/passkey/register/verify', {
+        response,
+        deviceName,
+      })
+      return result.data
+    } catch (err: any) {
+      console.error('Passkey registration verification error:', err)
+      throw err
+    }
+  }
+
+  const getPasskeyAuthenticationOptions = async (identifier?: string) => {
+    try {
+      const response = await apiClient.post('/auth/passkey/authenticate/options', {
+        email: identifier,
+        username: identifier,
+      })
+      return response.data
+    } catch (err: any) {
+      console.error('Passkey authentication options error:', err)
+      throw err
+    }
+  }
+
+  const verifyPasskeyAuthentication = async (response: any, challengeKey: string) => {
+    try {
+      const result = await apiClient.post('/auth/passkey/authenticate/verify', {
+        response,
+        challengeKey,
+      })
+
+      if (result.data.token) {
+        token.value = result.data.token
+        user.value = result.data.user
+
+        localStorage.setItem('auth_token', result.data.token)
+        localStorage.setItem('user', JSON.stringify(result.data.user))
+      }
+
+      return result.data
+    } catch (err: any) {
+      console.error('Passkey authentication verification error:', err)
+      throw err
+    }
+  }
+
+  const getPasskeys = async () => {
+    try {
+      const response = await apiClient.get('/auth/passkey/list')
+      return response.data
+    } catch (err: any) {
+      console.error('Get passkeys error:', err)
+      throw err
+    }
+  }
+
+  const deletePasskey = async (id: number) => {
+    try {
+      await apiClient.delete(`/auth/passkey/${id}`)
+    } catch (err: any) {
+      console.error('Delete passkey error:', err)
+      throw err
+    }
+  }
+
+  const updatePasskey = async (id: number, deviceName: string) => {
+    try {
+      await apiClient.patch(`/auth/passkey/${id}`, { deviceName })
+    } catch (err: any) {
+      console.error('Update passkey error:', err)
+      throw err
+    }
+  }
+
   initAuth()
 
   return {
@@ -141,5 +281,16 @@ export const useAuthStore = defineStore('auth', () => {
     loginWithGoogle,
     getCurrentUser,
     logout,
+    setup2FA,
+    enable2FA,
+    disable2FA,
+    get2FAStatus,
+    getPasskeyRegistrationOptions,
+    verifyPasskeyRegistration,
+    getPasskeyAuthenticationOptions,
+    verifyPasskeyAuthentication,
+    getPasskeys,
+    deletePasskey,
+    updatePasskey,
   }
 })

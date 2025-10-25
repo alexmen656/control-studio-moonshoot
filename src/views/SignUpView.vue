@@ -18,7 +18,7 @@
                     Create your account
                 </h2>
                 <p class="mt-2 text-sm text-primary-100 dark:text-gray-300">
-                    Get started with Control Cloud
+                    Get started with Control Studio
                 </p>
             </div>
             <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 space-y-6">
@@ -154,6 +154,40 @@
                 </div>
             </div>
         </div>
+        <div v-if="showPasskeySetup"
+            class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full p-8 space-y-6">
+                <div class="text-center">
+                    <div class="flex justify-center mb-4">
+                        <div
+                            class="w-16 h-16 bg-primary-100 dark:bg-primary-900 rounded-full flex items-center justify-center">
+                            <svg class="w-8 h-8 text-primary-600 dark:text-primary-400" fill="none"
+                                stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                        Set up Passkey
+                    </h3>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">
+                        Use your device's biometrics (Face ID, Touch ID, Windows Hello) for faster and more secure
+                        sign-ins.
+                    </p>
+                </div>
+                <div class="space-y-3">
+                    <button @click="setupPasskey"
+                        class="w-full py-3 px-4 bg-primary-600 dark:bg-primary-700 text-white rounded-lg hover:bg-primary-700 dark:hover:bg-primary-800 transition-colors font-medium">
+                        Set up Passkey
+                    </button>
+                    <button @click="skipPasskey"
+                        class="w-full py-3 px-4 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+                        Skip for now
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -166,6 +200,7 @@ import {
     type AuthCodeFlowSuccessResponse,
     type AuthCodeFlowErrorResponse,
 } from "vue3-google-signin";
+import { startRegistration } from '@simplewebauthn/browser'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -177,6 +212,7 @@ const password = ref('')
 const confirmPassword = ref('')
 //const termsAccepted = ref(false)
 const error = ref<string | null>(null)
+const showPasskeySetup = ref(false)
 
 const handleOnSuccess = async (response: AuthCodeFlowSuccessResponse) => {
     console.log("Access Token: ", response.access_token);
@@ -248,9 +284,27 @@ const register = async () => {
     );
 
     if (success) {
-        router.push('/');
+        showPasskeySetup.value = true;
     } else {
         error.value = authStore.error || 'Registration failed';
     }
+}
+
+const setupPasskey = async () => {
+    try {
+        const options = await authStore.getPasskeyRegistrationOptions()
+        const attResp = await startRegistration(options)
+        const deviceName = prompt('Enter a name for this device (optional):') || undefined
+        await authStore.verifyPasskeyRegistration(attResp, deviceName)
+
+        router.push('/')
+    } catch (err: any) {
+        console.error('Passkey registration error:', err)
+        router.push('/')
+    }
+}
+
+const skipPasskey = () => {
+    router.push('/')
 }
 </script>
