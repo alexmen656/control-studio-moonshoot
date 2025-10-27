@@ -136,7 +136,7 @@ async function getVideoAnalytics() {
     console.log('Analytics result:', JSON.stringify(res.data, null, 2));
 }
 
-getVideoAnalytics();
+//getVideoAnalytics();
 
 export default {
     uploadVideo,

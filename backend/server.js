@@ -1299,6 +1299,42 @@ app.post('/api/publish', async (req, res) => {
   }
 })
 
+app.post('/api/analytics', async (req, res) => {
+  try {
+    const { videoId, platform, startDate, endDate } = req.body
+
+    if (!videoId || !platform || !startDate || !endDate) {
+      return res.status(400).json({ error: 'videoId, platform, startDate, and endDate are required' })
+    }
+
+    let analyticsData = {}
+
+    switch (platform) {
+      case 'youtube':
+        analyticsData = await youtube.getVideoAnalytics()//videoId, startDate, endDate
+        break
+      case 'tiktok':
+        analyticsData = await tiktok.getUserVideos()//videoId, startDate, endDate
+        break
+      case 'instagram':
+        analyticsData = await youtube.getVideoAnalytics(videoId, startDate, endDate)
+        //  analyticsData = await instagram.getVideoAnalytics(videoId, startDate, endDate)
+        break
+      case 'facebook':
+        analyticsData = await youtube.getVideoAnalytics(videoId, startDate, endDate)
+        //analyticsData = await facebook.getVideoAnalytics(videoId, startDate, endDate)
+        break
+      default:
+        return res.status(400).json({ error: 'Unsupported platform' })
+    }
+
+    res.json({ analytics: analyticsData })
+  } catch (error) {
+    console.error('Error fetching analytics:', error)
+    res.status(500).json({ error: 'Error fetching analytics' })
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`)
   console.log(`Uploads directory: ${uploadsDir}`)

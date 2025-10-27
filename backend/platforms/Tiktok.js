@@ -333,7 +333,7 @@ async function getUserVideos() {
     }
 }
 
-getUserVideos()
+//getUserVideos()
 //async function getVideoAnalytics() {
 //}
 
@@ -344,5 +344,6 @@ export default {
     refreshAccessToken,
     uploadVideo,
     getUserInfo,
+    getUserVideos,
     //   getVideoAnalytics
 }
