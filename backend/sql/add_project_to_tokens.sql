@@ -13,3 +13,7 @@ END $$;
 UPDATE user_api_tokens
 SET project_id = (SELECT id FROM projects WHERE name = 'Testproject' LIMIT 1)
 WHERE project_id IS NULL;
+
+ALTER TABLE user_api_tokens
+ADD CONSTRAINT user_api_tokens_unique
+UNIQUE (user_id, service_name, project_id);

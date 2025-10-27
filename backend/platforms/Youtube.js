@@ -8,7 +8,7 @@ import { storeTokenByProjectID, retrieveTokenByProjectID } from '../utils/token_
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const CREDENTIALS_PATH = path.join(__dirname, 'credentials.json');
-const SCOPES = ['https://www.googleapis.com/auth/youtube.upload'];
+const SCOPES = ['https://www.googleapis.com/auth/youtube.upload', 'https://www.googleapis.com/auth/yt-analytics.readonly', 'https://www.googleapis.com/auth/youtube.readonly'];
 
 async function uploadVideo(videoFile) {
     console.log('Starting upload process...');
@@ -110,8 +110,47 @@ async function uploadToYouTube(auth, videoFile) {
     });
 }
 
+async function getAnalytics() {//PROJECT_ID = 2
+    const auth = await authorize(2);
+
+    if (auth.authUrl) {
+        console.log('Authentication required. Visit:', auth.authUrl);
+        return { authUrl: auth.authUrl };
+    }
+
+    console.log('YouTube analytics retrieval...');
+
+    var service = google.youtube('v3');
+    service.channels.list({
+        auth: auth,
+        part: 'snippet,contentDetails,statistics',
+        forUsername: 'blackshark3998'
+    }, function (err, response) {
+        if (err) {
+            console.log('The API returned an error: ' + err);
+            return;
+        }
+
+        console.log('Analytics response:', response.data);
+
+        var channels = response.data.items;
+        if (channels.length == 0) {
+            console.log('No channel found.');
+        } else {
+            console.log('This channel\'s ID is %s. Its title is \'%s\', and ' +
+                'it has %s views.',
+                channels[0].id,
+                channels[0].snippet.title,
+                channels[0].statistics.viewCount);
+        }
+    });
+}
+
+getAnalytics();
+
 export default {
     uploadVideo,
     authorize,
-    getTokenFromCode
+    getTokenFromCode,
+    getAnalytics
 }

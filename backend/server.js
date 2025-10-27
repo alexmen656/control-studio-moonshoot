@@ -1057,14 +1057,13 @@ app.post('/api/connect/:platform', async (req, res) => {
 app.get('/api/oauth2callback/youtube', async (req, res) => {
   const { code } = req.query;
   //fuck this wont work because the request is comming grom google redirect, how to figure it out with state later
-  const PROJECT_ID = req.query.project_id || 1;
+  const PROJECT_ID = 2;//req.query.project_id || 
 
   if (!code) {
     return res.status(400).send('Authorization code not provided');
   }
 
   try {
-    const PROJECT_ID = localStorage.getItem('currentProjectId') || 1;
     await storeTokenByProjectID(1, 'youtube_code', { code: code }, PROJECT_ID);
     await youtube.getTokenFromCode(code, PROJECT_ID);
     res.redirect('http://localhost:5185/accounts');
