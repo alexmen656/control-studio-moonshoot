@@ -21,7 +21,8 @@ const REDIRECT_URI = 'https://alex.polan.sk/tiktok_redirect.php';
 const SCOPES = [
     'user.info.basic',
     'video.upload',
-    'video.publish'
+    'video.publish',
+    'video.list'
 ].join(',');
 
 function generateCodeVerifier() {
@@ -294,14 +295,54 @@ async function getUserInfo() {
     } catch (err) {
         console.error('Error getting TikTok user info:', err);
         throw err;
-
     }
 }
+
+async function getUserVideos() {
+    try {
+        console.log('Geeting user videos')
+        const tokenData = await retrieveToken(1, 'tiktok_token');
+        const accessToken = tokenData.access_token;
+
+        console.log('Access token:', accessToken);
+        const response = await fetch('https://open.tiktokapis.com/v2/video/query/', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': 'application/json; charset=UTF-8',
+            },
+            body: JSON.stringify({
+                "fields": [
+                    "id",
+                    "title",
+                    "create_time",
+                    "duration",
+                    "cover_image_url",
+                    "share_url",
+                    "statistics"
+                ]
+            })
+        });
+
+        const resp = await response.json();
+        //  console.log('User videos response status:', response);
+        console.log(resp.data, response.status);
+    } catch (err) {
+        console.error('Error getting TikTok user info:', err);
+        throw err;
+    }
+}
+
+getUserVideos()
+//async function getVideoAnalytics() {
+//}
+
 
 export default {
     authorize,
     exchangeCodeForToken,
     refreshAccessToken,
     uploadVideo,
-    getUserInfo
+    getUserInfo,
+    //   getVideoAnalytics
 }
