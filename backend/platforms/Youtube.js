@@ -110,7 +110,7 @@ async function uploadToYouTube(auth, videoFile) {
     });
 }
 
-async function getAnalytics() {//PROJECT_ID = 2
+async function getVideoAnalytics() {
     const auth = await authorize(2);
 
     if (auth.authUrl) {
@@ -118,39 +118,29 @@ async function getAnalytics() {//PROJECT_ID = 2
         return { authUrl: auth.authUrl };
     }
 
-    console.log('YouTube analytics retrieval...');
+    console.log('Fetching YouTube video analytics...');
 
-    var service = google.youtube('v3');
-    service.channels.list({
-        auth: auth,
-        part: 'snippet,contentDetails,statistics',
-        forUsername: 'blackshark3998'
-    }, function (err, response) {
-        if (err) {
-            console.log('The API returned an error: ' + err);
-            return;
-        }
+    const youtubeAnalytics = google.youtubeAnalytics('v2');
 
-        console.log('Analytics response:', response.data);
-
-        var channels = response.data.items;
-        if (channels.length == 0) {
-            console.log('No channel found.');
-        } else {
-            console.log('This channel\'s ID is %s. Its title is \'%s\', and ' +
-                'it has %s views.',
-                channels[0].id,
-                channels[0].snippet.title,
-                channels[0].statistics.viewCount);
-        }
+    const res = await youtubeAnalytics.reports.query({
+        auth,
+        ids: 'channel==MINE',
+        startDate: '2025-10-01',
+        endDate: '2025-10-27',
+        metrics: 'views,estimatedMinutesWatched,averageViewDuration,likes,subscribersGained,comments',
+        dimensions: 'video',
+        maxResults: 10,
+        sort: '-views',
     });
+
+    console.log('Analytics result:', JSON.stringify(res.data, null, 2));
 }
 
-getAnalytics();
+getVideoAnalytics();
 
 export default {
     uploadVideo,
     authorize,
     getTokenFromCode,
-    getAnalytics
+    getVideoAnalytics
 }
