@@ -300,7 +300,7 @@ async function getUserInfo() {
 
 async function getUserVideos() {
     try {
-        console.log('Geeting user videos')
+        console.log('Getting user videos')
         const tokenData = await retrieveToken(1, 'tiktok_token');
         const accessToken = tokenData.access_token;
 
@@ -319,16 +319,21 @@ async function getUserVideos() {
                     "duration",
                     "cover_image_url",
                     "share_url",
+                    "video_description",
                     "statistics"
                 ]
             })
         });
 
         const resp = await response.json();
-        //  console.log('User videos response status:', response);
-        console.log(resp.data, response.status);
+        console.log('User videos response:', resp.data, 'Status:', response.status);
+
+        return {
+            data: resp.data || {},
+            status: response.status
+        };
     } catch (err) {
-        console.error('Error getting TikTok user info:', err);
+        console.error('Error getting TikTok user videos:', err);
         throw err;
     }
 }

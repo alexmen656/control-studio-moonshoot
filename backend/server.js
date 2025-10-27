@@ -1299,7 +1299,163 @@ app.post('/api/publish', async (req, res) => {
   }
 })
 
-app.post('/api/analytics', async (req, res) => {
+app.get('/api/analytics/total', async (req, res) => {
+  try {
+    const { platform, project_id } = req.query;
+    const PROJECT_ID = project_id || 1;
+
+    let analyticsData = {
+      totalViews: 0,
+      totalLikes: 0,
+      totalComments: 0,
+      totalShares: 0,
+      totalVideos: 0,
+      platforms: {},
+      videos: []
+    };
+
+    if (platform) {
+      try {
+        switch (platform) {
+          case 'youtube':
+            const youtubeData = await youtube.getVideoAnalytics();
+            if (youtubeData && youtubeData.rows) {
+              analyticsData.totalVideos = youtubeData.rows.length;
+              analyticsData.videos = youtubeData.rows.map(row => ({
+                platform: 'youtube',
+                views: row[1] || 0,
+                watchTime: row[2] || 0,
+                avgViewDuration: row[3] || 0,
+                likes: row[4] || 0,
+                subscribers: row[5] || 0,
+                comments: row[6] || 0
+              }));
+
+              youtubeData.rows.forEach(row => {
+                analyticsData.totalViews += row[1] || 0;
+                analyticsData.totalLikes += row[4] || 0;
+                analyticsData.totalComments += row[6] || 0;
+              });
+            }
+            break;
+
+          case 'tiktok':
+            const tiktokData = await tiktok.getUserVideos();
+            if (tiktokData && tiktokData.data && tiktokData.data.videos) {
+              analyticsData.totalVideos = tiktokData.data.videos.length;
+              analyticsData.videos = tiktokData.data.videos.map(video => ({
+                platform: 'tiktok',
+                id: video.id,
+                title: video.title,
+                views: video.statistics?.view_count || 0,
+                likes: video.statistics?.like_count || 0,
+                comments: video.statistics?.comment_count || 0,
+                shares: video.statistics?.share_count || 0
+              }));
+
+              tiktokData.data.videos.forEach(video => {
+                analyticsData.totalViews += video.statistics?.view_count || 0;
+                analyticsData.totalLikes += video.statistics?.like_count || 0;
+                analyticsData.totalComments += video.statistics?.comment_count || 0;
+                analyticsData.totalShares += video.statistics?.share_count || 0;
+              });
+            }
+            break;
+
+          case 'instagram':
+          case 'facebook':
+            analyticsData.message = `${platform} analytics coming soon`;
+            break;
+
+          default:
+            return res.status(400).json({ error: 'Unsupported platform' });
+        }
+
+        analyticsData.platforms[platform] = {
+          views: analyticsData.totalViews,
+          likes: analyticsData.totalLikes,
+          comments: analyticsData.totalComments,
+          shares: analyticsData.totalShares,
+          videos: analyticsData.totalVideos
+        };
+      } catch (platformError) {
+        console.error(`Error fetching ${platform} analytics:`, platformError);
+        analyticsData.error = `Failed to fetch ${platform} analytics: ${platformError.message}`;
+      }
+    } else {
+      const platforms = ['youtube', 'tiktok'];
+
+      for (const plat of platforms) {
+        try {
+          switch (plat) {
+            case 'youtube':
+              const youtubeData = await youtube.getVideoAnalytics();
+              if (youtubeData && youtubeData.rows) {
+                const platStats = {
+                  views: 0,
+                  likes: 0,
+                  comments: 0,
+                  shares: 0,
+                  videos: youtubeData.rows.length
+                };
+
+                youtubeData.rows.forEach(row => {
+                  platStats.views += row[1] || 0;
+                  platStats.likes += row[4] || 0;
+                  platStats.comments += row[6] || 0;
+                });
+
+                analyticsData.platforms.youtube = platStats;
+                analyticsData.totalViews += platStats.views;
+                analyticsData.totalLikes += platStats.likes;
+                analyticsData.totalComments += platStats.comments;
+                analyticsData.totalVideos += platStats.videos;
+              }
+              break;
+
+            case 'tiktok':
+              const tiktokData = await tiktok.getUserVideos();
+              if (tiktokData && tiktokData.data && tiktokData.data.videos) {
+                const platStats = {
+                  views: 0,
+                  likes: 0,
+                  comments: 0,
+                  shares: 0,
+                  videos: tiktokData.data.videos.length
+                };
+
+                tiktokData.data.videos.forEach(video => {
+                  platStats.views += video.statistics?.view_count || 0;
+                  platStats.likes += video.statistics?.like_count || 0;
+                  platStats.comments += video.statistics?.comment_count || 0;
+                  platStats.shares += video.statistics?.share_count || 0;
+                });
+
+                analyticsData.platforms.tiktok = platStats;
+                analyticsData.totalViews += platStats.views;
+                analyticsData.totalLikes += platStats.likes;
+                analyticsData.totalComments += platStats.comments;
+                analyticsData.totalShares += platStats.shares;
+                analyticsData.totalVideos += platStats.videos;
+              }
+              break;
+          }
+        } catch (platformError) {
+          console.error(`Error fetching ${plat} analytics:`, platformError);
+          analyticsData.platforms[plat] = { error: platformError.message };
+        }
+      }
+    }
+
+    res.json(analyticsData);
+  } catch (error) {
+    console.error('Error fetching total analytics:', error);
+    res.status(500).json({ error: 'Error fetching analytics', details: error.message });
+  }
+});
+
+// video specific
+/*app.post('/api/analytics', async (req, res) => {
   try {
     const { videoId, platform, startDate, endDate } = req.body
 
@@ -1333,7 +1489,7 @@ app.post('/api/analytics', async (req, res) => {
     console.error('Error fetching analytics:', error)
     res.status(500).json({ error: 'Error fetching analytics' })
   }
-});
+});*/
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`)
