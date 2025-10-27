@@ -14,7 +14,7 @@ import instagram from './platforms/Instagram.js'
 import facebook from './platforms/Facebook.js'
 import tiktok from './platforms/Tiktok.js'
 import * as db from './utils/db.js'
-import { storeTokenByProjectID, retrieveTokenByProjectID } from './utils/token_manager.js'
+import { storeTokenByProjectID, retrieveTokenByProjectID, removeTokenByProjectID } from './utils/token_manager.js'
 import { registerUser, loginUser, loginWithGoogle, authMiddleware, getUserById } from './utils/auth.js'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -1043,6 +1043,46 @@ app.post('/api/connect/:platform', async (req, res) => {
         } else {
           return res.json({ message: 'Connected to TikTok successfully' });
         }
+
+      default:
+        return res.status(400).json({ error: 'Unsupported platform' })
+        break;
+    }
+  } catch (error) {
+    console.error('Error connecting to platform:', error)
+    res.status(500).json({ error: 'Error connecting to platform' })
+  }
+})
+
+app.post('/api/disconnect/:platform', async (req, res) => {
+  try {
+
+    const { platform } = req.params
+    const PROJECT_ID = req.query.project_id || 1
+
+    switch (platform) {
+      case 'youtube':
+        removeTokenByProjectID(1, 'youtube_token', PROJECT_ID);
+        removeTokenByProjectID(1, 'youtube_code', PROJECT_ID);
+        return res.json({ message: 'Disconnected from YouTube successfully' });
+
+      case 'instagram':
+        removeTokenByProjectID(1, 'instagram_business_account', PROJECT_ID);
+        removeTokenByProjectID(1, 'instagram_token', PROJECT_ID);
+        removeTokenByProjectID(1, 'instagram_code', PROJECT_ID);
+        removeTokenByProjectID(1, 'facebook_accounts_for_instagram', PROJECT_ID);
+        return res.json({ message: 'Disconnected from Instagram successfully' });
+
+      case 'facebook':
+        removeTokenByProjectID(1, 'facebook_token', PROJECT_ID);
+        removeTokenByProjectID(1, 'facebook_code', PROJECT_ID);
+        removeTokenByProjectID(1, 'facebook_accounts', PROJECT_ID);
+        return res.json({ message: 'Disconnected from Facebook successfully' });
+
+      case 'tiktok':
+        removeTokenByProjectID(1, 'tiktok_token', PROJECT_ID);
+        removeTokenByProjectID(1, 'tiktok_code', PROJECT_ID);
+        return res.json({ message: 'Disconnected from TikTok successfully' });
 
       default:
         return res.status(400).json({ error: 'Unsupported platform' })

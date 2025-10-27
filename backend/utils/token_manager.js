@@ -113,6 +113,14 @@ export async function deleteToken(userId, serviceName) {
     await db.query(query, values);
 }
 
+export async function removeTokenByProjectID(userId, serviceName, projectId) {
+    const query = `
+    DELETE FROM user_api_tokens
+    WHERE user_id = $1 AND service_name = $2 AND project_id = $3
+    `;
+    const values = [userId, serviceName, projectId];
+    await db.query(query, values);
+}
 //storeToken(1, 'tiktossk', { access_token: 'abc123', refresh_token: 'def456' });
 //console.log('-------------------------------------');
 //retrieveToken(1, 'tiktossk').then(token => console.log('Retrieved token:', token));

@@ -681,31 +681,57 @@ const connectFacebook = () => {
         })
 }
 
+const currentProjectId = localStorage.getItem('currentProjectId') || 1;
+
 const disconnectYouTube = () => {
     if (confirm('Disconnect YouTube account?')) {
-        connectedAccounts.value.youtube = false
-        console.log('YouTube disconnected')
+        axios.post(`${baseurl}disconnect/youtube?project_id=${currentProjectId}`)
+            .then(response => {
+                console.log('YouTube disconnected')
+                connectedAccounts.value.youtube = false
+            })
+            .catch(error => {
+                console.error('Error disconnecting YouTube on server:', error)
+            })
     }
 }
 
 const disconnectInstagram = () => {
     if (confirm('Disconnect Instagram account?')) {
-        connectedAccounts.value.instagram = false
-        console.log('Instagram disconnected')
+        axios.post(`${baseurl}disconnect/instagram?project_id=${currentProjectId}`)
+            .then(response => {
+                console.log('Instagram disconnected')
+                connectedAccounts.value.instagram = false
+            })
+            .catch(error => {
+                console.error('Error disconnecting Instagram on server:', error)
+            })
     }
 }
 
 const disconnectTiktok = () => {
     if (confirm('Disconnect TikTok account?')) {
-        connectedAccounts.value.tiktok = false
-        console.log('TikTok disconnected')
+        axios.post(`${baseurl}disconnect/tiktok?project_id=${currentProjectId}`)
+            .then(response => {
+                console.log('TikTok disconnected')
+                connectedAccounts.value.tiktok = false
+            })
+            .catch(error => {
+                console.error('Error disconnecting TikTok on server:', error)
+            })
     }
 }
 
 const disconnectFacebook = () => {
     if (confirm('Disconnect Facebook account?')) {
-        connectedAccounts.value.facebook = false
-        console.log('Facebook disconnected')
+        axios.post(`${baseurl}disconnect/facebook?project_id=${currentProjectId}`)
+            .then(response => {
+                console.log('Facebook disconnected')
+                connectedAccounts.value.facebook = false
+            })
+            .catch(error => {
+                console.error('Error disconnecting Facebook on server:', error)
+            })
     }
 }
 </script>

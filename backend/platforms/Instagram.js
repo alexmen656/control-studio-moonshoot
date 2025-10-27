@@ -240,7 +240,7 @@ async function getTotalAnalytics() {
     return 'hello'
 }
 
-getTotalAnalytics();
+//getTotalAnalytics();
 export default {
     checkPublishingLimit,
     uploadReel,
