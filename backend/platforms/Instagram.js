@@ -3,7 +3,7 @@ import fs from 'fs/promises';
 import axios from 'axios';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { retrieveToken } from '../utils/token_manager.js';
+import { retrieveToken, retrieveTokenByProjectID } from '../utils/token_manager.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -20,7 +20,7 @@ function auth() {
         process.exit(1);
     }
 
-    const scope = 'instagram_basic,instagram_content_publish,pages_read_engagement';
+    const scope = 'instagram_basic,instagram_content_publish,pages_read_engagement, pages_show_list, business_management';//instagram_manage_insights
     let authUrl = 'https://www.facebook.com/v14.0/dialog/oauth';
     authUrl += '?client_id=' + encodeURIComponent(appId);
     authUrl += '&redirect_uri=' + encodeURIComponent(redirectUri);
@@ -206,6 +206,28 @@ async function checkPublishingLimit() {
     }
 }
 
+async function getTotalAnalytics() {
+    const instagramAccountData = await retrieveTokenByProjectID(1, 'instagram_business_account', 2);
+    const facebookAccountsData = await retrieveTokenByProjectID(1, 'facebook_accounts_for_instagram', 2);
+    const instagramUserId = instagramAccountData.instagram_business_account.id;
+    const accessToken = facebookAccountsData.data[0].access_token;
+
+    let url = 'https://graph.facebook.com/v21.0/' + instagramUserId + '/insights';
+    const params = {
+        metric: 'impressions,reach,profile_views',
+        period: 'day',
+        access_token: accessToken
+    };
+
+    const response = await axios.get(url, {
+        params
+    });
+
+    console.log('Total analytics data:', response.data);
+    return response.data;
+}
+
+getTotalAnalytics();
 export default {
     checkPublishingLimit,
     uploadReel,

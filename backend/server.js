@@ -1109,7 +1109,7 @@ app.get('/api/oauth2callback/instagram', async (req, res) => {
   }
 
   try {
-    const PROJECT_ID = localStorage.getItem('currentProjectId') || 1;
+    const PROJECT_ID = 2;//localStorage.getItem('currentProjectId') || 1;
 
     await storeTokenByProjectID(1, 'instagram_code', { code: code }, PROJECT_ID);
     axios.get(instagram.tokenExchange(code)).then(async (response) => {
@@ -1146,8 +1146,8 @@ app.get('/api/oauth2callback/facebook', async (req, res) => {
   }
 
   try {
-    const PROJECT_ID = localStorage.getItem('currentProjectId') || 1;
-
+    // const PROJECT_ID = localStorage.getItem('currentProjectId') || 1;
+    const PROJECT_ID = 2;
     await storeTokenByProjectID(1, 'facebook_code', { code: code }, PROJECT_ID);
     axios.get(facebook.tokenExchange(code)).then(async (response) => {
       await storeTokenByProjectID(1, 'facebook_token', response.data);

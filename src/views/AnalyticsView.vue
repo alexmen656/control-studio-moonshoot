@@ -135,27 +135,27 @@
                             <div class="flex justify-between items-center py-2 border-b border-gray-100">
                                 <span class="text-sm text-gray-600">Videos</span>
                                 <span class="text-base font-semibold text-gray-900">{{ formatNumber(stats.videos)
-                                    }}</span>
+                                }}</span>
                             </div>
                             <div class="flex justify-between items-center py-2 border-b border-gray-100">
                                 <span class="text-sm text-gray-600">Views</span>
                                 <span class="text-base font-semibold text-gray-900">{{ formatNumber(stats.views)
-                                    }}</span>
+                                }}</span>
                             </div>
                             <div class="flex justify-between items-center py-2 border-b border-gray-100">
                                 <span class="text-sm text-gray-600">Likes</span>
                                 <span class="text-base font-semibold text-gray-900">{{ formatNumber(stats.likes)
-                                    }}</span>
+                                }}</span>
                             </div>
                             <div class="flex justify-between items-center py-2 border-b border-gray-100">
                                 <span class="text-sm text-gray-600">Comments</span>
                                 <span class="text-base font-semibold text-gray-900">{{ formatNumber(stats.comments)
-                                }}</span>
+                                    }}</span>
                             </div>
                             <div v-if="stats.shares > 0" class="flex justify-between items-center py-2">
                                 <span class="text-sm text-gray-600">Shares</span>
                                 <span class="text-base font-semibold text-gray-900">{{ formatNumber(stats.shares)
-                                    }}</span>
+                                }}</span>
                             </div>
                         </div>
                     </div>
