@@ -1403,6 +1403,28 @@ app.get('/api/analytics/total', async (req, res) => {
             break;
 
           case 'instagram':
+            const instagramData = await instagram.getUserMedia(PROJECT_ID);
+            if (instagramData && instagramData.data && instagramData.data.media) {
+              analyticsData.totalVideos = instagramData.data.media.length;
+              analyticsData.videos = instagramData.data.media.map(media => ({
+                platform: 'instagram',
+                id: media.id,
+                title: media.caption ? media.caption.substring(0, 50) + '...' : 'No caption',
+                views: media.video_views || media.reach || 0,
+                likes: media.likes || 0,
+                comments: media.comments || 0,
+                shares: media.shares || 0
+              }));
+
+              instagramData.data.media.forEach(media => {
+                analyticsData.totalViews += media.video_views || media.reach || 0;
+                analyticsData.totalLikes += media.likes || 0;
+                analyticsData.totalComments += media.comments || 0;
+                analyticsData.totalShares += media.shares || 0;
+              });
+            }
+            break;
+
           case 'facebook':
             analyticsData.message = `${platform} analytics coming soon`;
             break;
@@ -1423,7 +1445,7 @@ app.get('/api/analytics/total', async (req, res) => {
         analyticsData.error = `Failed to fetch ${platform} analytics: ${platformError.message}`;
       }
     } else {
-      const platforms = ['youtube', 'tiktok'];
+      const platforms = ['youtube', 'tiktok', 'instagram'];
 
       for (const plat of platforms) {
         try {
@@ -1472,6 +1494,33 @@ app.get('/api/analytics/total', async (req, res) => {
                 });
 
                 analyticsData.platforms.tiktok = platStats;
+                analyticsData.totalViews += platStats.views;
+                analyticsData.totalLikes += platStats.likes;
+                analyticsData.totalComments += platStats.comments;
+                analyticsData.totalShares += platStats.shares;
+                analyticsData.totalVideos += platStats.videos;
+              }
+              break;
+
+            case 'instagram':
+              const instagramData = await instagram.getUserMedia(PROJECT_ID);
+              if (instagramData && instagramData.data && instagramData.data.media) {
+                const platStats = {
+                  views: 0,
+                  likes: 0,
+                  comments: 0,
+                  shares: 0,
+                  videos: instagramData.data.media.length
+                };
+
+                instagramData.data.media.forEach(media => {
+                  platStats.views += media.video_views || media.reach || 0;
+                  platStats.likes += media.likes || 0;
+                  platStats.comments += media.comments || 0;
+                  platStats.shares += media.shares || 0;
+                });
+
+                analyticsData.platforms.instagram = platStats;
                 analyticsData.totalViews += platStats.views;
                 analyticsData.totalLikes += platStats.likes;
                 analyticsData.totalComments += platStats.comments;

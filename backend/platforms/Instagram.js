@@ -240,10 +240,104 @@ async function getTotalAnalytics() {
     return 'hello'
 }
 
+async function getUserMedia(PROJECT_ID = 2) {
+    try {
+        PROJECT_ID = 2;
+
+        console.log('Fetching Instagram user media for project ID:', PROJECT_ID);
+        const instagramAccountData = await retrieveTokenByProjectID(1, 'instagram_business_account', PROJECT_ID);
+        const facebookAccountsData = await retrieveTokenByProjectID(1, 'instagram_token', PROJECT_ID);
+
+        const instagramUserId = instagramAccountData.instagram_business_account.id;
+        const accessToken = facebookAccountsData.access_token;
+
+        console.log('Fetching Instagram media for user:', instagramUserId);
+
+        const mediaUrl = `https://graph.facebook.com/v21.0/${instagramUserId}/media`;
+        const mediaParams = {
+            fields: 'id,caption,media_type,media_url,thumbnail_url,permalink,timestamp,like_count,comments_count',//caption,
+            access_token: accessToken,
+            limit: 25
+        };
+
+        const mediaResponse = await axios.get(mediaUrl, { params: mediaParams });
+
+        console.log('Instagram media fetched:', mediaResponse.data.data?.length || 0, 'posts');
+
+        const mediaWithInsights = [];
+
+        for (const media of mediaResponse.data.data || []) {
+            try {
+                if (media.media_type === 'IMAGE' || media.media_type === 'VIDEO' || media.media_type === 'CAROUSEL_ALBUM') {
+                    const insightsUrl = `https://graph.facebook.com/v21.0/${media.id}/insights`;//14
+                    const insightsParams = {
+                        metric: 'impressions,reach,engagement,saved,video_views,shares',
+                        access_token: accessToken
+                    };
+
+                    try {
+                        const insightsResponse = await axios.get(insightsUrl, { params: insightsParams });
+
+                        const insights = {};
+                        insightsResponse.data.data?.forEach(metric => {
+                            insights[metric.name] = metric.values?.[0]?.value || 0;
+                        });
+
+                        mediaWithInsights.push({
+                            id: media.id,
+                            caption: media.caption || '',
+                            media_type: media.media_type,
+                            timestamp: media.timestamp,
+                            likes: media.like_count || 0,
+                            comments: media.comments_count || 0,
+                            impressions: insights.impressions || 0,
+                            reach: insights.reach || 0,
+                            engagement: insights.engagement || 0,
+                            saved: insights.saved || 0,
+                            video_views: insights.video_views || 0,
+                            shares: insights.shares || 0
+                        });
+                    } catch (insightError) {
+                        console.warn(`Could not fetch insights for media ${media.id}:`, insightError.message);
+
+                        mediaWithInsights.push({
+                            id: media.id,
+                            caption: media.caption || '',
+                            media_type: media.media_type,
+                            timestamp: media.timestamp,
+                            likes: media.like_count || 0,
+                            comments: media.comments_count || 0,
+                            impressions: 0,
+                            reach: 0,
+                            engagement: 0,
+                            saved: 0,
+                            video_views: 0,
+                            shares: 0
+                        });
+                    }
+                }
+            } catch (error) {
+                console.warn(`Error processing media ${media.id}:`, error.message);
+            }
+        }
+
+        return {
+            data: {
+                media: mediaWithInsights
+            },
+            status: 200
+        } catch (error) {
+            console.error('Error getting Instagram user media:', error);
+            throw error;
+        }
+    }
+
 //getTotalAnalytics();
 export default {
-    checkPublishingLimit,
-    uploadReel,
-    auth,
-    tokenExchange
-}
+        checkPublishingLimit,
+        uploadReel,
+        auth,
+        tokenExchange,
+        getTotalAnalytics,
+        getUserMedia
+    }
