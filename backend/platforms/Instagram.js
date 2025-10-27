@@ -20,7 +20,7 @@ function auth() {
         process.exit(1);
     }
 
-    const scope = 'instagram_basic,instagram_content_publish,pages_read_engagement, pages_show_list, business_management';//instagram_manage_insights
+    const scope = 'instagram_basic,instagram_content_publish,pages_read_engagement, pages_show_list, business_management, instagram_manage_insights';//instagram_manage_insights
     let authUrl = 'https://www.facebook.com/v14.0/dialog/oauth';
     authUrl += '?client_id=' + encodeURIComponent(appId);
     authUrl += '&redirect_uri=' + encodeURIComponent(redirectUri);
@@ -208,13 +208,18 @@ async function checkPublishingLimit() {
 
 async function getTotalAnalytics() {
     const instagramAccountData = await retrieveTokenByProjectID(1, 'instagram_business_account', 2);
-    const facebookAccountsData = await retrieveTokenByProjectID(1, 'facebook_accounts_for_instagram', 2);
+    const facebookAccountsData = await retrieveTokenByProjectID(1, 'instagram_token', 2); //await retrieveTokenByProjectID(1, 'facebook_accounts_for_instagram', 2);
+    //facebook_accounts_for_instagram == wrong token
     const instagramUserId = instagramAccountData.instagram_business_account.id;
-    const accessToken = facebookAccountsData.data[0].access_token;
+    const accessToken = facebookAccountsData.access_token;
 
+    console.log("--------------------------------------------------------")
+    console.log('Instagram User ID for analytics:', instagramUserId);
+    console.log('Access Token for analytics:', accessToken);
     let url = 'https://graph.facebook.com/v21.0/' + instagramUserId + '/insights';
+
     const params = {
-        metric: 'impressions,reach,profile_views',
+        metric: 'reach',//'reach, follower_count, website_clicks, profile_views, online_followers, accounts_engaged, total_interactions, likes, comments, shares, saves, replies, engaged_audience_demographics, reached_audience_demographics, follower_demographics, follows_and_unfollows, profile_links_taps, views, threads_likes, threads_replies, reposts, quotes, threads_followers, threads_follower_demographics, content_views, threads_views, threads_clicks', //'impressions,reach,profile_views',
         period: 'day',
         access_token: accessToken
     };
@@ -224,7 +229,15 @@ async function getTotalAnalytics() {
     });
 
     console.log('Total analytics data:', response.data);
+    console.log('Total analytics data:', response.data.data.values);
+
+    //response.data.data.values.forEach(entry => {
+    //  console.log(`Date: ${entry.end_time}, Value: ${entry.value}`);
+    //});
+
     return response.data;
+
+    return 'hello'
 }
 
 getTotalAnalytics();
