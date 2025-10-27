@@ -115,6 +115,16 @@
                 <span class="text-sm font-medium">Schedule</span>
             </router-link>
 
+            <router-link to="/annalytics"
+                class="flex items-center space-x-3 px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-full transition-colors"
+                active-class="bg-red-100 dark:bg-red-900/30 text-primary-700 dark:text-primary-200 hover:bg-primary-100 dark:hover:bg-red-900/40">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path
+                        d="M3 3a1 1 0 011-1h1a1 1 0 011 1v14a1 1 0 01-1 1H4a1 1 0 01-1-1V3zm5 6a1 1 0 011-1h1a1 1 0 011 1v8a1 1 0 01-1 1H9a1 1 0 01-1-1V9zm5-4a1 1 0 011-1h1a1 1 0 011 1v12a1 1 0 01-1 1h-1a1 1 0 01-1-1V5z" />
+                </svg>
+
+                <span class=" text-sm font-medium">Annalytics</span>
+            </router-link>
             <router-link to="/accounts"
                 class="flex items-center space-x-3 px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-full transition-colors"
                 active-class="bg-red-100 dark:bg-red-900/30 text-primary-700 dark:text-primary-200 hover:bg-primary-100 dark:hover:bg-red-900/40">

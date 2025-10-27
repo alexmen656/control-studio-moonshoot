@@ -89,9 +89,9 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
-      path: '/trash',
-      name: 'trash',
-      component: () => import('../views/HomeView.vue'),
+      path: '/analytics',
+      name: 'analytics',
+      component: () => import('../views/AnalyticsView.vue'),
       meta: { requiresAuth: true },
     },
   ],
