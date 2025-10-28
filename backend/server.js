@@ -14,6 +14,7 @@ import InstagramManager from './platforms/Instagram.js'
 import FacebookManager from './platforms/Facebook.js'
 import TikTokManager from './platforms/Tiktok.js'
 import XManager from './platforms/X.js'
+import RedditManager from './platforms/Reddit.js'
 import * as db from './utils/db.js'
 import { storeTokenByProjectID, retrieveTokenByProjectID, removeTokenByProjectID } from './utils/token_manager.js'
 import { registerUser, loginUser, loginWithGoogle, authMiddleware, getUserById } from './utils/auth.js'
@@ -32,6 +33,7 @@ const tiktokManager = new TikTokManager();
 const instagramManager = new InstagramManager();
 const facebookManager = new FacebookManager();
 const xManager = new XManager();
+const redditManager = new RedditManager();
 
 const uploadsDir = path.join(__dirname, 'uploads')
 if (!fs.existsSync(uploadsDir)) {
@@ -838,7 +840,8 @@ app.get('/api/accounts/status', async (req, res) => {
       tiktok: await retrieveTokenByProjectID(1, 'tiktok_token', PROJECT_ID) === null ? false : true,
       instagram: await retrieveTokenByProjectID(1, 'instagram_business_account', PROJECT_ID) === null ? false : true,
       facebook: await retrieveTokenByProjectID(1, 'facebook_accounts', PROJECT_ID) === null ? false : true,
-      x: await retrieveTokenByProjectID(1, 'x_token', PROJECT_ID) === null ? false : true
+      x: await retrieveTokenByProjectID(1, 'x_token', PROJECT_ID) === null ? false : true,
+      reddit: await retrieveTokenByProjectID(1, 'reddit_token', PROJECT_ID) === null ? false : true
     })
   } catch (error) {
     console.error('Error checking account status:', error)
@@ -1061,6 +1064,15 @@ app.post('/api/connect/:platform', async (req, res) => {
           return res.json({ message: 'Connected to X successfully' });
         }
 
+      case 'reddit':
+        const redditResult = await redditManager.authorize();
+
+        if (redditResult.authUrl) {
+          return res.json({ authUrl: redditResult.authUrl });
+        } else {
+          return res.json({ message: 'Connected to Reddit successfully' });
+        }
+
       default:
         return res.status(400).json({ error: 'Unsupported platform' })
         break;
@@ -1105,6 +1117,11 @@ app.post('/api/disconnect/:platform', async (req, res) => {
         removeTokenByProjectID(1, 'x_token', PROJECT_ID);
         removeTokenByProjectID(1, 'x_oauth_state', PROJECT_ID);
         return res.json({ message: 'Disconnected from X successfully' });
+
+      case 'reddit':
+        removeTokenByProjectID(1, 'reddit_token', PROJECT_ID);
+        removeTokenByProjectID(1, 'reddit_oauth_state', PROJECT_ID);
+        return res.json({ message: 'Disconnected from Reddit successfully' });
 
       default:
         return res.status(400).json({ error: 'Unsupported platform' })
@@ -1250,6 +1267,29 @@ app.get('/api/oauth2callback/x', async (req, res) => {
   }
 });
 
+app.get('/api/oauth2callback/reddit', async (req, res) => {
+  const { code, state, error, error_description } = req.query;
+
+  if (error) {
+    console.error('Reddit OAuth error:', error, error_description);
+    return res.redirect(`http://localhost:5185/accounts?error=${error}`);
+  }
+
+  if (!code) {
+    return res.status(400).send('Authorization code not provided');
+  }
+
+  try {
+    const PROJECT_ID = 2;
+    const tokenData = await redditManager.exchangeCodeForToken(code, state);
+    console.log('Reddit token stored successfully');
+    res.redirect('http://localhost:5185/accounts?reddit=connected');
+  } catch (error) {
+    console.error('Error during Reddit OAuth2 callback:', error);
+    res.redirect('http://localhost:5185/accounts?error=reddit_auth_failed');
+  }
+});
+
 app.post('/api/publish', async (req, res) => {
   const platformStatuses = {}
 
@@ -1341,6 +1381,24 @@ app.post('/api/publish', async (req, res) => {
       } catch (error) {
         platformStatuses.x = 'failed'
         console.error('✗ X: Failed -', error.message)
+      }
+    }
+
+    if (video.platforms.includes('reddit')) {
+      console.log('Publishing to Reddit:', video.title)
+      const videoFile = video.path;
+      const options = {
+        title: video.title,
+        subreddit: video.subreddit || 'videos', // Default subreddit, should be configurable
+      };
+
+      try {
+        await redditManager.uploadVideo({ path: videoFile, originalname: video.title }, options)
+        platformStatuses.reddit = 'success'
+        console.log(`✓ Reddit: Published successfully at ${new Date().toLocaleString()}`)
+      } catch (error) {
+        platformStatuses.reddit = 'failed'
+        console.error('✗ Reddit: Failed -', error.message)
       }
     }
 
@@ -1531,6 +1589,25 @@ app.get('/api/analytics/total', async (req, res) => {
             }
             break;
 
+          case 'reddit':
+            const redditData = await redditManager.getAccountAnalytics({ limit: 25 });
+            if (redditData) {
+              analyticsData.totalVideos = redditData.total_posts || 0;
+              analyticsData.videos = redditData.posts.map(post => ({
+                platform: 'reddit',
+                id: post.id,
+                title: post.title,
+                views: 0, // Reddit doesn't provide view counts
+                likes: post.score || 0,
+                comments: post.num_comments || 0,
+                shares: 0 // Reddit doesn't provide share counts
+              }));
+
+              analyticsData.totalLikes += redditData.total_score || 0;
+              analyticsData.totalComments += redditData.total_comments || 0;
+            }
+            break;
+
           default:
             return res.status(400).json({ error: 'Unsupported platform' });
         }
@@ -1547,7 +1624,7 @@ app.get('/api/analytics/total', async (req, res) => {
         analyticsData.error = `Failed to fetch ${platform} analytics: ${platformError.message}`;
       }
     } else {
-      const platforms = ['youtube', 'tiktok', 'instagram', 'facebook', 'x'];
+      const platforms = ['youtube', 'tiktok', 'instagram', 'facebook', 'x', 'reddit'];
 
       for (const plat of platforms) {
         try {
@@ -1674,6 +1751,24 @@ app.get('/api/analytics/total', async (req, res) => {
                 analyticsData.totalLikes += platStats.likes;
                 analyticsData.totalComments += platStats.comments;
                 analyticsData.totalShares += platStats.shares;
+                analyticsData.totalVideos += platStats.videos;
+              }
+              break;
+
+            case 'reddit':
+              const redditData = await redditManager.getAccountAnalytics({ limit: 25 });
+              if (redditData) {
+                const platStats = {
+                  views: 0, // Reddit doesn't provide view counts
+                  likes: redditData.total_score || 0,
+                  comments: redditData.total_comments || 0,
+                  shares: 0, // Reddit doesn't provide share counts
+                  videos: redditData.total_posts || 0
+                };
+
+                analyticsData.platforms.reddit = platStats;
+                analyticsData.totalLikes += platStats.likes;
+                analyticsData.totalComments += platStats.comments;
                 analyticsData.totalVideos += platStats.videos;
               }
               break;
