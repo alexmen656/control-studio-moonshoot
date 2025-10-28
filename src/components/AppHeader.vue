@@ -420,7 +420,7 @@ const XIcon = {
 
 <style scoped>
 .logo-text {
-    font-size: 28px;
+    font-size: 26px;
     font-weight: 700;
     letter-spacing: -0.8px;
     line-height: 1;
@@ -431,7 +431,7 @@ const XIcon = {
 }
 
 .logo-image {
-    height: 48px;
+    height: 36px;
     width: auto;
     transition: transform 0.2s ease;
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
