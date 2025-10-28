@@ -18,7 +18,7 @@ class InstagramManager {
         this.appId = options.appId || process.env.IG_APP_ID;
         this.appSecret = options.appSecret || process.env.IG_APP_SECRET;
         this.redirectUri = options.redirectUri || 'http://localhost:6709/api/oauth2callback/instagram';
-        this.projectId = options.projectId || 1;
+        this.projectId = 2; //options.projectId || 1;
         this.scopes = options.scopes || DEFAULT_SCOPES;
         this.apiVersion = options.apiVersion || API_VERSION;
 

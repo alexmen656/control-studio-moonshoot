@@ -170,7 +170,7 @@ class TikTokManager {
     }
 
     async _getAccessToken() {
-        const tokenData = await retrieveToken(1, 'tiktok_token', this.projectId);
+        const tokenData = await retrieveTokenByProjectID(1, 'tiktok_token', this.projectId);
         return tokenData.access_token;
     }
 

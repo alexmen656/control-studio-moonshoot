@@ -1347,7 +1347,7 @@ app.post('/api/publish', async (req, res) => {
 app.get('/api/analytics/total', async (req, res) => {
   try {
     const { platform, project_id } = req.query;
-    const PROJECT_ID = project_id || 1;
+    const PROJECT_ID = project_id || 2;
 
     let analyticsData = {
       totalViews: 0,
