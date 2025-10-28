@@ -23,7 +23,7 @@ const router = createRouter({
       meta: { requiresGuest: true },
     },
     {
-      path: '/home',la
+      path: '/home',
       name: 'home',
       component: HomeView,
       meta: { requiresAuth: true },

@@ -6,35 +6,44 @@ const router = useRouter()
 
 const features = [
     {
-        icon: '🎬',
+        icon: 'share-nodes',
         title: 'Multi-Platform Publishing',
         description: 'Veröffentliche deine Videos gleichzeitig auf TikTok, Instagram, YouTube, Facebook und X.'
     },
     {
-        icon: '📅',
+        icon: 'calendar-clock',
         title: 'Smart Scheduling',
         description: 'Plane deine Content-Strategie im Voraus und lasse deine Posts automatisch zum perfekten Zeitpunkt veröffentlichen.'
     },
     {
-        icon: '📊',
+        icon: 'chart-line',
         title: 'Performance Tracking',
         description: 'Verfolge die Performance deiner Videos über alle Plattformen hinweg in einem übersichtlichen Dashboard.'
     },
     {
-        icon: '⚡',
+        icon: 'layer-group',
         title: 'Batch Uploads',
         description: 'Spare Zeit mit Batch-Uploads und verwalte mehrere Videos gleichzeitig.'
     },
     {
-        icon: '🎯',
+        icon: 'folder-open',
         title: 'Content Library',
         description: 'Organisiere und durchsuche deine gesamte Video-Bibliothek an einem zentralen Ort.'
     },
     {
-        icon: '🔄',
+        icon: 'wand-magic-sparkles',
         title: 'Workflow Automation',
         description: 'Automatisiere wiederkehrende Aufgaben und fokussiere dich auf kreative Inhalte.'
     }
+]
+
+const platforms = [
+    { name: 'TikTok', icon: 'tiktok', color: '#000000' },
+    { name: 'Instagram', icon: 'instagram', color: '#E4405F' },
+    { name: 'YouTube', icon: 'youtube', color: '#FF0000' },
+    { name: 'X', icon: 'x-twitter', color: '#000000' },
+    { name: 'Facebook', icon: 'facebook', color: '#1877F2' },
+    { name: 'Reddit', icon: 'reddit', color: '#FF4500' }
 ]
 
 const newsItems = [
@@ -46,7 +55,7 @@ const newsItems = [
         title: 'Neue Anforderungen für die Transparenz im Jahr 2024',
         description: 'Aktuelle Änderungen in der Gesetzgebung und deren Auswirkungen auf die Verwaltung von Selbstverwaltungen',
         author: 'Ing. Ján Novák',
-        image: '🏛️'
+        image: 'L'
     },
     {
         category: 'Technologie',
@@ -56,7 +65,7 @@ const newsItems = [
         title: 'Digitalisierung städtischer Ämter - kompletter Leitfaden',
         description: 'Schritte zu einer erfolgreichen digitalen Transformation der öffentlichen Verwaltung',
         author: 'Ing. Ján Novák',
-        image: '💼'
+        image: 'T'
     },
     {
         category: 'Best practices',
@@ -66,7 +75,7 @@ const newsItems = [
         title: 'Häufigste Fehler bei der Implementierung von E-Government',
         description: 'Praktische Ratschläge zur Vermeidung von Problemen bei der Einführung digitaler Lösungen',
         author: 'Ing. Ján Novák',
-        image: '📱'
+        image: 'BP'
     }
 ]
 
@@ -74,31 +83,27 @@ const otherProducts = [
     {
         name: 'Control Center',
         description: 'Zentrale Verwaltungsplattform für alle Ihre digitalen Lösungen',
-        url: 'https://control-center.eu',
-        icon: '🎯'
+        url: 'https://control-center.eu'
     },
     {
         name: 'Control Cloud',
         description: 'Cloud-basierte Infrastruktur für maximale Skalierbarkeit',
-        url: 'https://cloud.control-center.eu',
-        icon: '☁️'
+        url: 'https://cloud.control-center.eu'
     },
     {
         name: 'Control Analytics',
         description: 'Umfassende Analyse- und Reporting-Tools',
-        url: 'https://analytics.control-center.eu',
-        icon: '📊'
+        url: 'https://analytics.control-center.eu'
     },
     {
         name: 'Control Security',
         description: 'Enterprise-Grade Sicherheitslösungen',
-        url: 'https://security.control-center.eu',
-        icon: '🔒'
+        url: 'https://security.control-center.eu'
     }
 ]
 
 const stats = [
-    { value: '5+', label: 'Plattformen' },
+    { value: '6+', label: 'Plattformen' },
     { value: '∞', label: 'Videos' },
     { value: '100%', label: 'Kontrolle' }
 ]
@@ -114,44 +119,35 @@ const scrollToSection = (sectionId: string) => {
 
 <template>
     <div class="landing-page">
-        <!-- Navigation Header -->
         <header class="header">
             <div class="container">
                 <nav class="nav">
                     <div class="nav-brand">
-                        <div class="logo-icon">📱</div>
-                        <span class="brand-name">Reelmia</span>
+                        <div class="logo-icon">CS</div>
+                        <span class="brand-name">Control Studio</span>
                     </div>
                     <div class="nav-menu">
                         <button @click="scrollToSection('product')" class="nav-link">Produkt</button>
-                        <button @click="scrollToSection('features')" class="nav-link">Ako funguje</button>
-                        <button @click="scrollToSection('news')" class="nav-link">Cenník</button>
-                        <button @click="scrollToSection('other-products')" class="nav-link">Partneri</button>
-                        <button @click="scrollToSection('cta')" class="nav-link">Články</button>
-                        <button @click="router.push('/login')" class="nav-link">Kontakt</button>
-                        <button class="theme-toggle">☀️</button>
-                        <button @click="router.push('/signup')" class="btn btn-demo">Objednat demo</button>
+                        <button @click="scrollToSection('features')" class="nav-link">Features</button>
+                        <button @click="scrollToSection('news')" class="nav-link">News</button>
+                        <button @click="router.push('/login')" class="nav-link">Login</button>
+                        <button @click="router.push('/signup')" class="btn btn-demo">Kostenlos starten</button>
                     </div>
                 </nav>
             </div>
         </header>
-
-        <!-- Hero Section -->
         <section id="product" class="hero">
             <div class="container">
                 <div class="hero-content">
-
                     <h1 class="hero-title">
                         Dein Content.<br />
                         Alle Plattformen.<br />
                         <span class="gradient-text">Eine Zentrale.</span>
                     </h1>
-
                     <p class="hero-description">
                         Verwalte, plane und veröffentliche deine Social Media Videos über alle wichtigen
                         Plattformen hinweg – alles aus einem einzigen Dashboard.
                     </p>
-
                     <div class="hero-actions">
                         <button @click="router.push('/signup')" class="btn btn-primary">
                             Kostenlos starten
@@ -164,7 +160,6 @@ const scrollToSection = (sectionId: string) => {
                             Mehr erfahren
                         </button>
                     </div>
-
                     <div class="stats">
                         <div v-for="stat in stats" :key="stat.label" class="stat-item">
                             <div class="stat-value">{{ stat.value }}</div>
@@ -172,40 +167,21 @@ const scrollToSection = (sectionId: string) => {
                         </div>
                     </div>
                 </div>
-
                 <div class="hero-visual">
+                    <div class="platforms-intro">
+                        <h3 class="platforms-title">Unterstützte Plattformen</h3>
+                        <p class="platforms-description">Veröffentliche auf allen wichtigen Social Media Plattformen</p>
+                    </div>
                     <div class="platform-cards">
-                        <div class="platform-card card-tiktok">
-                            <div class="platform-icon">📱</div>
-                            <div class="platform-name">TikTok</div>
-                            <div class="platform-status">● Verbunden</div>
-                        </div>
-                        <div class="platform-card card-instagram">
-                            <div class="platform-icon">📷</div>
-                            <div class="platform-name">Instagram</div>
-                            <div class="platform-status">● Verbunden</div>
-                        </div>
-                        <div class="platform-card card-youtube">
-                            <div class="platform-icon">▶️</div>
-                            <div class="platform-name">YouTube</div>
-                            <div class="platform-status">● Verbunden</div>
-                        </div>
-                        <div class="platform-card card-x">
-                            <div class="platform-icon">𝕏</div>
-                            <div class="platform-name">X</div>
-                            <div class="platform-status">● Verbunden</div>
-                        </div>
-                        <div class="platform-card card-facebook">
-                            <div class="platform-icon">👥</div>
-                            <div class="platform-name">Facebook</div>
+                        <div v-for="platform in platforms" :key="platform.name" class="platform-card">
+                            <i :class="`fab fa-${platform.icon}`" class="platform-icon"></i>
+                            <div class="platform-name">{{ platform.name }}</div>
                             <div class="platform-status">● Verbunden</div>
                         </div>
                     </div>
                 </div>
             </div>
         </section>
-
-        <!-- Features Section -->
         <section id="features" class="features">
             <div class="container">
                 <div class="section-header">
@@ -214,18 +190,17 @@ const scrollToSection = (sectionId: string) => {
                         Professionelles Social Media Management, das sich an deine Bedürfnisse anpasst
                     </p>
                 </div>
-
                 <div class="features-grid">
                     <div v-for="feature in features" :key="feature.title" class="feature-card">
-                        <div class="feature-icon">{{ feature.icon }}</div>
+                        <div class="feature-icon">
+                            <i :class="`fas fa-${feature.icon}`"></i>
+                        </div>
                         <h3 class="feature-title">{{ feature.title }}</h3>
                         <p class="feature-description">{{ feature.description }}</p>
                     </div>
                 </div>
             </div>
         </section>
-
-        <!-- News Section -->
         <section id="news" class="news-section">
             <div class="container">
                 <div class="section-header">
@@ -248,15 +223,31 @@ const scrollToSection = (sectionId: string) => {
                         </div>
                         <div class="news-content">
                             <div class="news-meta">
-                                <span class="news-date">📅 {{ item.date }}</span>
+                                <span class="news-date">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                                        <line x1="16" y1="2" x2="16" y2="6" />
+                                        <line x1="8" y1="2" x2="8" y2="6" />
+                                        <line x1="3" y1="10" x2="21" y2="10" />
+                                    </svg>
+                                    {{ item.date }}
+                                </span>
                                 <span class="news-separator">•</span>
-                                <span class="news-time">⏱️ {{ item.readTime }}</span>
+                                <span class="news-time">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <circle cx="12" cy="12" r="10" />
+                                        <polyline points="12 6 12 12 16 14" />
+                                    </svg>
+                                    {{ item.readTime }}
+                                </span>
                             </div>
                             <h3 class="news-title">{{ item.title }}</h3>
                             <p class="news-description">{{ item.description }}</p>
                             <div class="news-footer">
                                 <div class="news-author">
-                                    <div class="author-avatar">👤</div>
+                                    <div class="author-avatar">{{ item.author.charAt(0) }}</div>
                                     <span class="author-name">{{ item.author }}</span>
                                 </div>
                                 <button class="news-link">
@@ -266,42 +257,14 @@ const scrollToSection = (sectionId: string) => {
                         </div>
                     </div>
                 </div>
-
                 <div class="news-cta">
-                    <button class="btn btn-orange">
-                        Zistiť viac o produkte
+                    <button @click="scrollToSection('cta')" class="btn btn-orange">
+                        Mehr erfahren
                         <span class="btn-arrow">→</span>
                     </button>
                 </div>
             </div>
         </section>
-
-        <!-- Other Products Section -->
-        <section id="other-products" class="other-products">
-            <div class="container">
-                <div class="section-header">
-                    <h2 class="section-title">Andere Produkte</h2>
-                    <p class="section-description">
-                        Entdecken Sie unser vollständiges Portfolio an digitalen Lösungen
-                    </p>
-                </div>
-
-                <div class="products-grid">
-                    <a v-for="product in otherProducts" :key="product.name" :href="product.url" target="_blank"
-                        class="product-card">
-                        <div class="product-icon">{{ product.icon }}</div>
-                        <h3 class="product-name">{{ product.name }}</h3>
-                        <p class="product-description">{{ product.description }}</p>
-                        <div class="product-link">
-                            <span class="product-url">{{ product.url.replace('https://', '') }}</span>
-                            <span class="link-arrow">→</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-        </section>
-
-        <!-- CTA Section -->
         <section id="cta" class="cta">
             <div class="container">
                 <div class="cta-content">
@@ -318,19 +281,36 @@ const scrollToSection = (sectionId: string) => {
                 </div>
             </div>
         </section>
-
-        <!-- Footer -->
         <footer class="footer">
             <div class="container">
                 <div class="footer-grid">
                     <div class="footer-main">
                         <h3 class="footer-brand">Control Studio</h3>
-                        <p class="footer-tagline">Ihr Partner für professionelles Social Media Management</p>
-                        <div class="footer-social">
-                            <a href="#" class="social-link">📘</a>
-                            <a href="#" class="social-link">🐦</a>
-                            <a href="#" class="social-link">💼</a>
-                            <a href="#" class="social-link">📷</a>
+                        <p class="footer-tagline">Professionelles Social Media Management</p>
+                        <div class="trust-badges">
+                            <div class="trust-badge">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                                </svg>
+                                <span>SSL gesichert</span>
+                            </div>
+                            <div class="trust-badge">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                                    <polyline points="22 4 12 14.01 9 11.01" />
+                                </svg>
+                                <span>DSGVO konform</span>
+                            </div>
+                            <div class="trust-badge highlight">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+                                    <circle cx="12" cy="10" r="3" />
+                                </svg>
+                                <span>Made & Hosted in Austria</span>
+                            </div>
                         </div>
                     </div>
 
@@ -338,19 +318,18 @@ const scrollToSection = (sectionId: string) => {
                         <h4 class="footer-heading">Produkt</h4>
                         <ul class="footer-links">
                             <li><button @click="scrollToSection('features')" class="footer-link">Features</button></li>
-                            <li><button @click="scrollToSection('news')" class="footer-link">Preise</button></li>
+                            <li><button @click="scrollToSection('news')" class="footer-link">News</button></li>
                             <li><button @click="router.push('/login')" class="footer-link">Login</button></li>
                             <li><button @click="router.push('/signup')" class="footer-link">Registrieren</button></li>
                         </ul>
                     </div>
 
                     <div class="footer-section">
-                        <h4 class="footer-heading">Unternehmen</h4>
+                        <h4 class="footer-heading">Andere Produkte</h4>
                         <ul class="footer-links">
-                            <li><a href="#" class="footer-link">Über uns</a></li>
-                            <li><a href="#" class="footer-link">Karriere</a></li>
-                            <li><a href="#" class="footer-link">Presse</a></li>
-                            <li><a href="#" class="footer-link">Partner</a></li>
+                            <li v-for="product in otherProducts" :key="product.name">
+                                <a :href="product.url" target="_blank" class="footer-link">{{ product.name }}</a>
+                            </li>
                         </ul>
                     </div>
 
@@ -358,24 +337,41 @@ const scrollToSection = (sectionId: string) => {
                         <h4 class="footer-heading">Kontakt</h4>
                         <ul class="footer-contact">
                             <li>
-                                <span class="contact-icon">📧</span>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path
+                                        d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                                    <polyline points="22,6 12,13 2,6" />
+                                </svg>
                                 <a href="mailto:info@control-studio.eu" class="footer-link">info@control-studio.eu</a>
                             </li>
                             <li>
-                                <span class="contact-icon">📞</span>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path
+                                        d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                                </svg>
                                 <a href="tel:+4312345678" class="footer-link">+43 1 234 56 78</a>
                             </li>
                             <li>
-                                <span class="contact-icon">💬</span>
-                                <a href="tel:+436641234567" class="footer-link">+43 664 123 45 67</a>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path
+                                        d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+                                </svg>
+                                <a href="https://wa.me/436641234567" class="footer-link">+43 664 123 45 67
+                                    (WhatsApp)</a>
                             </li>
                             <li>
-                                <span class="contact-icon">📍</span>
-                                <span class="footer-text">Wien, Österreich</span>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                                    <circle cx="12" cy="10" r="3" />
+                                </svg>
+                                <span class="footer-text">Musterstraße 123<br />1010 Wien, Österreich</span>
                             </li>
                         </ul>
                     </div>
-
                     <div class="footer-section">
                         <h4 class="footer-heading">Rechtliches</h4>
                         <ul class="footer-links">
@@ -386,14 +382,8 @@ const scrollToSection = (sectionId: string) => {
                         </ul>
                     </div>
                 </div>
-
                 <div class="footer-bottom">
                     <p>&copy; {{ new Date().getFullYear() }} Control Studio. Alle Rechte vorbehalten.</p>
-                    <div class="footer-badges">
-                        <span class="badge-item">🔒 SSL Verschlüsselt</span>
-                        <span class="badge-item">✓ DSGVO konform</span>
-                        <span class="badge-item">🇦🇹 Made in Austria</span>
-                    </div>
                 </div>
             </div>
         </footer>
@@ -420,7 +410,6 @@ const scrollToSection = (sectionId: string) => {
     padding: 0 2rem;
 }
 
-/* Header Navigation */
 .header {
     position: sticky;
     top: 0;
@@ -447,7 +436,7 @@ const scrollToSection = (sectionId: string) => {
 .logo-icon {
     width: 40px;
     height: 40px;
-    background: linear-gradient(135deg, #f97316 0%, #fb923c 100%);
+    background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
     border-radius: 8px;
     display: flex;
     align-items: center;
@@ -500,7 +489,7 @@ const scrollToSection = (sectionId: string) => {
 }
 
 .btn-demo {
-    background: linear-gradient(135deg, #f97316 0%, #fb923c 100%);
+    background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
     color: white;
     padding: 0.625rem 1.25rem;
     border-radius: 8px;
@@ -511,11 +500,10 @@ const scrollToSection = (sectionId: string) => {
 }
 
 .btn-demo:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(249, 115, 22, 0.4);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
 }
 
-/* Hero Section */
 .hero {
     padding: 6rem 0 4rem;
     position: relative;
@@ -570,7 +558,7 @@ const scrollToSection = (sectionId: string) => {
 }
 
 .gradient-text {
-    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
+    background: linear-gradient(135deg, #dc2626 0%, #ef4444 50%, #f87171 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -607,14 +595,14 @@ const scrollToSection = (sectionId: string) => {
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
     color: white;
-    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
 }
 
 .btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px rgba(220, 38, 38, 0.4);
 }
 
 .btn-secondary {
@@ -634,16 +622,16 @@ const scrollToSection = (sectionId: string) => {
 }
 
 .btn-orange {
-    background: linear-gradient(135deg, #f97316 0%, #fb923c 100%);
+    background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
     color: white;
-    box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
     padding: 1rem 2rem;
     font-size: 1rem;
 }
 
 .btn-orange:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(249, 115, 22, 0.4);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px rgba(220, 38, 38, 0.4);
 }
 
 .btn-arrow {
@@ -665,7 +653,7 @@ const scrollToSection = (sectionId: string) => {
 .stat-value {
     font-size: 2.5rem;
     font-weight: 800;
-    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -685,11 +673,28 @@ const scrollToSection = (sectionId: string) => {
     margin: 0 auto;
 }
 
+.platforms-intro {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.platforms-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 0.5rem;
+}
+
+.platforms-description {
+    font-size: 1rem;
+    color: #64748b;
+}
+
 .platform-cards {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
     gap: 1rem;
-    padding: 2rem 0;
+    padding: 1rem 0;
 }
 
 .platform-card {
@@ -697,71 +702,20 @@ const scrollToSection = (sectionId: string) => {
     border-radius: 1rem;
     padding: 1.5rem;
     text-align: center;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-    transition: all 0.3s;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    transition: all 0.2s ease;
     border: 2px solid transparent;
-    animation: float 6s ease-in-out infinite;
-}
-
-.platform-card:nth-child(1) {
-    animation-delay: 0s;
-}
-
-.platform-card:nth-child(2) {
-    animation-delay: 0.5s;
-}
-
-.platform-card:nth-child(3) {
-    animation-delay: 1s;
-}
-
-.platform-card:nth-child(4) {
-    animation-delay: 1.5s;
-}
-
-.platform-card:nth-child(5) {
-    animation-delay: 2s;
-}
-
-@keyframes float {
-
-    0%,
-    100% {
-        transform: translateY(0);
-    }
-
-    50% {
-        transform: translateY(-10px);
-    }
 }
 
 .platform-card:hover {
-    transform: translateY(-5px) !important;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
-}
-
-.card-tiktok:hover {
-    border-color: #000000;
-}
-
-.card-instagram:hover {
-    border-color: #E4405F;
-}
-
-.card-youtube:hover {
-    border-color: #FF0000;
-}
-
-.card-x:hover {
-    border-color: #000000;
-}
-
-.card-facebook:hover {
-    border-color: #1877F2;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.15);
+    border-color: rgba(220, 38, 38, 0.2);
 }
 
 .platform-icon {
     font-size: 2.5rem;
+    color: #dc2626;
     margin-bottom: 0.75rem;
 }
 
@@ -818,13 +772,21 @@ const scrollToSection = (sectionId: string) => {
 
 .feature-card:hover {
     background: white;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
-    transform: translateY(-4px);
+    box-shadow: 0 4px 16px rgba(220, 38, 38, 0.1);
+    transform: translateY(-2px);
 }
 
 .feature-icon {
-    font-size: 3rem;
+    font-size: 2rem;
+    color: white;
     margin-bottom: 1.25rem;
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .feature-title {
@@ -867,8 +829,8 @@ const scrollToSection = (sectionId: string) => {
 }
 
 .news-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
 }
 
 .news-image {
@@ -881,8 +843,16 @@ const scrollToSection = (sectionId: string) => {
 }
 
 .news-icon {
-    font-size: 4rem;
-    filter: grayscale(1) brightness(0.8);
+    font-size: 3rem;
+    font-weight: 800;
+    color: white;
+    width: 80px;
+    height: 80px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .news-category {
@@ -963,9 +933,9 @@ const scrollToSection = (sectionId: string) => {
     width: 32px;
     height: 32px;
     border-radius: 50%;
-    background: rgba(249, 115, 22, 0.2);
+    background: rgba(220, 38, 38, 0.2);
     border: none;
-    color: #fb923c;
+    color: #ef4444;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -975,7 +945,7 @@ const scrollToSection = (sectionId: string) => {
 }
 
 .news-link:hover {
-    background: #f97316;
+    background: #dc2626;
     color: white;
 }
 
@@ -983,82 +953,10 @@ const scrollToSection = (sectionId: string) => {
     text-align: center;
 }
 
-/* Other Products Section */
-.other-products {
-    padding: 6rem 0;
-    background: white;
-}
-
-.products-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 2rem;
-}
-
-.product-card {
-    background: #f8fafc;
-    border-radius: 1rem;
-    padding: 2rem;
-    text-decoration: none;
-    transition: all 0.3s;
-    border: 2px solid transparent;
-    display: block;
-}
-
-.product-card:hover {
-    background: white;
-    border-color: #6366f1;
-    box-shadow: 0 8px 30px rgba(99, 102, 241, 0.15);
-    transform: translateY(-4px);
-}
-
-.product-icon {
-    font-size: 3rem;
-    margin-bottom: 1rem;
-}
-
-.product-name {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #0f172a;
-    margin-bottom: 0.75rem;
-}
-
-.product-description {
-    font-size: 0.875rem;
-    line-height: 1.6;
-    color: #64748b;
-    margin-bottom: 1.5rem;
-}
-
-.product-link {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-top: 1rem;
-    border-top: 1px solid #e2e8f0;
-}
-
-.product-url {
-    font-size: 0.875rem;
-    color: #6366f1;
-    font-weight: 500;
-}
-
-.link-arrow {
-    font-size: 1.25rem;
-    color: #6366f1;
-    transition: transform 0.2s;
-}
-
-.product-card:hover .link-arrow {
-    transform: translateX(4px);
-}
-
 /* CTA Section */
 .cta {
     padding: 6rem 0;
-    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
+    background: linear-gradient(135deg, #dc2626 0%, #ef4444 50%, #f87171 100%);
     position: relative;
     overflow: hidden;
 }
@@ -1140,6 +1038,39 @@ const scrollToSection = (sectionId: string) => {
     margin-bottom: 1.5rem;
 }
 
+.trust-badges {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+}
+
+.trust-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    color: #94a3b8;
+    padding: 0.5rem;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.trust-badge svg {
+    flex-shrink: 0;
+}
+
+.trust-badge.highlight {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(220, 38, 38, 0.15) 100%);
+    color: #fca5a5;
+    font-weight: 600;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.trust-badge.highlight svg {
+    color: #fca5a5;
+}
+
 .footer-social {
     display: flex;
     gap: 0.75rem;
@@ -1212,9 +1143,23 @@ const scrollToSection = (sectionId: string) => {
     gap: 0.75rem;
 }
 
-.contact-icon {
-    font-size: 1.125rem;
-    min-width: 20px;
+.footer-contact svg {
+    flex-shrink: 0;
+    margin-top: 0.125rem;
+    color: #6366f1;
+}
+
+.news-meta svg {
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 0.25rem;
+}
+
+.news-date,
+.news-time {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
 }
 
 .footer-text {
@@ -1225,26 +1170,10 @@ const scrollToSection = (sectionId: string) => {
 .footer-bottom {
     padding-top: 2rem;
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
     color: #64748b;
     font-size: 0.875rem;
-    flex-wrap: wrap;
-    gap: 1rem;
-}
-
-.footer-badges {
-    display: flex;
-    gap: 1.5rem;
-    flex-wrap: wrap;
-}
-
-.badge-item {
-    display: flex;
-    align-items: center;
-    gap: 0.375rem;
-    font-size: 0.75rem;
-    color: #94a3b8;
 }
 
 /* Responsive */
@@ -1297,8 +1226,7 @@ const scrollToSection = (sectionId: string) => {
     }
 
     .features-grid,
-    .news-grid,
-    .products-grid {
+    .news-grid {
         grid-template-columns: 1fr;
     }
 
@@ -1312,12 +1240,11 @@ const scrollToSection = (sectionId: string) => {
     }
 
     .footer-bottom {
-        flex-direction: column;
         text-align: center;
     }
 
-    .footer-badges {
-        justify-content: center;
+    .trust-badges {
+        margin-top: 1rem;
     }
 }
 
@@ -1389,22 +1316,6 @@ const scrollToSection = (sectionId: string) => {
 
     .feature-description {
         color: #94a3b8;
-    }
-
-    .other-products {
-        background: #0f172a;
-    }
-
-    .product-card {
-        background: #1e293b;
-    }
-
-    .product-card:hover {
-        background: #334155;
-    }
-
-    .product-name {
-        color: #e2e8f0;
     }
 }
 </style>
