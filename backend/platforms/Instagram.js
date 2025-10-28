@@ -326,18 +326,19 @@ async function getUserMedia(PROJECT_ID = 2) {
                 media: mediaWithInsights
             },
             status: 200
-        } catch (error) {
-            console.error('Error getting Instagram user media:', error);
-            throw error;
-        }
+        };
+    } catch (error) {
+        console.error('Error getting Instagram user media:', error);
+        throw error;
     }
+}
 
 //getTotalAnalytics();
 export default {
-        checkPublishingLimit,
-        uploadReel,
-        auth,
-        tokenExchange,
-        getTotalAnalytics,
-        getUserMedia
-    }
+    checkPublishingLimit,
+    uploadReel,
+    auth,
+    tokenExchange,
+    getTotalAnalytics,
+    getUserMedia
+}

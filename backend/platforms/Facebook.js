@@ -214,10 +214,93 @@ export async function getVideos(limit = 25) {
     }
 }
 
+export async function getPageVideosWithInsights(PROJECT_ID = 2) {
+    const apiVersion = 'v21.0';
+
+    try {
+        PROJECT_ID = 2;
+
+        console.log('Fetching Facebook page videos for project ID:', PROJECT_ID);
+        const facebookAccountsData = await retrieveToken(1, 'facebook_accounts');
+        const accessToken = facebookAccountsData.data[0].access_token;
+        const pageId = facebookAccountsData.data[0].id;
+
+        console.log('Fetching videos for page:', pageId);
+
+        const url = `https://graph.facebook.com/${apiVersion}/${pageId}/videos`;
+        const videoParams = {
+            fields: 'id,title,description,created_time,length,permalink_url',
+            limit: 25,
+            access_token: accessToken
+        };
+
+        const videosResponse = await axios.get(url, { params: videoParams });
+        console.log('Facebook videos fetched:', videosResponse.data.data?.length || 0, 'videos');
+
+        const videosWithInsights = [];
+
+        for (const video of videosResponse.data.data || []) {
+            try {
+                const insightsUrl = `https://graph.facebook.com/${apiVersion}/${video.id}/video_insights`;
+                const insightsParams = {
+                    metric: 'total_video_views,total_video_reactions,total_video_comments,total_video_shares',
+                    access_token: accessToken
+                };
+
+                try {
+                    const insightsResponse = await axios.get(insightsUrl, { params: insightsParams });
+
+                    const insights = {};
+                    insightsResponse.data.data?.forEach(metric => {
+                        insights[metric.name] = metric.values?.[0]?.value || 0;
+                    });
+
+                    videosWithInsights.push({
+                        id: video.id,
+                        title: video.title || 'Untitled',
+                        description: video.description || '',
+                        created_time: video.created_time,
+                        views: insights.total_video_views || 0,
+                        likes: insights.total_video_reactions || 0,
+                        comments: insights.total_video_comments || 0,
+                        shares: insights.total_video_shares || 0
+                    });
+                } catch (insightError) {
+                    console.warn(`Could not fetch insights for video ${video.id}:`, insightError.message);
+
+                    videosWithInsights.push({
+                        id: video.id,
+                        title: video.title || 'Untitled',
+                        description: video.description || '',
+                        created_time: video.created_time,
+                        views: 0,
+                        likes: 0,
+                        comments: 0,
+                        shares: 0
+                    });
+                }
+            } catch (error) {
+                console.warn(`Error processing video ${video.id}:`, error.message);
+            }
+        }
+
+        return {
+            data: {
+                videos: videosWithInsights
+            },
+            status: 200
+        };
+    } catch (error) {
+        console.error('Error getting Facebook page videos:', error);
+        throw error;
+    }
+}
+
 export default {
     uploadVideo,
     auth,
     tokenExchange,
     getPages,
-    getVideos
+    getVideos,
+    getPageVideosWithInsights
 }

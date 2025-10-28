@@ -1426,7 +1426,26 @@ app.get('/api/analytics/total', async (req, res) => {
             break;
 
           case 'facebook':
-            analyticsData.message = `${platform} analytics coming soon`;
+            const facebookData = await facebook.getPageVideosWithInsights(PROJECT_ID);
+            if (facebookData && facebookData.data && facebookData.data.videos) {
+              analyticsData.totalVideos = facebookData.data.videos.length;
+              analyticsData.videos = facebookData.data.videos.map(video => ({
+                platform: 'facebook',
+                id: video.id,
+                title: video.title || 'Untitled',
+                views: video.views || 0,
+                likes: video.likes || 0,
+                comments: video.comments || 0,
+                shares: video.shares || 0
+              }));
+
+              facebookData.data.videos.forEach(video => {
+                analyticsData.totalViews += video.views || 0;
+                analyticsData.totalLikes += video.likes || 0;
+                analyticsData.totalComments += video.comments || 0;
+                analyticsData.totalShares += video.shares || 0;
+              });
+            }
             break;
 
           default:
@@ -1445,7 +1464,7 @@ app.get('/api/analytics/total', async (req, res) => {
         analyticsData.error = `Failed to fetch ${platform} analytics: ${platformError.message}`;
       }
     } else {
-      const platforms = ['youtube', 'tiktok', 'instagram'];
+      const platforms = ['youtube', 'tiktok', 'instagram', 'facebook'];
 
       for (const plat of platforms) {
         try {
@@ -1521,6 +1540,33 @@ app.get('/api/analytics/total', async (req, res) => {
                 });
 
                 analyticsData.platforms.instagram = platStats;
+                analyticsData.totalViews += platStats.views;
+                analyticsData.totalLikes += platStats.likes;
+                analyticsData.totalComments += platStats.comments;
+                analyticsData.totalShares += platStats.shares;
+                analyticsData.totalVideos += platStats.videos;
+              }
+              break;
+
+            case 'facebook':
+              const facebookData = await facebook.getPageVideosWithInsights(PROJECT_ID);
+              if (facebookData && facebookData.data && facebookData.data.videos) {
+                const platStats = {
+                  views: 0,
+                  likes: 0,
+                  comments: 0,
+                  shares: 0,
+                  videos: facebookData.data.videos.length
+                };
+
+                facebookData.data.videos.forEach(video => {
+                  platStats.views += video.views || 0;
+                  platStats.likes += video.likes || 0;
+                  platStats.comments += video.comments || 0;
+                  platStats.shares += video.shares || 0;
+                });
+
+                analyticsData.platforms.facebook = platStats;
                 analyticsData.totalViews += platStats.views;
                 analyticsData.totalLikes += platStats.likes;
                 analyticsData.totalComments += platStats.comments;

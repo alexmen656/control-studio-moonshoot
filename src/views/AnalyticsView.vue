@@ -4,7 +4,7 @@
             <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">Analytics</h1>
             <div class="flex gap-4 items-center">
                 <select v-model="selectedPlatform" @change="fetchAnalytics"
-                    class="px-4 py-2 border border-gray-300 rounded-lg text-sm bg-white hover:border-indigo-500 focus:outline-none focus:border-indigo-500 focus:ring-3 focus:ring-indigo-100 transition-all cursor-pointer">
+                    class="px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 rounded-lg text-sm bg-white hover:border-red-500 focus:outline-none focus:border-red-500 focus:ring-3 focus:ring-red-100 transition-all cursor-pointer">
                     <option value="">All Platforms</option>
                     <option value="youtube">YouTube</option>
                     <option value="tiktok">TikTok</option>
@@ -12,7 +12,7 @@
                     <option value="facebook">Facebook</option>
                 </select>
                 <button @click="fetchAnalytics" :disabled="loading"
-                    class="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700 disabled:opacity-60 disabled:cursor-not-allowed transition-all hover:-translate-y-0.5">
+                    class="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700 disabled:opacity-60 disabled:cursor-not-allowed transition-all hover:-translate-y-0.5">
                     <svg v-if="!loading" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                         stroke-linejoin="round">
@@ -23,12 +23,14 @@
                 </button>
             </div>
         </div>
-        <div v-if="error" class="bg-red-50 text-red-600 p-4 rounded-lg mb-4">
+        <div v-if="error" class="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-4 rounded-lg mb-4">
             {{ error }}
         </div>
         <div v-if="loading" class="flex flex-col items-center justify-center py-16 gap-4">
-            <div class="w-12 h-12 border-4 border-gray-200 border-t-indigo-600 rounded-full animate-spin"></div>
-            <p class="text-gray-600">Loading analytics...</p>
+            <div
+                class="w-12 h-12 border-4 border-gray-200 dark:border-gray-700 border-t-red-600 rounded-full animate-spin">
+            </div>
+            <p class="text-gray-600 dark:text-gray-400">Loading analytics...</p>
         </div>
         <div v-else-if="analytics">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -42,8 +44,9 @@
                         </svg>
                     </div>
                     <div>
-                        <h3 class="text-sm text-gray-600 font-medium">Total Views</h3>
-                        <p class="text-2xl font-bold text-gray-900">{{ formatNumber(analytics.totalViews) }}</p>
+                        <h3 class="text-sm text-gray-600 dark:text-gray-400 font-medium">Total Views</h3>
+                        <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{
+                            formatNumber(analytics.totalViews) }}</p>
                     </div>
                 </div>
                 <div
@@ -57,8 +60,9 @@
                         </svg>
                     </div>
                     <div>
-                        <h3 class="text-sm text-gray-600 font-medium">Total Likes</h3>
-                        <p class="text-2xl font-bold text-gray-900">{{ formatNumber(analytics.totalLikes) }}</p>
+                        <h3 class="text-sm text-gray-600 dark:text-gray-400 font-medium">Total Likes</h3>
+                        <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{
+                            formatNumber(analytics.totalLikes) }}</p>
                     </div>
                 </div>
                 <div
@@ -70,8 +74,9 @@
                         </svg>
                     </div>
                     <div>
-                        <h3 class="text-sm text-gray-600 font-medium">Total Comments</h3>
-                        <p class="text-2xl font-bold text-gray-900">{{ formatNumber(analytics.totalComments) }}</p>
+                        <h3 class="text-sm text-gray-600 dark:text-gray-400 font-medium">Total Comments</h3>
+                        <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{
+                            formatNumber(analytics.totalComments) }}</p>
                     </div>
                 </div>
                 <div
@@ -84,8 +89,9 @@
                         </svg>
                     </div>
                     <div>
-                        <h3 class="text-sm text-gray-600 font-medium">Total Videos</h3>
-                        <p class="text-2xl font-bold text-gray-900">{{ formatNumber(analytics.totalVideos) }}</p>
+                        <h3 class="text-sm text-gray-600 dark:text-gray-400 font-medium">Total Videos</h3>
+                        <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{
+                            formatNumber(analytics.totalVideos) }}</p>
                     </div>
                 </div>
                 <div v-if="analytics.totalShares > 0"
@@ -101,8 +107,9 @@
                         </svg>
                     </div>
                     <div>
-                        <h3 class="text-sm text-gray-600 font-medium">Total Shares</h3>
-                        <p class="text-2xl font-bold text-gray-900">{{ formatNumber(analytics.totalShares) }}</p>
+                        <h3 class="text-sm text-gray-600 dark:text-gray-400 font-medium">Total Shares</h3>
+                        <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{
+                            formatNumber(analytics.totalShares) }}</p>
                     </div>
                 </div>
             </div>
@@ -110,7 +117,7 @@
                 <h2 class="text-2xl font-semibold text-gray-900 mb-4 dark:text-gray-100">Platform Breakdown</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <div v-for="(stats, platform) in analytics.platforms" :key="platform"
-                        class="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-all hover:-translate-y-1">
+                        class="bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-xl p-6 shadow-sm hover:shadow-md transition-all hover:-translate-y-1">
                         <div class="flex items-center gap-3 mb-4">
                             <div class="w-8 h-8">
                                 <img v-if="platform === 'youtube'"
@@ -126,88 +133,104 @@
                                     src="https://img.icons8.com/color/48/facebook.png" alt="Facebook"
                                     class="w-full h-full" />
                             </div>
-                            <h3 class="text-lg font-semibold text-gray-900 capitalize">{{ platform }}</h3>
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 capitalize">{{ platform }}
+                            </h3>
                         </div>
-                        <div v-if="stats.error" class="text-red-600 text-sm">
+                        <div v-if="stats.error" class="text-red-600 dark:text-red-400 text-sm">
                             {{ stats.error }}
                         </div>
                         <div v-else class="space-y-3">
-                            <div class="flex justify-between items-center py-2 border-b border-gray-100">
-                                <span class="text-sm text-gray-600">Videos</span>
-                                <span class="text-base font-semibold text-gray-900">{{ formatNumber(stats.videos)
-                                }}</span>
+                            <div
+                                class="flex justify-between items-center py-2 border-b border-gray-100 dark:border-gray-700">
+                                <span class="text-sm text-gray-600 dark:text-gray-400">Videos</span>
+                                <span class="text-base font-semibold text-gray-900 dark:text-gray-100">{{
+                                    formatNumber(stats.videos)
+                                    }}</span>
                             </div>
-                            <div class="flex justify-between items-center py-2 border-b border-gray-100">
-                                <span class="text-sm text-gray-600">Views</span>
-                                <span class="text-base font-semibold text-gray-900">{{ formatNumber(stats.views)
-                                }}</span>
+                            <div
+                                class="flex justify-between items-center py-2 border-b border-gray-100 dark:border-gray-700">
+                                <span class="text-sm text-gray-600 dark:text-gray-400">Views</span>
+                                <span class="text-base font-semibold text-gray-900 dark:text-gray-100">{{
+                                    formatNumber(stats.views)
+                                    }}</span>
                             </div>
-                            <div class="flex justify-between items-center py-2 border-b border-gray-100">
-                                <span class="text-sm text-gray-600">Likes</span>
-                                <span class="text-base font-semibold text-gray-900">{{ formatNumber(stats.likes)
-                                }}</span>
+                            <div
+                                class="flex justify-between items-center py-2 border-b border-gray-100 dark:border-gray-700">
+                                <span class="text-sm text-gray-600 dark:text-gray-400">Likes</span>
+                                <span class="text-base font-semibold text-gray-900 dark:text-gray-100">{{
+                                    formatNumber(stats.likes)
+                                    }}</span>
                             </div>
-                            <div class="flex justify-between items-center py-2 border-b border-gray-100">
-                                <span class="text-sm text-gray-600">Comments</span>
-                                <span class="text-base font-semibold text-gray-900">{{ formatNumber(stats.comments)
+                            <div
+                                class="flex justify-between items-center py-2 border-b border-gray-100 dark:border-gray-700">
+                                <span class="text-sm text-gray-600 dark:text-gray-400">Comments</span>
+                                <span class="text-base font-semibold text-gray-900 dark:text-gray-100">{{
+                                    formatNumber(stats.comments)
                                     }}</span>
                             </div>
                             <div v-if="stats.shares > 0" class="flex justify-between items-center py-2">
-                                <span class="text-sm text-gray-600">Shares</span>
-                                <span class="text-base font-semibold text-gray-900">{{ formatNumber(stats.shares)
-                                }}</span>
+                                <span class="text-sm text-gray-600 dark:text-gray-400">Shares</span>
+                                <span class="text-base font-semibold text-gray-900 dark:text-gray-100">{{
+                                    formatNumber(stats.shares)
+                                    }}</span>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
             <div v-if="analytics.videos && analytics.videos.length > 0">
-                <h2 class="text-2xl font-semibold text-gray-900 mb-4">Recent Videos</h2>
-                <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+                <h2 class="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Recent Videos</h2>
+                <div class="bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-xl shadow-sm overflow-hidden">
                     <div class="overflow-x-auto">
                         <table class="w-full">
-                            <thead class="bg-gray-50">
+                            <thead class="bg-gray-50 dark:bg-gray-700">
                                 <tr>
                                     <th
-                                        class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                        class="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                                         Platform</th>
                                     <th v-if="analytics.videos[0].title"
-                                        class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                        class="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                                         Title</th>
                                     <th
-                                        class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                        class="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                                         Views</th>
                                     <th
-                                        class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                        class="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                                         Likes</th>
                                     <th
-                                        class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                        class="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                                         Comments</th>
                                     <th v-if="analytics.videos[0].shares !== undefined"
-                                        class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                        class="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                                         Shares</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-gray-200">
-                                <tr v-for="(video, index) in analytics.videos" :key="index" class="hover:bg-gray-50">
+                            <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                                <tr v-for="(video, index) in analytics.videos" :key="index"
+                                    class="hover:bg-gray-50 dark:hover:bg-gray-700">
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <span class="inline-flex px-3 py-1 rounded-md text-xs font-semibold uppercase"
                                             :class="{
                                                 'bg-red-100 text-red-700': video.platform === 'youtube',
                                                 'bg-blue-100 text-blue-700': video.platform === 'tiktok',
                                                 'bg-purple-100 text-purple-700': video.platform === 'instagram',
-                                                'bg-indigo-100 text-indigo-700': video.platform === 'facebook'
+                                                'bg-blue-100 text-blue-700': video.platform === 'facebook'
                                             }">
                                             {{ video.platform }}
                                         </span>
                                     </td>
-                                    <td v-if="video.title" class="px-6 py-4 text-sm text-gray-900">{{ video.title }}
+                                    <td v-if="video.title" class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">{{
+                                        video.title }}
                                     </td>
-                                    <td class="px-6 py-4 text-sm text-gray-900">{{ formatNumber(video.views) }}</td>
-                                    <td class="px-6 py-4 text-sm text-gray-900">{{ formatNumber(video.likes) }}</td>
-                                    <td class="px-6 py-4 text-sm text-gray-900">{{ formatNumber(video.comments) }}</td>
-                                    <td v-if="video.shares !== undefined" class="px-6 py-4 text-sm text-gray-900">{{
-                                        formatNumber(video.shares) }}</td>
+                                    <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">{{
+                                        formatNumber(video.views) }}</td>
+                                    <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">{{
+                                        formatNumber(video.likes) }}</td>
+                                    <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">{{
+                                        formatNumber(video.comments) }}</td>
+                                    <td v-if="video.shares !== undefined"
+                                        class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">{{
+                                            formatNumber(video.shares) }}</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -215,7 +238,7 @@
                 </div>
             </div>
         </div>
-        <div v-else class="flex flex-col items-center justify-center py-16 text-gray-500">
+        <div v-else class="flex flex-col items-center justify-center py-16 text-gray-500 dark:text-gray-400">
             <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none"
                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                 class="mb-4 opacity-50">
@@ -223,8 +246,8 @@
                 <line x1="12" y1="20" x2="12" y2="4"></line>
                 <line x1="6" y1="20" x2="6" y2="14"></line>
             </svg>
-            <h2 class="text-2xl font-semibold mb-2">No Analytics Data</h2>
-            <p class="text-base">Connect your social media accounts to see analytics</p>
+            <h2 class="text-2xl font-semibold mb-2 dark:text-gray-100">No Analytics Data</h2>
+            <p class="text-base dark:text-gray-300">Connect your social media accounts to see analytics</p>
         </div>
     </div>
 </template>
