@@ -89,7 +89,6 @@ class YouTubeManager {
             const auth = await this.authorize(projectId);
 
             if (auth.authUrl) {
-                console.log('Authentication required. Visit:', auth.authUrl);
                 return { authUrl: auth.authUrl };
             }
 
@@ -140,7 +139,6 @@ class YouTubeManager {
         const auth = await this.authorize(projectId);
 
         if (auth.authUrl) {
-            console.log('Authentication required. Visit:', auth.authUrl);
             return { authUrl: auth.authUrl };
         }
 

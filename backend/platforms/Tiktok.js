@@ -2,7 +2,7 @@ import fs from 'fs/promises';
 import crypto from 'crypto';
 import dotenv from 'dotenv';
 import path from 'path';
-import { storeToken, retrieveToken } from '../utils/token_manager.js';
+import { storeTokenByProjectID, retrieveTokenByProjectID } from '../utils/token_manager.js';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -11,12 +11,7 @@ const BACKEND_DIR = path.join(__dirname, '..');
 const TOKENS_DIR = path.join(BACKEND_DIR, 'tokens');
 const PROJECT_ROOT = path.join(__dirname, '..', '..');
 
-dotenv.config({ path: path.join(PROJECT_ROOT, '.env') })
-
-const TOKEN_PATH = path.join(TOKENS_DIR, 'tiktok_token.json');
-const CLIENT_KEY = process.env.TIKTOK_CLIENT_KEY || '';
-const CLIENT_SECRET = process.env.TIKTOK_CLIENT_SECRET || '';
-const REDIRECT_URI = 'https://alex.polan.sk/tiktok_redirect.php';
+dotenv.config({ path: path.join(PROJECT_ROOT, '.env') });
 
 const SCOPES = [
     'user.info.basic',
@@ -25,330 +20,318 @@ const SCOPES = [
     'video.list'
 ].join(',');
 
-function generateCodeVerifier() {
-    return crypto.randomBytes(32).toString('base64url');
-}
+class TikTokManager {
+    constructor(options = {}) {
+        this.clientKey = options.clientKey || process.env.TIKTOK_CLIENT_KEY || '';
+        this.clientSecret = options.clientSecret || process.env.TIKTOK_CLIENT_SECRET || '';
+        this.redirectUri = options.redirectUri || 'https://alex.polan.sk/tiktok_redirect.php';
+        this.projectId = 2;//options.projectId || 2;
+        this.scopes = options.scopes || SCOPES;
+    }
 
-function generateCodeChallenge(verifier) {
-    return crypto.createHash('sha256').update(verifier).digest('base64url');
-}
+    _generateCodeVerifier() {
+        return crypto.randomBytes(32).toString('base64url');
+    }
 
-async function authorize() {
-    try {
+    _generateCodeChallenge(verifier) {
+        return crypto.createHash('sha256').update(verifier).digest('base64url');
+    }
+
+    async authorize() {
         try {
-            const token = await retrieveToken(1, 'tiktok_token');
-            const tokenData = JSON.parse(token);
+            try {
+                const token = await retrieveTokenByProjectID(1, 'tiktok_token', this.projectId);
+                const tokenData = JSON.parse(token);
 
-            if (tokenData.expires_at && Date.now() < tokenData.expires_at) {
-                console.log('TikTok token found, and is still valid');
-                return { accessToken: tokenData.access_token };
-            } else {
-                console.log('TikTok token expired, need to refresh or get new one');
-            }
-        } catch {
-            console.log('No TikTok token found, need to get a new one');
-        }
-
-        const codeVerifier = generateCodeVerifier();
-        const codeChallenge = generateCodeChallenge(codeVerifier);
-        const csrfState = crypto.randomBytes(16).toString('hex');
-
-        /* await fs.writeFile(path.join(TOKENS_DIR, 'tiktok_oauth_state.json'), JSON.stringify({
-             code_verifier: codeVerifier,
-             csrf_state: csrfState
-         }));*/
-
-        await storeToken(1, 'tiktok_oauth_state', {
-            code_verifier: codeVerifier,
-            csrf_state: csrfState
-        });
-
-        const authUrl = new URL('https://www.tiktok.com/v2/auth/authorize/');
-        authUrl.searchParams.append('client_key', CLIENT_KEY);
-        authUrl.searchParams.append('scope', SCOPES);
-        authUrl.searchParams.append('response_type', 'code');
-        authUrl.searchParams.append('redirect_uri', REDIRECT_URI);
-        authUrl.searchParams.append('state', csrfState);
-        authUrl.searchParams.append('code_challenge', codeChallenge);
-        authUrl.searchParams.append('code_challenge_method', 'S256');
-
-        return { authUrl: authUrl.toString() };
-    } catch (err) {
-        console.error('Error during TikTok authorization:', err);
-        throw err;
-    }
-}
-
-async function exchangeCodeForToken(code, state) {
-    try {
-        const oauthState = await retrieveToken(1, 'tiktok_oauth_state');
-
-        if (state !== oauthState.csrf_state) {
-            throw new Error('State mismatch - possible CSRF attack');
-        }
-
-        const tokenUrl = 'https://open.tiktokapis.com/v2/oauth/token/';
-        const response = await fetch(tokenUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'Cache-Control': 'no-cache'
-            },
-            body: new URLSearchParams({
-                client_key: CLIENT_KEY,
-                client_secret: CLIENT_SECRET,
-                code: code,
-                grant_type: 'authorization_code',
-                redirect_uri: REDIRECT_URI,
-                code_verifier: oauthState.code_verifier
-            })
-        });
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`Failed to exchange code for token: ${errorText}`);
-        }
-
-        const tokenData = await response.json();
-
-        const tokenWithExpiry = {
-            ...tokenData,
-            expires_at: Date.now() + (tokenData.expires_in * 1000)
-        };
-
-        await storeToken(1, 'tiktok_token', tokenWithExpiry);
-
-        console.log('TikTok token stored successfully');
-
-        await fs.unlink(path.join(TOKENS_DIR, 'tiktok_oauth_state.json')).catch(() => { });
-
-        return tokenWithExpiry;
-    } catch (err) {
-        console.error('Error exchanging code for token:', err);
-        throw err;
-    }
-}
-
-async function refreshAccessToken() {
-    try {
-        const tokenData = await retrieveToken(1, 'tiktok_token');
-
-        if (!tokenData.refresh_token) {
-            throw new Error('No refresh token available');
-        }
-
-        const tokenUrl = 'https://open.tiktokapis.com/v2/oauth/token/';
-        const response = await fetch(tokenUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'Cache-Control': 'no-cache'
-            },
-            body: new URLSearchParams({
-                client_key: CLIENT_KEY,
-                client_secret: CLIENT_SECRET,
-                grant_type: 'refresh_token',
-                refresh_token: tokenData.refresh_token
-            })
-        });
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`Failed to refresh token: ${errorText}`);
-        }
-
-        const newTokenData = await response.json();
-
-        const tokenWithExpiry = {
-            ...newTokenData,
-            expires_at: Date.now() + (newTokenData.expires_in * 1000)
-        };
-
-        await storeToken(1, 'tiktok_token', tokenWithExpiry);
-        console.log('TikTok token refreshed successfully');
-
-        return tokenWithExpiry;
-    } catch (err) {
-        console.error('Error refreshing token:', err);
-        throw err;
-    }
-}
-
-async function uploadVideo(videoPath, title, description, privacyLevel = 'SELF_ONLY') {
-    try {
-        const tokenData = await retrieveToken(1, 'tiktok_token');
-        const accessToken = tokenData.access_token;
-
-        let chunkSize = 128 * 1024 * 1024; // 4MB
-        const fileStat = await fs.stat(videoPath);
-        let fileSize = fileStat.size;
-
-        if (fileSize < chunkSize) {
-            chunkSize = fileSize;
-        }
-
-        console.log(`Uploading video of size ${fileSize} bytes in chunks of ${chunkSize} bytes`, String(Math.ceil(fileSize / chunkSize)));
-
-        const initResponse = await fetch('https://open.tiktokapis.com/v2/post/publish/video/init/', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${accessToken}`,
-                'Content-Type': 'application/json; charset=UTF-8',
-            },
-            body: JSON.stringify({
-                post_info: {
-                    title: title,
-                    privacy_level: privacyLevel,
-                    disable_duet: false,
-                    disable_comment: true,
-                    disable_stitch: false,
-                    video_cover_timestamp_ms: 1000
-                },
-                source_info: {
-                    source: 'FILE_UPLOAD',
-                    video_size: fileSize,
-                    chunk_size: chunkSize,
-                    total_chunk_count: Math.ceil(fileSize / chunkSize)
+                if (tokenData.expires_at && Date.now() < tokenData.expires_at) {
+                    console.log('TikTok token found, and is still valid');
+                    return { accessToken: tokenData.access_token };
+                } else {
+                    console.log('TikTok token expired, need to refresh or get new one');
                 }
-            })
-        });
+            } catch {
+                console.log('No TikTok token found, need to get a new one');
+            }
 
-        if (!initResponse.ok) {
-            const errorText = await initResponse.text();
-            console.log('Init response status:', initResponse.status);
-            console.log('Init response error:', errorText);
-            throw new Error(`Failed to initialize upload: ${errorText}`);
+            const codeVerifier = this._generateCodeVerifier();
+            const codeChallenge = this._generateCodeChallenge(codeVerifier);
+            const csrfState = crypto.randomBytes(16).toString('hex');
+
+            await storeTokenByProjectID(1, 'tiktok_oauth_state', {
+                code_verifier: codeVerifier,
+                csrf_state: csrfState
+            }, this.projectId);
+
+            const authUrl = new URL('https://www.tiktok.com/v2/auth/authorize/');
+            authUrl.searchParams.append('client_key', this.clientKey);
+            authUrl.searchParams.append('scope', this.scopes);
+            authUrl.searchParams.append('response_type', 'code');
+            authUrl.searchParams.append('redirect_uri', this.redirectUri);
+            authUrl.searchParams.append('state', csrfState);
+            authUrl.searchParams.append('code_challenge', codeChallenge);
+            authUrl.searchParams.append('code_challenge_method', 'S256');
+
+            return { authUrl: authUrl.toString() };
+        } catch (err) {
+            console.error('Error during TikTok authorization:', err);
+            throw err;
         }
+    }
 
-        const initData = await initResponse.json();
-        console.log('Init response data:', JSON.stringify(initData, null, 2));
-        const uploadUrl = initData.data.upload_url;
-        const publishId = initData.data.publish_id;
+    async exchangeCodeForToken(code, state) {
+        try {
+            const oauthState = await retrieveTokenByProjectID(1, 'tiktok_oauth_state', this.projectId);
 
-        console.log('Upload URL:', uploadUrl);
-        console.log('Publish ID:', publishId);
+            if (state !== oauthState.csrf_state) {
+                throw new Error('State mismatch - possible CSRF attack');
+            }
 
-        const videoBuffer = await fs.readFile(videoPath);
-        console.log('Video buffer size:', videoBuffer.length);
-
-        const totalChunks = Math.ceil(fileSize / chunkSize);
-        console.log(`Uploading ${totalChunks} chunk(s)`);
-
-        for (let i = 0; i < totalChunks; i++) {
-            const start = i * chunkSize;
-            const end = Math.min(start + chunkSize, fileSize);
-            const chunk = videoBuffer.slice(start, end);
-
-            console.log(`Uploading chunk ${i + 1}/${totalChunks}: bytes ${start}-${end - 1}/${fileSize}`);
-
-            const uploadResponse = await fetch(uploadUrl, {
-                method: 'PUT',
+            const tokenUrl = 'https://open.tiktokapis.com/v2/oauth/token/';
+            const response = await fetch(tokenUrl, {
+                method: 'POST',
                 headers: {
-                    'Content-Type': 'video/mp4',
-                    'Content-Length': chunk.length.toString(),
-                    'Content-Range': `bytes ${start}-${end - 1}/${fileSize}`
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Cache-Control': 'no-cache'
                 },
-                body: chunk
+                body: new URLSearchParams({
+                    client_key: this.clientKey,
+                    client_secret: this.clientSecret,
+                    code: code,
+                    grant_type: 'authorization_code',
+                    redirect_uri: this.redirectUri,
+                    code_verifier: oauthState.code_verifier
+                })
             });
 
-            console.log('Upload response status:', uploadResponse.status);
-
-            if (!uploadResponse.ok) {
-                const errorText = await uploadResponse.text();
-                console.log('Upload response error:', errorText);
-                throw new Error(`Failed to upload video chunk ${i + 1} (status ${uploadResponse.status}): ${errorText}`);
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Failed to exchange code for token: ${errorText}`);
             }
 
-            console.log(`Chunk ${i + 1} uploaded successfully`);
+            const tokenData = await response.json();
+
+            const tokenWithExpiry = {
+                ...tokenData,
+                expires_at: Date.now() + (tokenData.expires_in * 1000)
+            };
+
+            await storeTokenByProjectID(1, 'tiktok_token', tokenWithExpiry, this.projectId);
+            await fs.unlink(path.join(TOKENS_DIR, 'tiktok_oauth_state.json')).catch(() => { });
+            console.log('TikTok token stored successfully');
+
+            return tokenWithExpiry;
+        } catch (err) {
+            console.error('Error exchanging code for token:', err);
+            throw err;
         }
-
-        console.log('All chunks uploaded to TikTok successfully');
-        return {
-            publish_id: publishId,
-            message: 'Video uploaded successfully'
-        };
-    } catch (err) {
-        console.error('Error uploading video to TikTok:', err);
-        throw err;
     }
-}
 
-async function getUserInfo() {
-    try {
-        const tokenData = await retrieveToken(1, 'tiktok_token');
-        const accessToken = tokenData.access_token;
+    async refreshAccessToken() {
+        try {
+            const tokenData = await retrieveTokenByProjectID(1, 'tiktok_token', this.projectId);
 
-        const response = await fetch('https://open.tiktokapis.com/v2/user/info/', {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${accessToken}`
+            if (!tokenData.refresh_token) {
+                throw new Error('No refresh token available');
             }
-        });
 
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`Failed to get user info: ${errorText}`);
+            const tokenUrl = 'https://open.tiktokapis.com/v2/oauth/token/';
+            const response = await fetch(tokenUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Cache-Control': 'no-cache'
+                },
+                body: new URLSearchParams({
+                    client_key: this.clientKey,
+                    client_secret: this.clientSecret,
+                    grant_type: 'refresh_token',
+                    refresh_token: tokenData.refresh_token
+                })
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Failed to refresh token: ${errorText}`);
+            }
+
+            const newTokenData = await response.json();
+
+            const tokenWithExpiry = {
+                ...newTokenData,
+                expires_at: Date.now() + (newTokenData.expires_in * 1000)
+            };
+
+            await storeTokenByProjectID(1, 'tiktok_token', tokenWithExpiry, this.projectId);
+            console.log('TikTok token refreshed successfully');
+
+            return tokenWithExpiry;
+        } catch (err) {
+            console.error('Error refreshing token:', err);
+            throw err;
         }
+    }
 
-        const userData = await response.json();
-        return userData.data;
-    } catch (err) {
-        console.error('Error getting TikTok user info:', err);
-        throw err;
+    async _getAccessToken() {
+        const tokenData = await retrieveToken(1, 'tiktok_token', this.projectId);
+        return tokenData.access_token;
+    }
+
+    async uploadVideo(videoPath, title, description, privacyLevel = 'SELF_ONLY') {
+        try {
+            const accessToken = await this._getAccessToken();
+
+            let chunkSize = 128 * 1024 * 1024; // 128MB
+            const fileStat = await fs.stat(videoPath);
+            let fileSize = fileStat.size;
+
+            if (fileSize < chunkSize) {
+                chunkSize = fileSize;
+            }
+
+            console.log(`Uploading video of size ${fileSize} bytes in chunks of ${chunkSize} bytes`, String(Math.ceil(fileSize / chunkSize)));
+
+            const initResponse = await fetch('https://open.tiktokapis.com/v2/post/publish/video/init/', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`,
+                    'Content-Type': 'application/json; charset=UTF-8',
+                },
+                body: JSON.stringify({
+                    post_info: {
+                        title: title,
+                        privacy_level: privacyLevel,
+                        disable_duet: false,
+                        disable_comment: true,
+                        disable_stitch: false,
+                        video_cover_timestamp_ms: 1000
+                    },
+                    source_info: {
+                        source: 'FILE_UPLOAD',
+                        video_size: fileSize,
+                        chunk_size: chunkSize,
+                        total_chunk_count: Math.ceil(fileSize / chunkSize)
+                    }
+                })
+            });
+
+            if (!initResponse.ok) {
+                const errorText = await initResponse.text();
+                console.log('Init response status:', initResponse.status);
+                console.log('Init response error:', errorText);
+                throw new Error(`Failed to initialize upload: ${errorText}`);
+            }
+
+            const initData = await initResponse.json();
+            console.log('Init response data:', JSON.stringify(initData, null, 2));
+            const uploadUrl = initData.data.upload_url;
+            const publishId = initData.data.publish_id;
+
+            console.log('Upload URL:', uploadUrl);
+            console.log('Publish ID:', publishId);
+
+            const videoBuffer = await fs.readFile(videoPath);
+            const totalChunks = Math.ceil(fileSize / chunkSize);
+            console.log(`Uploading ${totalChunks} chunk(s)`);
+
+            for (let i = 0; i < totalChunks; i++) {
+                const start = i * chunkSize;
+                const end = Math.min(start + chunkSize, fileSize);
+                const chunk = videoBuffer.slice(start, end);
+
+                console.log(`Uploading chunk ${i + 1}/${totalChunks}: bytes ${start}-${end - 1}/${fileSize}`);
+
+                const uploadResponse = await fetch(uploadUrl, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'video/mp4',
+                        'Content-Length': chunk.length.toString(),
+                        'Content-Range': `bytes ${start}-${end - 1}/${fileSize}`
+                    },
+                    body: chunk
+                });
+
+                console.log('Upload response status:', uploadResponse.status);
+
+                if (!uploadResponse.ok) {
+                    const errorText = await uploadResponse.text();
+                    console.log('Upload response error:', errorText);
+                    throw new Error(`Failed to upload video chunk ${i + 1} (status ${uploadResponse.status}): ${errorText}`);
+                }
+
+                console.log(`Chunk ${i + 1} uploaded successfully`);
+            }
+
+            console.log('All chunks uploaded to TikTok successfully');
+            return {
+                publish_id: publishId,
+                message: 'Video uploaded successfully'
+            };
+        } catch (err) {
+            console.error('Error uploading video to TikTok:', err);
+            throw err;
+        }
+    }
+
+    async getUserInfo() {
+        try {
+            const accessToken = await this._getAccessToken();
+
+            const response = await fetch('https://open.tiktokapis.com/v2/user/info/', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`
+                }
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Failed to get user info: ${errorText}`);
+            }
+
+            const userData = await response.json();
+            return userData.data;
+        } catch (err) {
+            console.error('Error getting TikTok user info:', err);
+            throw err;
+        }
+    }
+
+    async getUserVideos() {
+        try {
+            console.log('Getting user videos');
+            const accessToken = await this._getAccessToken();
+
+            const response = await fetch('https://open.tiktokapis.com/v2/video/query/', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`,
+                    'Content-Type': 'application/json; charset=UTF-8',
+                },
+                body: JSON.stringify({
+                    "fields": [
+                        "id",
+                        "title",
+                        "create_time",
+                        "duration",
+                        "cover_image_url",
+                        "share_url",
+                        "video_description",
+                        "statistics"
+                    ]
+                })
+            });
+
+            const resp = await response.json();
+
+            return {
+                data: resp.data || {},
+                status: response.status
+            };
+        } catch (err) {
+            console.error('Error getting TikTok user videos:', err);
+            throw err;
+        }
     }
 }
 
-async function getUserVideos() {
-    try {
-        console.log('Getting user videos')
-        const tokenData = await retrieveToken(1, 'tiktok_token');
-        const accessToken = tokenData.access_token;
-
-        console.log('Access token:', accessToken);
-        const response = await fetch('https://open.tiktokapis.com/v2/video/query/', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${accessToken}`,
-                'Content-Type': 'application/json; charset=UTF-8',
-            },
-            body: JSON.stringify({
-                "fields": [
-                    "id",
-                    "title",
-                    "create_time",
-                    "duration",
-                    "cover_image_url",
-                    "share_url",
-                    "video_description",
-                    "statistics"
-                ]
-            })
-        });
-
-        const resp = await response.json();
-        console.log('User videos response:', resp.data, 'Status:', response.status);
-
-        return {
-            data: resp.data || {},
-            status: response.status
-        };
-    } catch (err) {
-        console.error('Error getting TikTok user videos:', err);
-        throw err;
-    }
-}
-
-//getUserVideos()
-//async function getVideoAnalytics() {
-//}
-
-
-export default {
-    authorize,
-    exchangeCodeForToken,
-    refreshAccessToken,
-    uploadVideo,
-    getUserInfo,
-    getUserVideos,
-    //   getVideoAnalytics
-}
+export default TikTokManager;

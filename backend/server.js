@@ -12,7 +12,7 @@ import { promisify } from 'util'
 import YouTubeManager from './platforms/youtube.js'
 import instagram from './platforms/Instagram.js'
 import facebook from './platforms/Facebook.js'
-import tiktok from './platforms/Tiktok.js'
+import TikTokManager from './platforms/tiktok.js'
 import * as db from './utils/db.js'
 import { storeTokenByProjectID, retrieveTokenByProjectID, removeTokenByProjectID } from './utils/token_manager.js'
 import { registerUser, loginUser, loginWithGoogle, authMiddleware, getUserById } from './utils/auth.js'
@@ -27,6 +27,7 @@ const app = express()
 const PORT = process.env.PORT || 6709
 
 const youTubeManager = new YouTubeManager();
+const tiktokManager = new TikTokManager();
 
 const uploadsDir = path.join(__dirname, 'uploads')
 if (!fs.existsSync(uploadsDir)) {
@@ -1038,7 +1039,7 @@ app.post('/api/connect/:platform', async (req, res) => {
           res.json({ message: 'Connected to Facebook successfully' });
         }
       case 'tiktok':
-        const tiktokResult = await tiktok.authorize();
+        const tiktokResult = await tiktokManager.authorize();
 
         if (tiktokResult.authUrl) {
           return res.json({ authUrl: tiktokResult.authUrl });
@@ -1129,7 +1130,7 @@ app.get('/api/oauth2callback/tiktok', async (req, res) => {
   }
 
   try {
-    await tiktok.exchangeCodeForToken(code, state);
+    await tiktokManager.exchangeCodeForToken(code, state);
 
     res.redirect('http://localhost:5185/accounts?tiktok=connected');
   } catch (error) {
@@ -1240,7 +1241,7 @@ app.post('/api/publish', async (req, res) => {
     if (video.platforms.includes('tiktok')) {
       console.log('Publishing to TikTok:', video.title);
       try {
-        await tiktok.uploadVideo(video.path, video.title)
+        await tiktokManager.uploadVideo(video.path, video.title)
         platformStatuses.tiktok = 'success'
         console.log(`✓ TikTok: Published successfully at ${new Date().toLocaleString()}`)
       } catch (error) {
@@ -1382,7 +1383,7 @@ app.get('/api/analytics/total', async (req, res) => {
             break;
 
           case 'tiktok':
-            const tiktokData = await tiktok.getUserVideos();
+            const tiktokData = await tiktokManager.getUserVideos();
             if (tiktokData && tiktokData.data && tiktokData.data.videos) {
               analyticsData.totalVideos = tiktokData.data.videos.length;
               analyticsData.videos = tiktokData.data.videos.map(video => ({
@@ -1497,7 +1498,7 @@ app.get('/api/analytics/total', async (req, res) => {
               break;
 
             case 'tiktok':
-              const tiktokData = await tiktok.getUserVideos();
+              const tiktokData = await tiktokManager.getUserVideos();
               if (tiktokData && tiktokData.data && tiktokData.data.videos) {
                 const platStats = {
                   views: 0,
@@ -1607,7 +1608,7 @@ app.get('/api/analytics/total', async (req, res) => {
         analyticsData = await youTubeManager.getVideoAnalytics()//videoId, startDate, endDate
         break
       case 'tiktok':
-        analyticsData = await tiktok.getUserVideos()//videoId, startDate, endDate
+        analyticsData = await tiktokManager.getUserVideos()//videoId, startDate, endDate
         break
       case 'instagram':
         analyticsData = await youTubeManager.getVideoAnalytics(videoId, startDate, endDate)
