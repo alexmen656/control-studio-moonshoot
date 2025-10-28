@@ -1133,6 +1133,81 @@ app.post('/api/disconnect/:platform', async (req, res) => {
   }
 })
 
+app.get('/api/connected-platforms', async (req, res) => {
+  try {
+    const PROJECT_ID = req.query.project_id || 2;
+    const connectedPlatforms = [];
+
+    try {
+      const youtubeToken = await retrieveTokenByProjectID(1, 'youtube_token', PROJECT_ID);
+      if (youtubeToken && youtubeToken.refresh_token) {
+        connectedPlatforms.push('youtube');
+      }
+    } catch (err) {
+      // Not connected
+    }
+
+    try {
+      const tiktokToken = await retrieveTokenByProjectID(1, 'tiktok_token', PROJECT_ID);
+      if (tiktokToken && tiktokToken.access_token) {
+        connectedPlatforms.push('tiktok');
+      }
+    } catch (err) {
+      // Not connected
+    }
+
+    try {
+      const instagramToken = await retrieveTokenByProjectID(1, 'instagram_token', PROJECT_ID);
+      const instagramAccount = await retrieveTokenByProjectID(1, 'instagram_business_account', PROJECT_ID);
+      if (instagramToken && instagramAccount) {
+        connectedPlatforms.push('instagram');
+      }
+    } catch (err) {
+      // Not connected
+    }
+
+    try {
+      //wtf why cant it find facebook token, i can see it in the db
+      const facebookToken = await retrieveTokenByProjectID(1, 'facebook_token', PROJECT_ID);// =null
+      const facebookAccounts = await retrieveTokenByProjectID(1, 'facebook_accounts', PROJECT_ID);
+
+      console.log('---------------------------------------------------- \n\n\n');
+      console.log('Facebook Token:', facebookToken);
+      console.log('Facebook Accounts:', facebookAccounts);
+      console.log('---------------------------------------------------- \n\n\n');
+
+      if (facebookToken && facebookAccounts) {
+        connectedPlatforms.push('facebook');
+      }
+    } catch (err) {
+      // Not connected
+    }
+
+    try {
+      const xToken = await retrieveTokenByProjectID(1, 'x_token', PROJECT_ID);
+      if (xToken && xToken.access_token) {
+        connectedPlatforms.push('x');
+      }
+    } catch (err) {
+      // Not connected
+    }
+
+    try {
+      const redditToken = await retrieveTokenByProjectID(1, 'reddit_token', PROJECT_ID);
+      if (redditToken && redditToken.access_token) {
+        connectedPlatforms.push('reddit');
+      }
+    } catch (err) {
+      // Not connected
+    }
+
+    res.json({ platforms: connectedPlatforms });
+  } catch (error) {
+    console.error('Error getting connected platforms:', error);
+    res.status(500).json({ error: 'Error getting connected platforms' });
+  }
+})
+
 app.get('/api/oauth2callback/youtube', async (req, res) => {
   const { code } = req.query;
   //fuck this wont work because the request is comming grom google redirect, how to figure it out with state later
