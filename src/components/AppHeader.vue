@@ -174,6 +174,26 @@ const searchResults = ref<any[]>([])
 
 const user = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user') as string) : { username: 'Guest', email: 'guest@example.com' }
 
+const performSearch = () => {
+    if (searchQuery.value.length > 0) {
+        searchResults.value = []
+    } else {
+        searchResults.value = []
+    }
+}
+
+const selectSearchResult = (result: any) => {
+    console.log('Selected result:', result)
+    isSearchFocused.value = false
+    searchQuery.value = ''
+}
+
+const highlightMatch = (text: string, query: string) => {
+    if (!query) return text
+    const regex = new RegExp(`(${query})`, 'gi')
+    return text.replace(regex, '<mark class="bg-yellow-200 dark:bg-yellow-600">$1</mark>')
+}
+
 const toggleMobileMenu = () => {
     mobileMenuOpen.value = !mobileMenuOpen.value
 }

@@ -94,7 +94,7 @@
                             formatNumber(analytics.totalVideos) }}</p>
                     </div>
                 </div>
-                <div v-if="analytics.totalShares > 0"
+                <div v-if="analytics.totalShares && analytics.totalShares > 0"
                     class="bg-white rounded-xl p-6 flex items-center gap-4 shadow-sm hover:shadow-md transition-all hover:-translate-y-1 dark:bg-gray-800 border dark:border-gray-700 shadow-sm hover:shadow-lg border border-gray-200">
                     <div class="w-12 h-12 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
@@ -145,34 +145,34 @@
                                 <span class="text-sm text-gray-600 dark:text-gray-400">Videos</span>
                                 <span class="text-base font-semibold text-gray-900 dark:text-gray-100">{{
                                     formatNumber(stats.videos)
-                                    }}</span>
+                                }}</span>
                             </div>
                             <div
                                 class="flex justify-between items-center py-2 border-b border-gray-100 dark:border-gray-700">
                                 <span class="text-sm text-gray-600 dark:text-gray-400">Views</span>
                                 <span class="text-base font-semibold text-gray-900 dark:text-gray-100">{{
                                     formatNumber(stats.views)
-                                    }}</span>
+                                }}</span>
                             </div>
                             <div
                                 class="flex justify-between items-center py-2 border-b border-gray-100 dark:border-gray-700">
                                 <span class="text-sm text-gray-600 dark:text-gray-400">Likes</span>
                                 <span class="text-base font-semibold text-gray-900 dark:text-gray-100">{{
                                     formatNumber(stats.likes)
-                                    }}</span>
+                                }}</span>
                             </div>
                             <div
                                 class="flex justify-between items-center py-2 border-b border-gray-100 dark:border-gray-700">
                                 <span class="text-sm text-gray-600 dark:text-gray-400">Comments</span>
                                 <span class="text-base font-semibold text-gray-900 dark:text-gray-100">{{
                                     formatNumber(stats.comments)
-                                    }}</span>
+                                }}</span>
                             </div>
-                            <div v-if="stats.shares > 0" class="flex justify-between items-center py-2">
+                            <div v-if="stats.shares && stats.shares > 0" class="flex justify-between items-center py-2">
                                 <span class="text-sm text-gray-600 dark:text-gray-400">Shares</span>
                                 <span class="text-base font-semibold text-gray-900 dark:text-gray-100">{{
                                     formatNumber(stats.shares)
-                                    }}</span>
+                                }}</span>
                             </div>
                         </div>
                     </div>
@@ -188,7 +188,7 @@
                                     <th
                                         class="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                                         Platform</th>
-                                    <th v-if="analytics.videos[0].title"
+                                    <th v-if="analytics.videos && analytics.videos.length > 0 && analytics.videos[0]?.title"
                                         class="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                                         Title</th>
                                     <th
@@ -200,7 +200,7 @@
                                     <th
                                         class="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                                         Comments</th>
-                                    <th v-if="analytics.videos[0].shares !== undefined"
+                                    <th v-if="analytics.videos && analytics.videos.length > 0 && analytics.videos[0]?.shares !== undefined"
                                         class="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                                         Shares</th>
                                 </tr>
@@ -212,7 +212,7 @@
                                         <span class="inline-flex px-3 py-1 rounded-md text-xs font-semibold uppercase"
                                             :class="{
                                                 'bg-red-100 text-red-700': video.platform === 'youtube',
-                                                'bg-blue-100 text-blue-700': video.platform === 'tiktok',
+                                                'bg-pink-100 text-pink-700': video.platform === 'tiktok',
                                                 'bg-purple-100 text-purple-700': video.platform === 'instagram',
                                                 'bg-blue-100 text-blue-700': video.platform === 'facebook'
                                             }">
@@ -252,13 +252,42 @@
     </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
 
-const analytics = ref(null)
+interface Video {
+    title?: string
+    views?: number
+    likes?: number
+    comments?: number
+    shares?: number
+    platform?: string
+}
+
+interface PlatformStats {
+    views: number
+    likes: number
+    comments: number
+    shares?: number
+    videos: number
+    error?: string
+}
+
+interface Analytics {
+    totalViews: number
+    totalLikes: number
+    totalComments: number
+    totalVideos: number
+    totalShares?: number
+    platforms: Record<string, PlatformStats>
+    videos?: Video[]
+    error?: string
+}
+
+const analytics = ref<Analytics | null>(null)
 const loading = ref(false)
-const error = ref(null)
+const error = ref<string | null>(null)
 const selectedPlatform = ref('')
 
 const fetchAnalytics = async () => {
@@ -266,7 +295,7 @@ const fetchAnalytics = async () => {
     error.value = null
 
     try {
-        const params = {}
+        const params: Record<string, string> = {}
         if (selectedPlatform.value) {
             params.platform = selectedPlatform.value
         }
@@ -285,7 +314,7 @@ const fetchAnalytics = async () => {
     }
 }
 
-const formatNumber = (num) => {
+const formatNumber = (num: number | undefined) => {
     if (!num) return '0'
     if (num >= 1000000) {
         return (num / 1000000).toFixed(1) + 'M'

@@ -37,8 +37,9 @@ const viewMode = ref<'calendar' | 'list'>('calendar')
 const currentDate = ref(new Date())
 const isLoading = ref(false)
 
-function handleProjectChanged(event) {
-    const project = event.detail
+function handleProjectChanged(event: Event) {
+    const customEvent = event as CustomEvent
+    const project = customEvent.detail
     console.log('Project changed to:', project)
     loadVideos()
 }

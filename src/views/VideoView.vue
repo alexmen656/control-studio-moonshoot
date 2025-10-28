@@ -63,7 +63,7 @@ const loadVideo = async () => {
             scheduledDate: response.data.scheduledDate ? new Date(response.data.scheduledDate) : undefined
         }
 
-        if (currentVideo.value.status === 'published' || currentVideo.value.status === 'scheduled') {
+        if (currentVideo.value && (currentVideo.value.status === 'published' || currentVideo.value.status === 'scheduled')) {
             generateMockAnalytics()
         }
 
@@ -389,7 +389,7 @@ const averageEngagement = computed(() => {
                                 </div>
                             </div>
                         </div>
-                        <div v-if="platformAnalytics.length > 0 && '1' == '2'" class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200
+                        <div v-if="platformAnalytics.length > 0 && false" class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200
                             dark:border-gray-700 p-6"><!-- Temporarily disable analytics
                             display because I had no time to finish it-->
                             <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-6">Performance
@@ -519,7 +519,7 @@ const averageEngagement = computed(() => {
                                         <div v-html="getPlatformIcon(platform)"></div>
                                     </div>
                                     <span class="font-medium text-gray-900 dark:text-gray-100 capitalize">{{ platform
-                                        }}</span>
+                                    }}</span>
                                 </div>
                             </div>
                             <p v-else class="text-sm text-gray-500 dark:text-gray-400">No platforms selected</p>
@@ -606,7 +606,7 @@ const averageEngagement = computed(() => {
                                     <div v-html="getPlatformIcon(platform)"></div>
                                 </div>
                                 <span class="font-medium text-gray-900 dark:text-gray-100 capitalize">{{ platform
-                                    }}</span>
+                                }}</span>
                                 <div v-if="selectedPlatforms.includes(platform as any)" class="ml-auto">
                                     <svg class="w-5 h-5 text-red-600" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd"
@@ -691,7 +691,7 @@ const averageEngagement = computed(() => {
                                     <div v-html="getPlatformIcon(platform)"></div>
                                 </div>
                                 <span class="font-medium text-gray-900 dark:text-gray-100 capitalize">{{ platform
-                                    }}</span>
+                                }}</span>
                                 <div v-if="videoDetailsForm.platforms.includes(platform as any)" class="ml-auto">
                                     <svg class="w-5 h-5 text-red-600" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd"

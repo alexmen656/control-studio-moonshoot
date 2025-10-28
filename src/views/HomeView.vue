@@ -212,8 +212,9 @@ const handleDrop = (event: DragEvent) => {
   }
 }
 
-function handleProjectChanged(event) {
-  const project = event.detail
+function handleProjectChanged(event: Event) {
+  const customEvent = event as CustomEvent
+  const project = customEvent.detail
   console.log('Project changed to:', project)
   loadVideos()
 }

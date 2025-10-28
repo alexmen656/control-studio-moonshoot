@@ -153,7 +153,7 @@
                     <div class="flex items-center justify-between text-sm">
                         <span class="text-gray-600 dark:text-gray-400">{{ storageUsed }} {{ unit }} of {{
                             storageTotal
-                        }}
+                            }}
                             GB
                             used</span>
                     </div>
@@ -316,13 +316,13 @@ export default {
                     ['#f59e0b', '#ea580c'],
                     ['#8b5cf6', '#ec4899']
                 ];
-                const randomColor = colors[Math.floor(Math.random() * colors.length)] || colors[0];
+                const randomColor = colors[Math.floor(Math.random() * colors.length)] ?? colors[0];
 
                 const response = await axios.post('http://localhost:6709/api/projects', {
                     name: projectName,
                     initials: initials,
-                    color1: randomColor[0],
-                    color2: randomColor[1],
+                    color1: randomColor![0],
+                    color2: randomColor![1],
                     user_id: user.id
                 });
 
