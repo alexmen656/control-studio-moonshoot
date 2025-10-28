@@ -8,337 +8,323 @@ import { retrieveToken, retrieveTokenByProjectID } from '../utils/token_manager.
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const PROJECT_ROOT = path.join(__dirname, '..', '..');
-dotenv.config({ path: path.join(PROJECT_ROOT, '.env') })
+dotenv.config({ path: path.join(PROJECT_ROOT, '.env') });
 
-function auth() {
-    const appId = process.env.IG_APP_ID;
-    const appSecret = process.env.IG_APP_SECRET;
-    const redirectUri = 'http://localhost:6709/api/oauth2callback/instagram';
+const DEFAULT_SCOPES = 'instagram_basic,instagram_content_publish,pages_read_engagement,pages_show_list,business_management,instagram_manage_insights';
+const API_VERSION = 'v21.0';
 
-    if (!appId || !appSecret) {
-        console.error('Instagram App ID and App Secret must be set in environment variables.');
-        process.exit(1);
+class InstagramManager {
+    constructor(options = {}) {
+        this.appId = options.appId || process.env.IG_APP_ID;
+        this.appSecret = options.appSecret || process.env.IG_APP_SECRET;
+        this.redirectUri = options.redirectUri || 'http://localhost:6709/api/oauth2callback/instagram';
+        this.projectId = options.projectId || 1;
+        this.scopes = options.scopes || DEFAULT_SCOPES;
+        this.apiVersion = options.apiVersion || API_VERSION;
+
+        if (!this.appId || !this.appSecret) {
+            throw new Error('Instagram App ID and App Secret must be provided');
+        }
     }
 
-    const scope = 'instagram_basic,instagram_content_publish,pages_read_engagement, pages_show_list, business_management, instagram_manage_insights';//instagram_manage_insights
-    let authUrl = 'https://www.facebook.com/v14.0/dialog/oauth';
-    authUrl += '?client_id=' + encodeURIComponent(appId);
-    authUrl += '&redirect_uri=' + encodeURIComponent(redirectUri);
-    authUrl += '&scope=' + encodeURIComponent(scope);
+    async _getCredentials(projectId = this.projectId) {
+        const instagramAccountData = await retrieveTokenByProjectID(1, 'instagram_business_account', projectId);
+        const tokenData = await retrieveTokenByProjectID(1, 'instagram_token', projectId);
 
-    return { auth_url: authUrl };
-}
-
-function tokenExchange(code) {
-    const appId = process.env.IG_APP_ID;
-    const appSecret = process.env.IG_APP_SECRET;
-    const redirectUri = 'http://localhost:6709/api/oauth2callback/instagram';
-
-    let tokenUrl = 'https://graph.facebook.com/v14.0/oauth/access_token';
-    tokenUrl += '?client_id=' + encodeURIComponent(appId);
-    tokenUrl += '&redirect_uri=' + encodeURIComponent(redirectUri);
-    tokenUrl += '&client_secret=' + encodeURIComponent(appSecret);
-    tokenUrl += '&code=' + encodeURIComponent(code);
-    return tokenUrl;
-}
-
-async function uploadReel(videoFile, options = {}) {
-    console.log('Starting Instagram Reel upload process...');
-
-    try {
-        const instagramAccountData = await retrieveToken(1, 'instagram_business_account');
-        const facebookAccountsData = await retrieveToken(1, 'facebook_accounts_for_instagram');
-        const instagramUserId = instagramAccountData.instagram_business_account.id;
-        const accessToken = facebookAccountsData.data[0].access_token;
-        const containerId = await createReelContainer(accessToken, instagramUserId, options);
-        console.log('Using Instagram Business Account ID:', instagramUserId);
-
-        await uploadVideoToContainer(videoFile, containerId, accessToken);
-        await waitForContainerReady(containerId, accessToken);
-
-        const publishedReel = await publishContainer(containerId, accessToken, instagramUserId);
-        return publishedReel;
-    } catch (err) {
-        console.error('Error during Instagram reel upload:', err);
-        throw err;
-    }
-}
-
-async function createReelContainer(accessToken, instagramUserId, options) {
-    const apiVersion = 'v21.0';
-    const url = `https://graph.facebook.com/${apiVersion}/${instagramUserId}/media`;
-
-    const params = {
-        media_type: 'REELS',
-        upload_type: 'resumable',
-        access_token: accessToken
-    };
-
-    if (options.caption) {
-        params.caption = options.caption;
-    }
-    if (options.locationId) {
-        params.location_id = options.locationId;
-    }
-    if (options.shareToFeed !== undefined) {
-        params.share_to_feed = options.shareToFeed;
-    }
-    if (options.coverUrl) {
-        params.cover_url = options.coverUrl;
-    }
-    if (options.audioName) {
-        params.audio_name = options.audioName;
+        return {
+            instagramUserId: instagramAccountData.instagram_business_account.id,
+            accessToken: tokenData.access_token
+        };
     }
 
-    try {
-        const response = await axios.post(url, null, { params });
-        console.log('Container created:', response.data.id);
-        return response.data.id;
-    } catch (error) {
-        console.error('Error creating container:', error.response?.data || error.message);
-        throw error;
+    generateAuthUrl() {
+        let authUrl = `https://www.facebook.com/v14.0/dialog/oauth`;
+        authUrl += '?client_id=' + encodeURIComponent(this.appId);
+        authUrl += '&redirect_uri=' + encodeURIComponent(this.redirectUri);
+        authUrl += '&scope=' + encodeURIComponent(this.scopes);
+
+        return { auth_url: authUrl };
     }
-}
 
-async function uploadVideoToContainer(videoFile, containerId, accessToken) {
-    const apiVersion = 'v21.0';
-    const url = `https://rupload.facebook.com/ig-api-upload/${apiVersion}/${containerId}`;
-
-    try {
-        const stats = await fs.stat(videoFile.path);
-        const fileSize = stats.size;
-        const fileBuffer = await fs.readFile(videoFile.path);
-
-        const response = await axios.post(url, fileBuffer, {
-            headers: {
-                'Authorization': `OAuth ${accessToken}`,
-                'offset': '0',
-                'file_size': fileSize.toString(),
-                'Content-Type': 'application/octet-stream'
-            }
-        });
-
-        console.log('Video uploaded successfully:', response.data);
-        return response.data;
-    } catch (error) {
-        console.error('Error uploading video:', error.response?.data || error.message);
-        throw error;
+    getTokenExchangeUrl(code) {
+        let tokenUrl = `https://graph.facebook.com/v14.0/oauth/access_token`;
+        tokenUrl += '?client_id=' + encodeURIComponent(this.appId);
+        tokenUrl += '&redirect_uri=' + encodeURIComponent(this.redirectUri);
+        tokenUrl += '&client_secret=' + encodeURIComponent(this.appSecret);
+        tokenUrl += '&code=' + encodeURIComponent(code);
+        return tokenUrl;
     }
-}
 
-async function waitForContainerReady(containerId, accessToken, maxAttempts = 10) {
-    const apiVersion = 'v21.0';
-    const url = `https://graph.facebook.com/${apiVersion}/${containerId}`;
+    async uploadReel(videoFile, options = {}) {
+        console.log('Starting Instagram Reel upload process...');
 
-    for (let i = 0; i < maxAttempts; i++) {
         try {
-            const response = await axios.get(url, {
-                params: {
-                    fields: 'status_code,status',
-                    access_token: accessToken
-                }
-            });
+            const instagramAccountData = await retrieveToken(this.projectId, 'instagram_business_account');
+            const facebookAccountsData = await retrieveToken(this.projectId, 'facebook_accounts_for_instagram');
+            const instagramUserId = instagramAccountData.instagram_business_account.id;
+            const accessToken = facebookAccountsData.data[0].access_token;
 
-            const status = response.data.status_code;
-            console.log(`Container status (attempt ${i + 1}/${maxAttempts}):`, status);
+            console.log('Using Instagram Business Account ID:', instagramUserId);
 
-            if (status === 'FINISHED') {
-                console.log('Container is ready for publishing');
-                return true;
-            } else if (status === 'ERROR') {
-                throw new Error('Container processing failed with ERROR status');
-            } else if (status === 'EXPIRED') {
-                throw new Error('Container expired before processing completed');
-            }
+            const containerId = await this._createReelContainer(accessToken, instagramUserId, options);
+            await this._uploadVideoToContainer(videoFile, containerId, accessToken);
+            await this._waitForContainerReady(containerId, accessToken);
 
-            await new Promise(resolve => setTimeout(resolve, 10000));
+            const publishedReel = await this._publishContainer(containerId, accessToken, instagramUserId);
+            return publishedReel;
+        } catch (err) {
+            console.error('Error during Instagram reel upload:', err);
+            throw err;
+        }
+    }
+
+    async _createReelContainer(accessToken, instagramUserId, options) {
+        const url = `https://graph.facebook.com/${this.apiVersion}/${instagramUserId}/media`;
+
+        const params = {
+            media_type: 'REELS',
+            upload_type: 'resumable',
+            access_token: accessToken
+        };
+
+        if (options.caption) params.caption = options.caption;
+        if (options.locationId) params.location_id = options.locationId;
+        if (options.shareToFeed !== undefined) params.share_to_feed = options.shareToFeed;
+        if (options.coverUrl) params.cover_url = options.coverUrl;
+        if (options.audioName) params.audio_name = options.audioName;
+
+        try {
+            const response = await axios.post(url, null, { params });
+            console.log('Container created:', response.data.id);
+            return response.data.id;
         } catch (error) {
-            console.error('Error checking container status:', error.response?.data || error.message);
+            console.error('Error creating container:', error.response?.data || error.message);
             throw error;
         }
     }
 
-    throw new Error('Container did not become ready within expected time');
-}
+    async _uploadVideoToContainer(videoFile, containerId, accessToken) {
+        const url = `https://rupload.facebook.com/ig-api-upload/${this.apiVersion}/${containerId}`;
 
-async function publishContainer(containerId, accessToken, instagramUserId) {
-    const apiVersion = 'v21.0';
-    const url = `https://graph.facebook.com/${apiVersion}/${instagramUserId}/media_publish`;
+        try {
+            const stats = await fs.stat(videoFile.path);
+            const fileSize = stats.size;
+            const fileBuffer = await fs.readFile(videoFile.path);
 
-    try {
-        const response = await axios.post(url, null, {
-            params: {
-                creation_id: containerId,
-                access_token: accessToken
-            }
-        });
-
-        console.log('Reel published with ID:', response.data.id);
-        return response.data;
-    } catch (error) {
-        console.error('Error publishing container:', error.response?.data || error.message);
-        throw error;
-    }
-}
-
-async function checkPublishingLimit() {
-    const apiVersion = 'v21.0';
-
-    try {
-        const instagramAccountData = await retrieveToken(1, 'instagram_business_account');
-        const facebookAccountsData = await retrieveToken(1, 'facebook_accounts_for_instagram');
-        const instagramUserId = instagramAccountData.instagram_business_account.id;
-        const accessToken = facebookAccountsData.data[0].access_token;
-        const url = `https://graph.facebook.com/${apiVersion}/${instagramUserId}/content_publishing_limit`;
-
-        const response = await axios.get(url, {
-            params: {
-                fields: 'quota_usage,config',
-                access_token: accessToken
-            }
-        });
-
-        console.log('Publishing limit info:', response.data);
-        return response.data;
-    } catch (error) {
-        console.error('Error checking publishing limit:', error.response?.data || error.message);
-        throw error;
-    }
-}
-
-async function getTotalAnalytics() {
-    const instagramAccountData = await retrieveTokenByProjectID(1, 'instagram_business_account', 2);
-    const facebookAccountsData = await retrieveTokenByProjectID(1, 'instagram_token', 2); //await retrieveTokenByProjectID(1, 'facebook_accounts_for_instagram', 2);
-    //facebook_accounts_for_instagram == wrong token
-    const instagramUserId = instagramAccountData.instagram_business_account.id;
-    const accessToken = facebookAccountsData.access_token;
-
-    console.log("--------------------------------------------------------")
-    console.log('Instagram User ID for analytics:', instagramUserId);
-    console.log('Access Token for analytics:', accessToken);
-    let url = 'https://graph.facebook.com/v21.0/' + instagramUserId + '/insights';
-
-    const params = {
-        metric: 'reach',//'reach, follower_count, website_clicks, profile_views, online_followers, accounts_engaged, total_interactions, likes, comments, shares, saves, replies, engaged_audience_demographics, reached_audience_demographics, follower_demographics, follows_and_unfollows, profile_links_taps, views, threads_likes, threads_replies, reposts, quotes, threads_followers, threads_follower_demographics, content_views, threads_views, threads_clicks', //'impressions,reach,profile_views',
-        period: 'day',
-        access_token: accessToken
-    };
-
-    const response = await axios.get(url, {
-        params
-    });
-
-    console.log('Total analytics data:', response.data);
-    console.log('Total analytics data:', response.data.data.values);
-
-    //response.data.data.values.forEach(entry => {
-    //  console.log(`Date: ${entry.end_time}, Value: ${entry.value}`);
-    //});
-
-    return response.data;
-
-    return 'hello'
-}
-
-async function getUserMedia(PROJECT_ID = 2) {
-    try {
-        PROJECT_ID = 2;
-
-        console.log('Fetching Instagram user media for project ID:', PROJECT_ID);
-        const instagramAccountData = await retrieveTokenByProjectID(1, 'instagram_business_account', PROJECT_ID);
-        const facebookAccountsData = await retrieveTokenByProjectID(1, 'instagram_token', PROJECT_ID);
-
-        const instagramUserId = instagramAccountData.instagram_business_account.id;
-        const accessToken = facebookAccountsData.access_token;
-
-        console.log('Fetching Instagram media for user:', instagramUserId);
-
-        const mediaUrl = `https://graph.facebook.com/v21.0/${instagramUserId}/media`;
-        const mediaParams = {
-            fields: 'id,caption,media_type,media_url,thumbnail_url,permalink,timestamp,like_count,comments_count',//caption,
-            access_token: accessToken,
-            limit: 25
-        };
-
-        const mediaResponse = await axios.get(mediaUrl, { params: mediaParams });
-
-        console.log('Instagram media fetched:', mediaResponse.data.data?.length || 0, 'posts');
-
-        const mediaWithInsights = [];
-
-        for (const media of mediaResponse.data.data || []) {
-            try {
-                if (media.media_type === 'IMAGE' || media.media_type === 'VIDEO' || media.media_type === 'CAROUSEL_ALBUM') {
-                    const insightsUrl = `https://graph.facebook.com/v21.0/${media.id}/insights`;//14
-                    const insightsParams = {
-                        metric: 'impressions,reach,engagement,saved,video_views,shares',
-                        access_token: accessToken
-                    };
-
-                    try {
-                        const insightsResponse = await axios.get(insightsUrl, { params: insightsParams });
-
-                        const insights = {};
-                        insightsResponse.data.data?.forEach(metric => {
-                            insights[metric.name] = metric.values?.[0]?.value || 0;
-                        });
-
-                        mediaWithInsights.push({
-                            id: media.id,
-                            caption: media.caption || '',
-                            media_type: media.media_type,
-                            timestamp: media.timestamp,
-                            likes: media.like_count || 0,
-                            comments: media.comments_count || 0,
-                            impressions: insights.impressions || 0,
-                            reach: insights.reach || 0,
-                            engagement: insights.engagement || 0,
-                            saved: insights.saved || 0,
-                            video_views: insights.video_views || 0,
-                            shares: insights.shares || 0
-                        });
-                    } catch (insightError) {
-                        console.warn(`Could not fetch insights for media ${media.id}:`, insightError.message);
-
-                        mediaWithInsights.push({
-                            id: media.id,
-                            caption: media.caption || '',
-                            media_type: media.media_type,
-                            timestamp: media.timestamp,
-                            likes: media.like_count || 0,
-                            comments: media.comments_count || 0,
-                            impressions: 0,
-                            reach: 0,
-                            engagement: 0,
-                            saved: 0,
-                            video_views: 0,
-                            shares: 0
-                        });
-                    }
+            const response = await axios.post(url, fileBuffer, {
+                headers: {
+                    'Authorization': `OAuth ${accessToken}`,
+                    'offset': '0',
+                    'file_size': fileSize.toString(),
+                    'Content-Type': 'application/octet-stream'
                 }
+            });
+
+            console.log('Video uploaded successfully:', response.data);
+            return response.data;
+        } catch (error) {
+            console.error('Error uploading video:', error.response?.data || error.message);
+            throw error;
+        }
+    }
+
+    async _waitForContainerReady(containerId, accessToken, maxAttempts = 10) {
+        const url = `https://graph.facebook.com/${this.apiVersion}/${containerId}`;
+
+        for (let i = 0; i < maxAttempts; i++) {
+            try {
+                const response = await axios.get(url, {
+                    params: {
+                        fields: 'status_code,status',
+                        access_token: accessToken
+                    }
+                });
+
+                const status = response.data.status_code;
+                console.log(`Container status (attempt ${i + 1}/${maxAttempts}):`, status);
+
+                if (status === 'FINISHED') {
+                    console.log('Container is ready for publishing');
+                    return true;
+                } else if (status === 'ERROR') {
+                    throw new Error('Container processing failed with ERROR status');
+                } else if (status === 'EXPIRED') {
+                    throw new Error('Container expired before processing completed');
+                }
+
+                await new Promise(resolve => setTimeout(resolve, 10000));
             } catch (error) {
-                console.warn(`Error processing media ${media.id}:`, error.message);
+                console.error('Error checking container status:', error.response?.data || error.message);
+                throw error;
             }
         }
 
-        return {
-            data: {
-                media: mediaWithInsights
-            },
-            status: 200
+        throw new Error('Container did not become ready within expected time');
+    }
+
+    async _publishContainer(containerId, accessToken, instagramUserId) {
+        const url = `https://graph.facebook.com/${this.apiVersion}/${instagramUserId}/media_publish`;
+
+        try {
+            const response = await axios.post(url, null, {
+                params: {
+                    creation_id: containerId,
+                    access_token: accessToken
+                }
+            });
+
+            console.log('Reel published with ID:', response.data.id);
+            return response.data;
+        } catch (error) {
+            console.error('Error publishing container:', error.response?.data || error.message);
+            throw error;
+        }
+    }
+
+    async checkPublishingLimit(projectId = this.projectId) {
+        try {
+            const { instagramUserId, accessToken } = await this._getCredentials(projectId);
+            const url = `https://graph.facebook.com/${this.apiVersion}/${instagramUserId}/content_publishing_limit`;
+
+            const response = await axios.get(url, {
+                params: {
+                    fields: 'quota_usage,config',
+                    access_token: accessToken
+                }
+            });
+
+            console.log('Publishing limit info:', response.data);
+            return response.data;
+        } catch (error) {
+            console.error('Error checking publishing limit:', error.response?.data || error.message);
+            throw error;
+        }
+    }
+
+    async getTotalAnalytics(projectId = this.projectId, metric = 'reach', period = 'day') {
+        const { instagramUserId, accessToken } = await this._getCredentials(projectId);
+
+        console.log('--------------------------------------------------------');
+        console.log('Instagram User ID for analytics:', instagramUserId);
+
+        const url = `https://graph.facebook.com/${this.apiVersion}/${instagramUserId}/insights`;
+
+        const params = {
+            metric: metric,
+            period: period,
+            access_token: accessToken
         };
-    } catch (error) {
-        console.error('Error getting Instagram user media:', error);
-        throw error;
+
+        const response = await axios.get(url, { params });
+
+        console.log('Total analytics data:', response.data);
+        console.log('Total analytics values:', response.data.data?.values);
+
+        return response.data;
+    }
+
+    async getUserMedia(projectId = this.projectId, limit = 25) {
+        try {
+            console.log('Fetching Instagram user media for project ID:', projectId);
+            const { instagramUserId, accessToken } = await this._getCredentials(projectId);
+
+            console.log('Fetching Instagram media for user:', instagramUserId);
+
+            const mediaUrl = `https://graph.facebook.com/${this.apiVersion}/${instagramUserId}/media`;
+            const mediaParams = {
+                fields: 'id,caption,media_type,media_url,thumbnail_url,permalink,timestamp,like_count,comments_count',
+                access_token: accessToken,
+                limit: limit
+            };
+
+            const mediaResponse = await axios.get(mediaUrl, { params: mediaParams });
+
+            console.log('Instagram media fetched:', mediaResponse.data.data?.length || 0, 'posts');
+
+            const mediaWithInsights = [];
+
+            for (const media of mediaResponse.data.data || []) {
+                try {
+                    if (['IMAGE', 'VIDEO', 'CAROUSEL_ALBUM'].includes(media.media_type)) {
+                        const insights = await this._getMediaInsights(media.id, accessToken);
+
+                        mediaWithInsights.push({
+                            id: media.id,
+                            caption: media.caption || '',
+                            media_type: media.media_type,
+                            timestamp: media.timestamp,
+                            likes: media.like_count || 0,
+                            comments: media.comments_count || 0,
+                            ...insights
+                        });
+                    }
+                } catch (error) {
+                    console.warn(`Error processing media ${media.id}:`, error.message);
+                }
+            }
+
+            return {
+                data: {
+                    media: mediaWithInsights
+                },
+                status: 200
+            };
+        } catch (error) {
+            console.error('Error getting Instagram user media:', error);
+            throw error;
+        }
+    }
+
+    async _getMediaInsights(mediaId, accessToken) {
+        const insightsUrl = `https://graph.facebook.com/${this.apiVersion}/${mediaId}/insights`;
+        const insightsParams = {
+            metric: 'impressions,reach,engagement,saved,video_views,shares',
+            access_token: accessToken
+        };
+
+        try {
+            const insightsResponse = await axios.get(insightsUrl, { params: insightsParams });
+
+            const insights = {
+                impressions: 0,
+                reach: 0,
+                engagement: 0,
+                saved: 0,
+                video_views: 0,
+                shares: 0
+            };
+
+            insightsResponse.data.data?.forEach(metric => {
+                insights[metric.name] = metric.values?.[0]?.value || 0;
+            });
+
+            return insights;
+        } catch (insightError) {
+            console.warn(`Could not fetch insights for media ${mediaId}:`, insightError.message);
+            return {
+                impressions: 0,
+                reach: 0,
+                engagement: 0,
+                saved: 0,
+                video_views: 0,
+                shares: 0
+            };
+        }
+    }
+
+    async getAccountInfo(projectId = this.projectId) {
+        const { instagramUserId, accessToken } = await this._getCredentials(projectId);
+        const url = `https://graph.facebook.com/${this.apiVersion}/${instagramUserId}`;
+
+        const response = await axios.get(url, {
+            params: {
+                fields: 'username,name,profile_picture_url,followers_count,follows_count,media_count',
+                access_token: accessToken
+            }
+        });
+
+        return response.data;
     }
 }
 
-//getTotalAnalytics();
-export default {
-    checkPublishingLimit,
-    uploadReel,
-    auth,
-    tokenExchange,
-    getTotalAnalytics,
-    getUserMedia
-}
+export default InstagramManager;

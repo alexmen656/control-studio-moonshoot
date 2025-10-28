@@ -9,10 +9,10 @@ import { fileURLToPath } from 'url'
 import dotenv from 'dotenv'
 import { exec } from 'child_process'
 import { promisify } from 'util'
-import YouTubeManager from './platforms/youtube.js'
-import instagram from './platforms/Instagram.js'
+import YouTubeManager from './platforms/Youtube.js'
+import InstagramManager from './platforms/Instagram.js'
 import facebook from './platforms/Facebook.js'
-import TikTokManager from './platforms/tiktok.js'
+import TikTokManager from './platforms/Tiktok.js'
 import * as db from './utils/db.js'
 import { storeTokenByProjectID, retrieveTokenByProjectID, removeTokenByProjectID } from './utils/token_manager.js'
 import { registerUser, loginUser, loginWithGoogle, authMiddleware, getUserById } from './utils/auth.js'
@@ -28,6 +28,7 @@ const PORT = process.env.PORT || 6709
 
 const youTubeManager = new YouTubeManager();
 const tiktokManager = new TikTokManager();
+const instagramManager = new InstagramManager();
 
 const uploadsDir = path.join(__dirname, 'uploads')
 if (!fs.existsSync(uploadsDir)) {
@@ -1024,7 +1025,7 @@ app.post('/api/connect/:platform', async (req, res) => {
         }
 
       case 'instagram':
-        const instagramAuth = instagram.auth();
+        const instagramAuth = instagramManager.generateAuthUrl();
         if (instagramAuth.auth_url) {
           return res.json({ authUrl: instagramAuth.auth_url });
         } else {
@@ -1155,7 +1156,7 @@ app.get('/api/oauth2callback/instagram', async (req, res) => {
     const PROJECT_ID = 2;//localStorage.getItem('currentProjectId') || 1;
 
     await storeTokenByProjectID(1, 'instagram_code', { code: code }, PROJECT_ID);
-    axios.get(instagram.tokenExchange(code)).then(async (response) => {
+    axios.get(instagramManager.getTokenExchangeUrl(code)).then(async (response) => {
       await storeTokenByProjectID(1, 'instagram_token', response.data, PROJECT_ID);
 
       axios.get(`https://graph.facebook.com/v24.0/me/accounts?access_token=${response.data.access_token}`)
@@ -1258,7 +1259,7 @@ app.post('/api/publish', async (req, res) => {
       }
 
       try {
-        await instagram.uploadReel({ path: videoFile }, options)
+        await instagramManager.uploadReel({ path: videoFile }, options)
         platformStatuses.instagram = 'success'
         console.log(`✓ Instagram: Published successfully at ${new Date().toLocaleString()}`)
       } catch (error) {
@@ -1406,7 +1407,7 @@ app.get('/api/analytics/total', async (req, res) => {
             break;
 
           case 'instagram':
-            const instagramData = await instagram.getUserMedia(PROJECT_ID);
+            const instagramData = await instagramManager.getUserMedia(PROJECT_ID);
             if (instagramData && instagramData.data && instagramData.data.media) {
               analyticsData.totalVideos = instagramData.data.media.length;
               analyticsData.videos = instagramData.data.media.map(media => ({
@@ -1525,7 +1526,7 @@ app.get('/api/analytics/total', async (req, res) => {
               break;
 
             case 'instagram':
-              const instagramData = await instagram.getUserMedia(PROJECT_ID);
+              const instagramData = await instagramManager.getUserMedia(PROJECT_ID);
               if (instagramData && instagramData.data && instagramData.data.media) {
                 const platStats = {
                   views: 0,
@@ -1612,7 +1613,7 @@ app.get('/api/analytics/total', async (req, res) => {
         break
       case 'instagram':
         analyticsData = await youTubeManager.getVideoAnalytics(videoId, startDate, endDate)
-        //  analyticsData = await instagram.getVideoAnalytics(videoId, startDate, endDate)
+        //  analyticsData = await instagramManager.getVideoAnalytics(videoId, startDate, endDate)
         break
       case 'facebook':
         analyticsData = await youTubeManager.getVideoAnalytics(videoId, startDate, endDate)
