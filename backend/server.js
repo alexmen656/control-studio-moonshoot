@@ -13,6 +13,7 @@ import YouTubeManager from './platforms/Youtube.js'
 import InstagramManager from './platforms/Instagram.js'
 import FacebookManager from './platforms/Facebook.js'
 import TikTokManager from './platforms/Tiktok.js'
+import XManager from './platforms/X.js'
 import * as db from './utils/db.js'
 import { storeTokenByProjectID, retrieveTokenByProjectID, removeTokenByProjectID } from './utils/token_manager.js'
 import { registerUser, loginUser, loginWithGoogle, authMiddleware, getUserById } from './utils/auth.js'
@@ -30,6 +31,7 @@ const youTubeManager = new YouTubeManager();
 const tiktokManager = new TikTokManager();
 const instagramManager = new InstagramManager();
 const facebookManager = new FacebookManager();
+const xManager = new XManager();
 
 const uploadsDir = path.join(__dirname, 'uploads')
 if (!fs.existsSync(uploadsDir)) {
@@ -835,7 +837,8 @@ app.get('/api/accounts/status', async (req, res) => {
       youtube: await retrieveTokenByProjectID(1, 'youtube_token', PROJECT_ID) === null ? false : true,
       tiktok: await retrieveTokenByProjectID(1, 'tiktok_token', PROJECT_ID) === null ? false : true,
       instagram: await retrieveTokenByProjectID(1, 'instagram_business_account', PROJECT_ID) === null ? false : true,
-      facebook: await retrieveTokenByProjectID(1, 'facebook_accounts', PROJECT_ID) === null ? false : true
+      facebook: await retrieveTokenByProjectID(1, 'facebook_accounts', PROJECT_ID) === null ? false : true,
+      x: await retrieveTokenByProjectID(1, 'x_token', PROJECT_ID) === null ? false : true
     })
   } catch (error) {
     console.error('Error checking account status:', error)
@@ -1049,6 +1052,15 @@ app.post('/api/connect/:platform', async (req, res) => {
           return res.json({ message: 'Connected to TikTok successfully' });
         }
 
+      case 'x':
+        const xResult = await xManager.authorize();
+
+        if (xResult.authUrl) {
+          return res.json({ authUrl: xResult.authUrl });
+        } else {
+          return res.json({ message: 'Connected to X successfully' });
+        }
+
       default:
         return res.status(400).json({ error: 'Unsupported platform' })
         break;
@@ -1088,6 +1100,11 @@ app.post('/api/disconnect/:platform', async (req, res) => {
         removeTokenByProjectID(1, 'tiktok_token', PROJECT_ID);
         removeTokenByProjectID(1, 'tiktok_code', PROJECT_ID);
         return res.json({ message: 'Disconnected from TikTok successfully' });
+
+      case 'x':
+        removeTokenByProjectID(1, 'x_token', PROJECT_ID);
+        removeTokenByProjectID(1, 'x_oauth_state', PROJECT_ID);
+        return res.json({ message: 'Disconnected from X successfully' });
 
       default:
         return res.status(400).json({ error: 'Unsupported platform' })
@@ -1210,6 +1227,29 @@ app.get('/api/oauth2callback/facebook', async (req, res) => {
   }
 });
 
+app.get('/api/oauth2callback/x', async (req, res) => {
+  const { code, state, error, error_description } = req.query;
+
+  if (error) {
+    console.error('X OAuth error:', error, error_description);
+    return res.redirect(`http://localhost:5185/accounts?error=${error}`);
+  }
+
+  if (!code) {
+    return res.status(400).send('Authorization code not provided');
+  }
+
+  try {
+    const PROJECT_ID = 2;
+    const tokenData = await xManager.exchangeCodeForToken(code, state);
+    console.log('X token stored successfully');
+    res.redirect('http://localhost:5185/accounts?x=connected');
+  } catch (error) {
+    console.error('Error during X OAuth2 callback:', error);
+    res.redirect('http://localhost:5185/accounts?error=x_auth_failed');
+  }
+});
+
 app.post('/api/publish', async (req, res) => {
   const platformStatuses = {}
 
@@ -1284,6 +1324,23 @@ app.post('/api/publish', async (req, res) => {
       } catch (error) {
         platformStatuses.facebook = 'failed'
         console.error('✗ Facebook: Failed -', error.message)
+      }
+    }
+
+    if (video.platforms.includes('x')) {
+      console.log('Publishing to X (Twitter):', video.title)
+      const videoFile = video.path;
+      const options = {
+        text: video.description || video.title,
+      };
+
+      try {
+        await xManager.uploadVideo({ path: videoFile }, options)
+        platformStatuses.x = 'success'
+        console.log(`✓ X: Published successfully at ${new Date().toLocaleString()}`)
+      } catch (error) {
+        platformStatuses.x = 'failed'
+        console.error('✗ X: Failed -', error.message)
       }
     }
 
@@ -1453,6 +1510,27 @@ app.get('/api/analytics/total', async (req, res) => {
             }
             break;
 
+          case 'x':
+            const xData = await xManager.getAccountAnalytics({ maxResults: 10 });
+            if (xData) {
+              analyticsData.totalVideos = xData.tweet_count || 0;
+              analyticsData.videos = xData.tweets.map(tweet => ({
+                platform: 'x',
+                id: tweet.id,
+                title: tweet.text.substring(0, 50) + '...',
+                views: tweet.public_metrics?.impression_count || 0,
+                likes: tweet.public_metrics?.like_count || 0,
+                comments: tweet.public_metrics?.reply_count || 0,
+                shares: tweet.public_metrics?.retweet_count || 0
+              }));
+
+              analyticsData.totalViews += xData.total_impressions || 0;
+              analyticsData.totalLikes += xData.total_likes || 0;
+              analyticsData.totalComments += xData.total_replies || 0;
+              analyticsData.totalShares += xData.total_retweets || 0;
+            }
+            break;
+
           default:
             return res.status(400).json({ error: 'Unsupported platform' });
         }
@@ -1469,7 +1547,7 @@ app.get('/api/analytics/total', async (req, res) => {
         analyticsData.error = `Failed to fetch ${platform} analytics: ${platformError.message}`;
       }
     } else {
-      const platforms = ['youtube', 'tiktok', 'instagram', 'facebook'];
+      const platforms = ['youtube', 'tiktok', 'instagram', 'facebook', 'x'];
 
       for (const plat of platforms) {
         try {
@@ -1572,6 +1650,26 @@ app.get('/api/analytics/total', async (req, res) => {
                 });
 
                 analyticsData.platforms.facebook = platStats;
+                analyticsData.totalViews += platStats.views;
+                analyticsData.totalLikes += platStats.likes;
+                analyticsData.totalComments += platStats.comments;
+                analyticsData.totalShares += platStats.shares;
+                analyticsData.totalVideos += platStats.videos;
+              }
+              break;
+
+            case 'x':
+              const xData = await xManager.getAccountAnalytics({ maxResults: 10 });
+              if (xData) {
+                const platStats = {
+                  views: xData.total_impressions || 0,
+                  likes: xData.total_likes || 0,
+                  comments: xData.total_replies || 0,
+                  shares: xData.total_retweets || 0,
+                  videos: xData.tweet_count || 0
+                };
+
+                analyticsData.platforms.x = platStats;
                 analyticsData.totalViews += platStats.views;
                 analyticsData.totalLikes += platStats.likes;
                 analyticsData.totalComments += platStats.comments;
