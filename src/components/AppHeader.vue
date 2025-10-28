@@ -6,7 +6,8 @@
                     <div @click="router.push('/dashboard')" class="flex-shrink-0 flex items-center logo-container">
                         <img data-v-c970699f="" class="logo-image" src="../assets/logo.png" alt="Logo">
                         <span class="logo-text">
-                            Control Studio</span>
+                            {{ hostname === 'studio.control-center.eu' ? 'Control Studio' : 'Reelmia'
+                            }}</span>
                     </div>
                 </div>
                 <!--- <div class="hidden md:flex flex-1 max-w-2xl mx-8">
@@ -164,7 +165,7 @@ import { useAuthStore } from '../stores/auth'
 
 const router = useRouter()
 const authStore = useAuthStore()
-
+const hostname = ref(window.location.hostname)
 const mobileMenuOpen = ref(false)
 const userMenuOpen = ref(false)
 
@@ -419,7 +420,7 @@ const XIcon = {
 
 <style scoped>
 .logo-text {
-    font-size: 24px;
+    font-size: 28px;
     font-weight: 700;
     letter-spacing: -0.8px;
     line-height: 1;
@@ -430,7 +431,7 @@ const XIcon = {
 }
 
 .logo-image {
-    height: 34px;
+    height: 48px;
     width: auto;
     transition: transform 0.2s ease;
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
