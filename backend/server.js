@@ -11,7 +11,7 @@ import { exec } from 'child_process'
 import { promisify } from 'util'
 import YouTubeManager from './platforms/Youtube.js'
 import InstagramManager from './platforms/Instagram.js'
-import facebook from './platforms/Facebook.js'
+import FacebookManager from './platforms/Facebook.js'
 import TikTokManager from './platforms/Tiktok.js'
 import * as db from './utils/db.js'
 import { storeTokenByProjectID, retrieveTokenByProjectID, removeTokenByProjectID } from './utils/token_manager.js'
@@ -29,6 +29,7 @@ const PORT = process.env.PORT || 6709
 const youTubeManager = new YouTubeManager();
 const tiktokManager = new TikTokManager();
 const instagramManager = new InstagramManager();
+const facebookManager = new FacebookManager();
 
 const uploadsDir = path.join(__dirname, 'uploads')
 if (!fs.existsSync(uploadsDir)) {
@@ -1033,7 +1034,7 @@ app.post('/api/connect/:platform', async (req, res) => {
         }
 
       case 'facebook':
-        const facebookAuth = facebook.auth();
+        const facebookAuth = facebookManager.generateAuthUrl();
         if (facebookAuth.auth_url) {
           return res.json({ authUrl: facebookAuth.auth_url });
         } else {
@@ -1193,8 +1194,8 @@ app.get('/api/oauth2callback/facebook', async (req, res) => {
     // const PROJECT_ID = localStorage.getItem('currentProjectId') || 1;
     const PROJECT_ID = 2;
     await storeTokenByProjectID(1, 'facebook_code', { code: code }, PROJECT_ID);
-    axios.get(facebook.tokenExchange(code)).then(async (response) => {
-      await storeTokenByProjectID(1, 'facebook_token', response.data);
+    axios.get(facebookManager.getTokenExchangeUrl(code)).then(async (response) => {
+      await storeTokenByProjectID(1, 'facebook_token', response.data, PROJECT_ID);
 
       axios.get(`https://graph.facebook.com/v24.0/me/accounts?access_token=${response.data.access_token}`)
         .then(async (response) => {
@@ -1277,7 +1278,7 @@ app.post('/api/publish', async (req, res) => {
       };
 
       try {
-        await facebook.uploadVideo({ path: videoFile }, options)
+        await facebookManager.uploadVideo({ path: videoFile }, options)
         platformStatuses.facebook = 'success'
         console.log(`✓ Facebook: Published successfully at ${new Date().toLocaleString()}`)
       } catch (error) {
@@ -1430,7 +1431,7 @@ app.get('/api/analytics/total', async (req, res) => {
             break;
 
           case 'facebook':
-            const facebookData = await facebook.getPageVideosWithInsights(PROJECT_ID);
+            const facebookData = await facebookManager.getPageVideosWithInsights(PROJECT_ID);
             if (facebookData && facebookData.data && facebookData.data.videos) {
               analyticsData.totalVideos = facebookData.data.videos.length;
               analyticsData.videos = facebookData.data.videos.map(video => ({
@@ -1553,7 +1554,7 @@ app.get('/api/analytics/total', async (req, res) => {
               break;
 
             case 'facebook':
-              const facebookData = await facebook.getPageVideosWithInsights(PROJECT_ID);
+              const facebookData = await facebookManager.getPageVideosWithInsights(PROJECT_ID);
               if (facebookData && facebookData.data && facebookData.data.videos) {
                 const platStats = {
                   views: 0,
