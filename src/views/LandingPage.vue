@@ -37,6 +37,66 @@ const features = [
     }
 ]
 
+const newsItems = [
+    {
+        category: 'Legislativa',
+        categoryColor: '#64748b',
+        date: '15. marec 2024',
+        readTime: '5 min',
+        title: 'Neue Anforderungen für die Transparenz im Jahr 2024',
+        description: 'Aktuelle Änderungen in der Gesetzgebung und deren Auswirkungen auf die Verwaltung von Selbstverwaltungen',
+        author: 'Ing. Ján Novák',
+        image: '🏛️'
+    },
+    {
+        category: 'Technologie',
+        categoryColor: '#6366f1',
+        date: '08. marec 2024',
+        readTime: '8 min',
+        title: 'Digitalisierung städtischer Ämter - kompletter Leitfaden',
+        description: 'Schritte zu einer erfolgreichen digitalen Transformation der öffentlichen Verwaltung',
+        author: 'Ing. Ján Novák',
+        image: '💼'
+    },
+    {
+        category: 'Best practices',
+        categoryColor: '#8b5cf6',
+        date: '01. marec 2024',
+        readTime: '6 min',
+        title: 'Häufigste Fehler bei der Implementierung von E-Government',
+        description: 'Praktische Ratschläge zur Vermeidung von Problemen bei der Einführung digitaler Lösungen',
+        author: 'Ing. Ján Novák',
+        image: '📱'
+    }
+]
+
+const otherProducts = [
+    {
+        name: 'Control Center',
+        description: 'Zentrale Verwaltungsplattform für alle Ihre digitalen Lösungen',
+        url: 'https://control-center.eu',
+        icon: '🎯'
+    },
+    {
+        name: 'Control Cloud',
+        description: 'Cloud-basierte Infrastruktur für maximale Skalierbarkeit',
+        url: 'https://cloud.control-center.eu',
+        icon: '☁️'
+    },
+    {
+        name: 'Control Analytics',
+        description: 'Umfassende Analyse- und Reporting-Tools',
+        url: 'https://analytics.control-center.eu',
+        icon: '📊'
+    },
+    {
+        name: 'Control Security',
+        description: 'Enterprise-Grade Sicherheitslösungen',
+        url: 'https://security.control-center.eu',
+        icon: '🔒'
+    }
+]
+
 const stats = [
     { value: '5+', label: 'Plattformen' },
     { value: '∞', label: 'Videos' },
@@ -46,18 +106,40 @@ const stats = [
 const scrollToFeatures = () => {
     document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })
 }
+
+const scrollToSection = (sectionId: string) => {
+    document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' })
+}
 </script>
 
 <template>
     <div class="landing-page">
+        <!-- Navigation Header -->
+        <header class="header">
+            <div class="container">
+                <nav class="nav">
+                    <div class="nav-brand">
+                        <div class="logo-icon">📱</div>
+                        <span class="brand-name">Reelmia</span>
+                    </div>
+                    <div class="nav-menu">
+                        <button @click="scrollToSection('product')" class="nav-link">Produkt</button>
+                        <button @click="scrollToSection('features')" class="nav-link">Ako funguje</button>
+                        <button @click="scrollToSection('news')" class="nav-link">Cenník</button>
+                        <button @click="scrollToSection('other-products')" class="nav-link">Partneri</button>
+                        <button @click="scrollToSection('cta')" class="nav-link">Články</button>
+                        <button @click="router.push('/login')" class="nav-link">Kontakt</button>
+                        <button class="theme-toggle">☀️</button>
+                        <button @click="router.push('/signup')" class="btn btn-demo">Objednat demo</button>
+                    </div>
+                </nav>
+            </div>
+        </header>
+
         <!-- Hero Section -->
-        <section class="hero">
+        <section id="product" class="hero">
             <div class="container">
                 <div class="hero-content">
-                    <div class="badge">
-                        <span class="badge-dot"></span>
-                        Control Studio
-                    </div>
 
                     <h1 class="hero-title">
                         Dein Content.<br />
@@ -143,8 +225,84 @@ const scrollToFeatures = () => {
             </div>
         </section>
 
+        <!-- News Section -->
+        <section id="news" class="news-section">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        Novinky a <span class="gradient-text">praktické rady</span>
+                    </h2>
+                    <p class="section-description">
+                        Držte krok s najnovšími trendmi v digitalizácii verejnej správy a získajte praktické rady od
+                        expertov
+                    </p>
+                </div>
+
+                <div class="news-grid">
+                    <div v-for="(item, index) in newsItems" :key="index" class="news-card">
+                        <div class="news-image">
+                            <div class="news-icon">{{ item.image }}</div>
+                            <div class="news-category" :style="{ background: item.categoryColor }">
+                                {{ item.category }}
+                            </div>
+                        </div>
+                        <div class="news-content">
+                            <div class="news-meta">
+                                <span class="news-date">📅 {{ item.date }}</span>
+                                <span class="news-separator">•</span>
+                                <span class="news-time">⏱️ {{ item.readTime }}</span>
+                            </div>
+                            <h3 class="news-title">{{ item.title }}</h3>
+                            <p class="news-description">{{ item.description }}</p>
+                            <div class="news-footer">
+                                <div class="news-author">
+                                    <div class="author-avatar">👤</div>
+                                    <span class="author-name">{{ item.author }}</span>
+                                </div>
+                                <button class="news-link">
+                                    <span>→</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="news-cta">
+                    <button class="btn btn-orange">
+                        Zistiť viac o produkte
+                        <span class="btn-arrow">→</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Other Products Section -->
+        <section id="other-products" class="other-products">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">Andere Produkte</h2>
+                    <p class="section-description">
+                        Entdecken Sie unser vollständiges Portfolio an digitalen Lösungen
+                    </p>
+                </div>
+
+                <div class="products-grid">
+                    <a v-for="product in otherProducts" :key="product.name" :href="product.url" target="_blank"
+                        class="product-card">
+                        <div class="product-icon">{{ product.icon }}</div>
+                        <h3 class="product-name">{{ product.name }}</h3>
+                        <p class="product-description">{{ product.description }}</p>
+                        <div class="product-link">
+                            <span class="product-url">{{ product.url.replace('https://', '') }}</span>
+                            <span class="link-arrow">→</span>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </section>
+
         <!-- CTA Section -->
-        <section class="cta">
+        <section id="cta" class="cta">
             <div class="container">
                 <div class="cta-content">
                     <h2 class="cta-title">Bereit, durchzustarten?</h2>
@@ -164,19 +322,78 @@ const scrollToFeatures = () => {
         <!-- Footer -->
         <footer class="footer">
             <div class="container">
-                <div class="footer-content">
-                    <div class="footer-brand">
-                        <h3 class="footer-title">Control Studio</h3>
-                        <p class="footer-tagline">Your content, your control</p>
+                <div class="footer-grid">
+                    <div class="footer-main">
+                        <h3 class="footer-brand">Control Studio</h3>
+                        <p class="footer-tagline">Ihr Partner für professionelles Social Media Management</p>
+                        <div class="footer-social">
+                            <a href="#" class="social-link">📘</a>
+                            <a href="#" class="social-link">🐦</a>
+                            <a href="#" class="social-link">💼</a>
+                            <a href="#" class="social-link">📷</a>
+                        </div>
                     </div>
-                    <div class="footer-links">
-                        <button @click="router.push('/login')" class="footer-link">Login</button>
-                        <span class="footer-separator">•</span>
-                        <button @click="router.push('/signup')" class="footer-link">Sign Up</button>
+
+                    <div class="footer-section">
+                        <h4 class="footer-heading">Produkt</h4>
+                        <ul class="footer-links">
+                            <li><button @click="scrollToSection('features')" class="footer-link">Features</button></li>
+                            <li><button @click="scrollToSection('news')" class="footer-link">Preise</button></li>
+                            <li><button @click="router.push('/login')" class="footer-link">Login</button></li>
+                            <li><button @click="router.push('/signup')" class="footer-link">Registrieren</button></li>
+                        </ul>
+                    </div>
+
+                    <div class="footer-section">
+                        <h4 class="footer-heading">Unternehmen</h4>
+                        <ul class="footer-links">
+                            <li><a href="#" class="footer-link">Über uns</a></li>
+                            <li><a href="#" class="footer-link">Karriere</a></li>
+                            <li><a href="#" class="footer-link">Presse</a></li>
+                            <li><a href="#" class="footer-link">Partner</a></li>
+                        </ul>
+                    </div>
+
+                    <div class="footer-section">
+                        <h4 class="footer-heading">Kontakt</h4>
+                        <ul class="footer-contact">
+                            <li>
+                                <span class="contact-icon">📧</span>
+                                <a href="mailto:info@control-studio.eu" class="footer-link">info@control-studio.eu</a>
+                            </li>
+                            <li>
+                                <span class="contact-icon">📞</span>
+                                <a href="tel:+4312345678" class="footer-link">+43 1 234 56 78</a>
+                            </li>
+                            <li>
+                                <span class="contact-icon">💬</span>
+                                <a href="tel:+436641234567" class="footer-link">+43 664 123 45 67</a>
+                            </li>
+                            <li>
+                                <span class="contact-icon">📍</span>
+                                <span class="footer-text">Wien, Österreich</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="footer-section">
+                        <h4 class="footer-heading">Rechtliches</h4>
+                        <ul class="footer-links">
+                            <li><a href="#" class="footer-link">Impressum</a></li>
+                            <li><a href="#" class="footer-link">Datenschutz</a></li>
+                            <li><a href="#" class="footer-link">AGB</a></li>
+                            <li><a href="#" class="footer-link">Cookie-Einstellungen</a></li>
+                        </ul>
                     </div>
                 </div>
+
                 <div class="footer-bottom">
-                    <p>&copy; {{ new Date().getFullYear() }} Control Studio. All rights reserved.</p>
+                    <p>&copy; {{ new Date().getFullYear() }} Control Studio. Alle Rechte vorbehalten.</p>
+                    <div class="footer-badges">
+                        <span class="badge-item">🔒 SSL Verschlüsselt</span>
+                        <span class="badge-item">✓ DSGVO konform</span>
+                        <span class="badge-item">🇦🇹 Made in Austria</span>
+                    </div>
                 </div>
             </div>
         </footer>
@@ -201,6 +418,101 @@ const scrollToFeatures = () => {
     max-width: 1280px;
     margin: 0 auto;
     padding: 0 2rem;
+}
+
+/* Header Navigation */
+.header {
+    position: sticky;
+    top: 0;
+    background: rgba(15, 23, 42, 0.95);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    z-index: 1000;
+    padding: 0.75rem 0;
+}
+
+.nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 2rem;
+}
+
+.nav-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.logo-icon {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #f97316 0%, #fb923c 100%);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+}
+
+.brand-name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: white;
+}
+
+.nav-menu {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.nav-link {
+    background: none;
+    border: none;
+    color: #cbd5e1;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: color 0.2s;
+    padding: 0.5rem 0;
+}
+
+.nav-link:hover {
+    color: white;
+}
+
+.theme-toggle {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.theme-toggle:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.btn-demo {
+    background: linear-gradient(135deg, #f97316 0%, #fb923c 100%);
+    color: white;
+    padding: 0.625rem 1.25rem;
+    border-radius: 8px;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-demo:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(249, 115, 22, 0.4);
 }
 
 /* Hero Section */
@@ -319,6 +631,24 @@ const scrollToFeatures = () => {
 .btn-large {
     padding: 1.125rem 2.5rem;
     font-size: 1.125rem;
+}
+
+.btn-orange {
+    background: linear-gradient(135deg, #f97316 0%, #fb923c 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+    padding: 1rem 2rem;
+    font-size: 1rem;
+}
+
+.btn-orange:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(249, 115, 22, 0.4);
+}
+
+.btn-arrow {
+    margin-left: 0.5rem;
+    font-size: 1.25rem;
 }
 
 .stats {
@@ -510,6 +840,221 @@ const scrollToFeatures = () => {
     color: #64748b;
 }
 
+/* News Section */
+.news-section {
+    padding: 6rem 0;
+    background: #1e293b;
+}
+
+.news-section .section-title,
+.news-section .section-description {
+    color: white;
+}
+
+.news-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 2rem;
+    margin-bottom: 3rem;
+}
+
+.news-card {
+    background: #334155;
+    border-radius: 1rem;
+    overflow: hidden;
+    transition: all 0.3s;
+    cursor: pointer;
+}
+
+.news-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+}
+
+.news-image {
+    position: relative;
+    height: 200px;
+    background: linear-gradient(135deg, #475569 0%, #334155 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.news-icon {
+    font-size: 4rem;
+    filter: grayscale(1) brightness(0.8);
+}
+
+.news-category {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    padding: 0.375rem 0.875rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: white;
+}
+
+.news-content {
+    padding: 1.5rem;
+}
+
+.news-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    color: #94a3b8;
+    margin-bottom: 1rem;
+}
+
+.news-separator {
+    color: #475569;
+}
+
+.news-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 0.75rem;
+    line-height: 1.4;
+}
+
+.news-description {
+    font-size: 0.875rem;
+    line-height: 1.6;
+    color: #cbd5e1;
+    margin-bottom: 1.5rem;
+}
+
+.news-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 1rem;
+    border-top: 1px solid #475569;
+}
+
+.news-author {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.author-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #475569;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+}
+
+.author-name {
+    font-size: 0.875rem;
+    color: #e2e8f0;
+    font-weight: 500;
+}
+
+.news-link {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(249, 115, 22, 0.2);
+    border: none;
+    color: #fb923c;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 1.25rem;
+}
+
+.news-link:hover {
+    background: #f97316;
+    color: white;
+}
+
+.news-cta {
+    text-align: center;
+}
+
+/* Other Products Section */
+.other-products {
+    padding: 6rem 0;
+    background: white;
+}
+
+.products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+}
+
+.product-card {
+    background: #f8fafc;
+    border-radius: 1rem;
+    padding: 2rem;
+    text-decoration: none;
+    transition: all 0.3s;
+    border: 2px solid transparent;
+    display: block;
+}
+
+.product-card:hover {
+    background: white;
+    border-color: #6366f1;
+    box-shadow: 0 8px 30px rgba(99, 102, 241, 0.15);
+    transform: translateY(-4px);
+}
+
+.product-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.product-name {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 0.75rem;
+}
+
+.product-description {
+    font-size: 0.875rem;
+    line-height: 1.6;
+    color: #64748b;
+    margin-bottom: 1.5rem;
+}
+
+.product-link {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 1rem;
+    border-top: 1px solid #e2e8f0;
+}
+
+.product-url {
+    font-size: 0.875rem;
+    color: #6366f1;
+    font-weight: 500;
+}
+
+.link-arrow {
+    font-size: 1.25rem;
+    color: #6366f1;
+    transition: transform 0.2s;
+}
+
+.product-card:hover .link-arrow {
+    transform: translateX(4px);
+}
+
 /* CTA Section */
 .cta {
     padding: 6rem 0;
@@ -567,38 +1112,75 @@ const scrollToFeatures = () => {
 .footer {
     background: #0f172a;
     color: white;
-    padding: 3rem 0 2rem;
+    padding: 4rem 0 2rem;
 }
 
-.footer-content {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-bottom: 2rem;
+.footer-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 3rem;
+    padding-bottom: 3rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    flex-wrap: wrap;
-    gap: 2rem;
+}
+
+.footer-main {
+    grid-column: span 2;
 }
 
 .footer-brand {
-    flex: 1;
-}
-
-.footer-title {
     font-size: 1.5rem;
     font-weight: 700;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.75rem;
+    color: white;
 }
 
 .footer-tagline {
     color: #94a3b8;
     font-size: 0.875rem;
+    margin-bottom: 1.5rem;
+}
+
+.footer-social {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.social-link {
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.social-link:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+.footer-section {
+    min-width: 0;
+}
+
+.footer-heading {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: white;
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 
 .footer-links {
+    list-style: none;
     display: flex;
-    gap: 1rem;
-    align-items: center;
+    flex-direction: column;
+    gap: 0.75rem;
 }
 
 .footer-link {
@@ -609,26 +1191,89 @@ const scrollToFeatures = () => {
     font-size: 0.875rem;
     transition: color 0.2s;
     text-decoration: none;
-    padding: 0.5rem 0;
+    text-align: left;
+    padding: 0;
 }
 
 .footer-link:hover {
     color: white;
 }
 
-.footer-separator {
-    color: #475569;
+.footer-contact {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.footer-contact li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+}
+
+.contact-icon {
+    font-size: 1.125rem;
+    min-width: 20px;
+}
+
+.footer-text {
+    color: #94a3b8;
+    font-size: 0.875rem;
 }
 
 .footer-bottom {
     padding-top: 2rem;
-    text-align: center;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     color: #64748b;
     font-size: 0.875rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.footer-badges {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.badge-item {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.75rem;
+    color: #94a3b8;
 }
 
 /* Responsive */
+@media (max-width: 1024px) {
+    .nav-menu {
+        gap: 1rem;
+    }
+
+    .nav-link {
+        font-size: 0.8rem;
+    }
+}
+
 @media (max-width: 768px) {
+    .header {
+        padding: 0.5rem 0;
+    }
+
+    .nav {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .nav-menu {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0.75rem;
+    }
+
     .hero {
         padding: 4rem 0 2rem;
     }
@@ -651,16 +1296,27 @@ const scrollToFeatures = () => {
         grid-template-columns: repeat(2, 1fr);
     }
 
-    .features-grid {
+    .features-grid,
+    .news-grid,
+    .products-grid {
         grid-template-columns: 1fr;
     }
 
-    .footer-content {
+    .footer-grid {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+
+    .footer-main {
+        grid-column: span 1;
+    }
+
+    .footer-bottom {
         flex-direction: column;
         text-align: center;
     }
 
-    .footer-links {
+    .footer-badges {
         justify-content: center;
     }
 }
@@ -733,6 +1389,22 @@ const scrollToFeatures = () => {
 
     .feature-description {
         color: #94a3b8;
+    }
+
+    .other-products {
+        background: #0f172a;
+    }
+
+    .product-card {
+        background: #1e293b;
+    }
+
+    .product-card:hover {
+        background: #334155;
+    }
+
+    .product-name {
+        color: #e2e8f0;
     }
 }
 </style>

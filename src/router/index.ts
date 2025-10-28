@@ -6,7 +6,7 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
-      path: '/landing',
+      path: '/',
       name: 'landing',
       component: LandingPage,
     },
@@ -23,7 +23,7 @@ const router = createRouter({
       meta: { requiresGuest: true },
     },
     {
-      path: '/',
+      path: '/home',la
       name: 'home',
       component: HomeView,
       meta: { requiresAuth: true },
