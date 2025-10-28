@@ -7,8 +7,6 @@ import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const BACKEND_DIR = path.join(__dirname, '..');
-const TOKENS_DIR = path.join(BACKEND_DIR, 'tokens');
 const PROJECT_ROOT = path.join(__dirname, '..', '..');
 
 dotenv.config({ path: path.join(PROJECT_ROOT, '.env') });
@@ -24,7 +22,7 @@ class TikTokManager {
     constructor(options = {}) {
         this.clientKey = options.clientKey || process.env.TIKTOK_CLIENT_KEY || '';
         this.clientSecret = options.clientSecret || process.env.TIKTOK_CLIENT_SECRET || '';
-        this.redirectUri = options.redirectUri || 'https://alex.polan.sk/tiktok_redirect.php';
+        this.redirectUri = options.redirectUri || 'http://localhost:6709/api/oauth2callback/tiktok';
         this.projectId = 2;//options.projectId || 2;
         this.scopes = options.scopes || SCOPES;
     }
@@ -116,7 +114,7 @@ class TikTokManager {
             };
 
             await storeTokenByProjectID(1, 'tiktok_token', tokenWithExpiry, this.projectId);
-            await fs.unlink(path.join(TOKENS_DIR, 'tiktok_oauth_state.json')).catch(() => { });
+            await removeTokenByProjectID(1, 'tiktok_oauth_state', this.projectId);
             console.log('TikTok token stored successfully');
 
             return tokenWithExpiry;
@@ -180,7 +178,7 @@ class TikTokManager {
         try {
             const accessToken = await this._getAccessToken();
 
-            let chunkSize = 128 * 1024 * 1024; // 128MB
+            let chunkSize = 128 * 1024 * 1024; //128MB
             const fileStat = await fs.stat(videoPath);
             let fileSize = fileStat.size;
 
@@ -217,18 +215,12 @@ class TikTokManager {
             if (!initResponse.ok) {
                 const errorText = await initResponse.text();
                 console.log('Init response status:', initResponse.status);
-                console.log('Init response error:', errorText);
                 throw new Error(`Failed to initialize upload: ${errorText}`);
             }
 
             const initData = await initResponse.json();
-            console.log('Init response data:', JSON.stringify(initData, null, 2));
             const uploadUrl = initData.data.upload_url;
             const publishId = initData.data.publish_id;
-
-            console.log('Upload URL:', uploadUrl);
-            console.log('Publish ID:', publishId);
-
             const videoBuffer = await fs.readFile(videoPath);
             const totalChunks = Math.ceil(fileSize / chunkSize);
             console.log(`Uploading ${totalChunks} chunk(s)`);
