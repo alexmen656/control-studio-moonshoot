@@ -3,7 +3,7 @@ import fs from 'fs/promises';
 import axios from 'axios';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { retrieveToken, retrieveTokenByProjectID } from '../utils/token_manager.js';
+import { retrieveTokenByProjectID } from '../utils/token_manager.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -28,8 +28,8 @@ class InstagramManager {
     }
 
     async _getCredentials(projectId = this.projectId) {
-        const instagramAccountData = await retrieveTokenByProjectID(1, 'instagram_business_account', projectId);
-        const tokenData = await retrieveTokenByProjectID(1, 'instagram_token', projectId);
+        const instagramAccountData = await retrieveTokenByProjectID('instagram_business_account', projectId);
+        const tokenData = await retrieveTokenByProjectID('instagram_token', projectId);
 
         return {
             instagramUserId: instagramAccountData.instagram_business_account.id,
@@ -59,8 +59,8 @@ class InstagramManager {
         console.log('Starting Instagram Reel upload process...');
 
         try {
-            const instagramAccountData = await retrieveToken(this.projectId, 'instagram_business_account');
-            const facebookAccountsData = await retrieveToken(this.projectId, 'facebook_accounts_for_instagram');
+            const instagramAccountData = await retrieveTokenByProjectID('instagram_business_account', this.projectId);
+            const facebookAccountsData = await retrieveTokenByProjectID('facebook_accounts_for_instagram', this.projectId);
             const instagramUserId = instagramAccountData.instagram_business_account.id;
             const accessToken = facebookAccountsData.data[0].access_token;
 

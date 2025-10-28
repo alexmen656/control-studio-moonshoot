@@ -39,7 +39,7 @@ class YouTubeManager {
         await this.initialize();
 
         try {
-            const token = await retrieveTokenByProjectID(1, 'youtube_token', projectId);
+            const token = await retrieveTokenByProjectID('youtube_token', projectId);
 
             if (!token.refresh_token) {
                 return this.generateAuthUrl();
@@ -68,7 +68,7 @@ class YouTubeManager {
         const tokenResponse = await this.oAuth2Client.getToken(code);
         this.oAuth2Client.setCredentials(tokenResponse.tokens);
 
-        await storeTokenByProjectID(1, 'youtube_token', tokenResponse.tokens, projectId);
+        await storeTokenByProjectID('youtube_token', tokenResponse.tokens, projectId);
         return tokenResponse.tokens;
     }
 

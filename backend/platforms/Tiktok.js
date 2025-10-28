@@ -38,7 +38,7 @@ class TikTokManager {
     async authorize() {
         try {
             try {
-                const token = await retrieveTokenByProjectID(1, 'tiktok_token', this.projectId);
+                const token = await retrieveTokenByProjectID('tiktok_token', this.projectId);
                 const tokenData = JSON.parse(token);
 
                 if (tokenData.expires_at && Date.now() < tokenData.expires_at) {
@@ -55,7 +55,7 @@ class TikTokManager {
             const codeChallenge = this._generateCodeChallenge(codeVerifier);
             const csrfState = crypto.randomBytes(16).toString('hex');
 
-            await storeTokenByProjectID(1, 'tiktok_oauth_state', {
+            await storeTokenByProjectID('tiktok_oauth_state', {
                 code_verifier: codeVerifier,
                 csrf_state: csrfState
             }, this.projectId);
@@ -78,7 +78,7 @@ class TikTokManager {
 
     async exchangeCodeForToken(code, state) {
         try {
-            const oauthState = await retrieveTokenByProjectID(1, 'tiktok_oauth_state', this.projectId);
+            const oauthState = await retrieveTokenByProjectID('tiktok_oauth_state', this.projectId);
 
             if (state !== oauthState.csrf_state) {
                 throw new Error('State mismatch - possible CSRF attack');
@@ -113,7 +113,7 @@ class TikTokManager {
                 expires_at: Date.now() + (tokenData.expires_in * 1000)
             };
 
-            await storeTokenByProjectID(1, 'tiktok_token', tokenWithExpiry, this.projectId);
+            await storeTokenByProjectID('tiktok_token', tokenWithExpiry, this.projectId);
             await removeTokenByProjectID(1, 'tiktok_oauth_state', this.projectId);
             console.log('TikTok token stored successfully');
 
@@ -126,7 +126,7 @@ class TikTokManager {
 
     async refreshAccessToken() {
         try {
-            const tokenData = await retrieveTokenByProjectID(1, 'tiktok_token', this.projectId);
+            const tokenData = await retrieveTokenByProjectID('tiktok_token', this.projectId);
 
             if (!tokenData.refresh_token) {
                 throw new Error('No refresh token available');
@@ -159,7 +159,7 @@ class TikTokManager {
                 expires_at: Date.now() + (newTokenData.expires_in * 1000)
             };
 
-            await storeTokenByProjectID(1, 'tiktok_token', tokenWithExpiry, this.projectId);
+            await storeTokenByProjectID('tiktok_token', tokenWithExpiry, this.projectId);
             console.log('TikTok token refreshed successfully');
 
             return tokenWithExpiry;
@@ -170,7 +170,7 @@ class TikTokManager {
     }
 
     async _getAccessToken() {
-        const tokenData = await retrieveTokenByProjectID(1, 'tiktok_token', this.projectId);
+        const tokenData = await retrieveTokenByProjectID('tiktok_token', this.projectId);
         return tokenData.access_token;
     }
 

@@ -1,7 +1,7 @@
 import { encrypt, decrypt } from './crypto_functions.js';
 import db from './db.js';
 
-export async function storeToken(userId, serviceName, tokenObject) {
+/*export async function storeToken(userId, serviceName, tokenObject) {
     const tokenString = JSON.stringify(tokenObject);
     const encrypted = encrypt(tokenString);
 
@@ -22,8 +22,10 @@ export async function storeToken(userId, serviceName, tokenObject) {
 
     await db.query(query, values);
 }
+*/
 
-export async function storeTokenByProjectID(userId, serviceName, tokenObject, projectId) {
+export async function storeTokenByProjectID(serviceName, tokenObject, projectId) {//userId, 
+    const userId = 1;
     const tokenString = JSON.stringify(tokenObject);
     const encrypted = encrypt(tokenString);
 
@@ -46,7 +48,7 @@ export async function storeTokenByProjectID(userId, serviceName, tokenObject, pr
     await db.query(query, values);
 }
 
-export async function retrieveToken(userId, serviceName) {
+/*export async function retrieveToken(userId, serviceName) {
     const query = `
     SELECT token_content, token_iv, token_tag
     FROM user_api_tokens
@@ -73,9 +75,10 @@ export async function retrieveToken(userId, serviceName) {
     const decryptedString = decrypt(encrypted);//decrypt(encrypted);
     console.log('Decrypted token string:', decryptedString);
     return JSON.parse(decryptedString)//JSON.parse(decryptedString);
-}
+}*/
 
-export async function retrieveTokenByProjectID(userId, serviceName, projectId) {
+export async function retrieveTokenByProjectID(serviceName, projectId) {//userId, 
+    const userId = 1;
     const query = `
     SELECT token_content, token_iv, token_tag
     FROM user_api_tokens
@@ -90,30 +93,31 @@ export async function retrieveTokenByProjectID(userId, serviceName, projectId) {
     }
 
     const row = res.rows[0];
-    console.log('Retrieved row:', row);
+    //console.log('Retrieved row:', row);
     const encrypted = {
         content: row.token_content,
         iv: row.token_iv,
         tag: row.token_tag
     };
 
-    console.log('Encrypted token data:', encrypted);
+    //console.log('Encrypted token data:', encrypted);
 
     const decryptedString = decrypt(encrypted);//decrypt(encrypted);
-    console.log('Decrypted token string:', decryptedString);
+    //console.log('Decrypted token string:', decryptedString);
     return JSON.parse(decryptedString)//JSON.parse(decryptedString);
 }
 
-export async function deleteToken(userId, serviceName) {
+/*export async function deleteToken(userId, serviceName) {
     const query = `
     DELETE FROM user_api_tokens
     WHERE user_id = $1 AND service_name = $2
     `;
     const values = [userId, serviceName];
     await db.query(query, values);
-}
+}*/
 
-export async function removeTokenByProjectID(userId, serviceName, projectId) {
+export async function removeTokenByProjectID(serviceName, projectId) {//userId, 
+    const userId = 1;
     const query = `
     DELETE FROM user_api_tokens
     WHERE user_id = $1 AND service_name = $2 AND project_id = $3

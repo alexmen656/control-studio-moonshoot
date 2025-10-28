@@ -42,7 +42,7 @@ class XManager {
     async authorize() {
         try {
             try {
-                const token = await retrieveTokenByProjectID(1, 'x_token', this.projectId);
+                const token = await retrieveTokenByProjectID('x_token', this.projectId);
 
                 if (token.expires_at && Date.now() < token.expires_at) {
                     console.log('X token found and is still valid');
@@ -59,7 +59,7 @@ class XManager {
             const codeChallenge = this._generateCodeChallenge(codeVerifier);
             const state = crypto.randomBytes(16).toString('hex');
 
-            await storeTokenByProjectID(1, 'x_oauth_state', {
+            await storeTokenByProjectID('x_oauth_state', {
                 code_verifier: codeVerifier,
                 state: state
             }, this.projectId);
@@ -82,7 +82,7 @@ class XManager {
 
     async exchangeCodeForToken(code, state) {
         try {
-            const oauthState = await retrieveTokenByProjectID(1, 'x_oauth_state', this.projectId);
+            const oauthState = await retrieveTokenByProjectID('x_oauth_state', this.projectId);
 
             if (state !== oauthState.state) {
                 throw new Error('State mismatch - possible CSRF attack');
@@ -111,7 +111,7 @@ class XManager {
                 expires_at: Date.now() + (tokenData.expires_in * 1000)
             };
 
-            await storeTokenByProjectID(1, 'x_token', tokenWithExpiry, this.projectId);
+            await storeTokenByProjectID('x_token', tokenWithExpiry, this.projectId);
             console.log('X token stored successfully');
 
             return tokenWithExpiry;
@@ -123,7 +123,7 @@ class XManager {
 
     async refreshAccessToken() {
         try {
-            const tokenData = await retrieveTokenByProjectID(1, 'x_token', this.projectId);
+            const tokenData = await retrieveTokenByProjectID('x_token', this.projectId);
 
             if (!tokenData.refresh_token) {
                 throw new Error('No refresh token available');
@@ -149,7 +149,7 @@ class XManager {
                 expires_at: Date.now() + (response.data.expires_in * 1000)
             };
 
-            await storeTokenByProjectID(1, 'x_token', tokenWithExpiry, this.projectId);
+            await storeTokenByProjectID('x_token', tokenWithExpiry, this.projectId);
             console.log('X token refreshed successfully');
 
             return { accessToken: tokenWithExpiry.access_token };
@@ -170,7 +170,7 @@ class XManager {
     }
 
     async _getCredentials(projectId = this.projectId) {
-        const tokenData = await retrieveTokenByProjectID(1, 'x_token', projectId);
+        const tokenData = await retrieveTokenByProjectID('x_token', projectId);
         return {
             accessToken: tokenData.access_token
         };

@@ -33,7 +33,7 @@ class RedditManager {
     async authorize() {
         try {
             try {
-                const token = await retrieveTokenByProjectID(1, 'reddit_token', this.projectId);
+                const token = await retrieveTokenByProjectID('reddit_token', this.projectId);
 
                 if (token.expires_at && Date.now() < token.expires_at) {
                     console.log('Reddit token found, and is still valid');
@@ -48,7 +48,7 @@ class RedditManager {
 
             const state = crypto.randomBytes(16).toString('hex');
 
-            await storeTokenByProjectID(1, 'reddit_oauth_state', {
+            await storeTokenByProjectID('reddit_oauth_state', {
                 state: state
             }, this.projectId);
 
@@ -70,7 +70,7 @@ class RedditManager {
 
     async exchangeCodeForToken(code, state) {
         try {
-            const oauthState = await retrieveTokenByProjectID(1, 'reddit_oauth_state', this.projectId);
+            const oauthState = await retrieveTokenByProjectID('reddit_oauth_state', this.projectId);
 
             if (state !== oauthState.state) {
                 throw new Error('State mismatch - possible CSRF attack');
@@ -101,7 +101,7 @@ class RedditManager {
                 expires_at: Date.now() + (tokenData.expires_in * 1000)
             };
 
-            await storeTokenByProjectID(1, 'reddit_token', tokenWithExpiry, this.projectId);
+            await storeTokenByProjectID('reddit_token', tokenWithExpiry, this.projectId);
             console.log('Reddit token stored successfully');
 
             return tokenWithExpiry;
@@ -113,7 +113,7 @@ class RedditManager {
 
     async refreshAccessToken() {
         try {
-            const tokenData = await retrieveTokenByProjectID(1, 'reddit_token', this.projectId);
+            const tokenData = await retrieveTokenByProjectID('reddit_token', this.projectId);
 
             if (!tokenData.refresh_token) {
                 throw new Error('No refresh token available');
@@ -142,7 +142,7 @@ class RedditManager {
                 expires_at: Date.now() + (response.data.expires_in * 1000)
             };
 
-            await storeTokenByProjectID(1, 'reddit_token', tokenWithExpiry, this.projectId);
+            await storeTokenByProjectID('reddit_token', tokenWithExpiry, this.projectId);
             console.log('Reddit token refreshed successfully');
 
             return { accessToken: tokenWithExpiry.access_token };
@@ -163,7 +163,7 @@ class RedditManager {
     }
 
     async _getCredentials(projectId = this.projectId) {
-        const tokenData = await retrieveTokenByProjectID(1, 'reddit_token', projectId);
+        const tokenData = await retrieveTokenByProjectID('reddit_token', projectId);
         return {
             accessToken: tokenData.access_token
         };

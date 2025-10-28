@@ -836,12 +836,12 @@ app.get('/api/accounts/status', async (req, res) => {
   const PROJECT_ID = req.query.project_id || 1
   try {
     res.json({
-      youtube: await retrieveTokenByProjectID(1, 'youtube_token', PROJECT_ID) === null ? false : true,
-      tiktok: await retrieveTokenByProjectID(1, 'tiktok_token', PROJECT_ID) === null ? false : true,
-      instagram: await retrieveTokenByProjectID(1, 'instagram_business_account', PROJECT_ID) === null ? false : true,
-      facebook: await retrieveTokenByProjectID(1, 'facebook_accounts', PROJECT_ID) === null ? false : true,
-      x: await retrieveTokenByProjectID(1, 'x_token', PROJECT_ID) === null ? false : true,
-      reddit: await retrieveTokenByProjectID(1, 'reddit_token', PROJECT_ID) === null ? false : true
+      youtube: await retrieveTokenByProjectID('youtube_token', PROJECT_ID) === null ? false : true,
+      tiktok: await retrieveTokenByProjectID('tiktok_token', PROJECT_ID) === null ? false : true,
+      instagram: await retrieveTokenByProjectID('instagram_business_account', PROJECT_ID) === null ? false : true,
+      facebook: await retrieveTokenByProjectID('facebook_accounts', PROJECT_ID) === null ? false : true,
+      x: await retrieveTokenByProjectID('x_token', PROJECT_ID) === null ? false : true,
+      reddit: await retrieveTokenByProjectID('reddit_token', PROJECT_ID) === null ? false : true
     })
   } catch (error) {
     console.error('Error checking account status:', error)
@@ -1139,7 +1139,7 @@ app.get('/api/connected-platforms', async (req, res) => {
     const connectedPlatforms = [];
 
     try {
-      const youtubeToken = await retrieveTokenByProjectID(1, 'youtube_token', PROJECT_ID);
+      const youtubeToken = await retrieveTokenByProjectID('youtube_token', PROJECT_ID);
       if (youtubeToken && youtubeToken.refresh_token) {
         connectedPlatforms.push('youtube');
       }
@@ -1148,7 +1148,7 @@ app.get('/api/connected-platforms', async (req, res) => {
     }
 
     try {
-      const tiktokToken = await retrieveTokenByProjectID(1, 'tiktok_token', PROJECT_ID);
+      const tiktokToken = await retrieveTokenByProjectID('tiktok_token', PROJECT_ID);
       if (tiktokToken && tiktokToken.access_token) {
         connectedPlatforms.push('tiktok');
       }
@@ -1157,8 +1157,8 @@ app.get('/api/connected-platforms', async (req, res) => {
     }
 
     try {
-      const instagramToken = await retrieveTokenByProjectID(1, 'instagram_token', PROJECT_ID);
-      const instagramAccount = await retrieveTokenByProjectID(1, 'instagram_business_account', PROJECT_ID);
+      const instagramToken = await retrieveTokenByProjectID('instagram_token', PROJECT_ID);
+      const instagramAccount = await retrieveTokenByProjectID('instagram_business_account', PROJECT_ID);
       if (instagramToken && instagramAccount) {
         connectedPlatforms.push('instagram');
       }
@@ -1168,8 +1168,8 @@ app.get('/api/connected-platforms', async (req, res) => {
 
     try {
       //wtf why cant it find facebook token, i can see it in the db
-      const facebookToken = await retrieveTokenByProjectID(1, 'facebook_token', PROJECT_ID);// =null
-      const facebookAccounts = await retrieveTokenByProjectID(1, 'facebook_accounts', PROJECT_ID);
+      const facebookToken = await retrieveTokenByProjectID('facebook_token', PROJECT_ID);// =null
+      const facebookAccounts = await retrieveTokenByProjectID('facebook_accounts', PROJECT_ID);
 
       console.log('---------------------------------------------------- \n\n\n');
       console.log('Facebook Token:', facebookToken);
@@ -1184,7 +1184,7 @@ app.get('/api/connected-platforms', async (req, res) => {
     }
 
     try {
-      const xToken = await retrieveTokenByProjectID(1, 'x_token', PROJECT_ID);
+      const xToken = await retrieveTokenByProjectID('x_token', PROJECT_ID);
       if (xToken && xToken.access_token) {
         connectedPlatforms.push('x');
       }
@@ -1193,7 +1193,7 @@ app.get('/api/connected-platforms', async (req, res) => {
     }
 
     try {
-      const redditToken = await retrieveTokenByProjectID(1, 'reddit_token', PROJECT_ID);
+      const redditToken = await retrieveTokenByProjectID('reddit_token', PROJECT_ID);
       if (redditToken && redditToken.access_token) {
         connectedPlatforms.push('reddit');
       }
@@ -1218,7 +1218,7 @@ app.get('/api/oauth2callback/youtube', async (req, res) => {
   }
 
   try {
-    await storeTokenByProjectID(1, 'youtube_code', { code: code }, PROJECT_ID);
+    await storeTokenByProjectID('youtube_code', { code: code }, PROJECT_ID);
     await youTubeManager.getTokenFromCode(code, PROJECT_ID);
     res.redirect('http://localhost:5185/accounts');
     //res.send('YouTube authorization successful! You can close this tab.');
@@ -1265,17 +1265,17 @@ app.get('/api/oauth2callback/instagram', async (req, res) => {
   try {
     const PROJECT_ID = 2;//localStorage.getItem('currentProjectId') || 1;
 
-    await storeTokenByProjectID(1, 'instagram_code', { code: code }, PROJECT_ID);
+    await storeTokenByProjectID('instagram_code', { code: code }, PROJECT_ID);
     axios.get(instagramManager.getTokenExchangeUrl(code)).then(async (response) => {
-      await storeTokenByProjectID(1, 'instagram_token', response.data, PROJECT_ID);
+      await storeTokenByProjectID('instagram_token', response.data, PROJECT_ID);
 
       axios.get(`https://graph.facebook.com/v24.0/me/accounts?access_token=${response.data.access_token}`)
         .then(async (response) => {
-          await storeTokenByProjectID(1, 'facebook_accounts_for_instagram', response.data, PROJECT_ID);
+          await storeTokenByProjectID('facebook_accounts_for_instagram', response.data, PROJECT_ID);
 
           axios.get(`https://graph.facebook.com/v24.0/${response.data.data[0].id}?fields=instagram_business_account&access_token=${response.data.data[0].access_token}`)
             .then(async (response) => {
-              await storeTokenByProjectID(1, 'instagram_business_account', response.data, PROJECT_ID);
+              await storeTokenByProjectID('instagram_business_account', response.data, PROJECT_ID);
             });
         });
     });
@@ -1302,13 +1302,13 @@ app.get('/api/oauth2callback/facebook', async (req, res) => {
   try {
     // const PROJECT_ID = localStorage.getItem('currentProjectId') || 1;
     const PROJECT_ID = 2;
-    await storeTokenByProjectID(1, 'facebook_code', { code: code }, PROJECT_ID);
+    await storeTokenByProjectID('facebook_code', { code: code }, PROJECT_ID);
     axios.get(facebookManager.getTokenExchangeUrl(code)).then(async (response) => {
-      await storeTokenByProjectID(1, 'facebook_token', response.data, PROJECT_ID);
+      await storeTokenByProjectID('facebook_token', response.data, PROJECT_ID);
 
       axios.get(`https://graph.facebook.com/v24.0/me/accounts?access_token=${response.data.access_token}`)
         .then(async (response) => {
-          await storeTokenByProjectID(1, 'facebook_accounts', response.data, PROJECT_ID);
+          await storeTokenByProjectID('facebook_accounts', response.data, PROJECT_ID);
         });
     });
 

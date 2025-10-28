@@ -29,7 +29,7 @@ class FacebookManager {
     }
 
     async _getCredentials(projectId = this.projectId) {
-        const facebookAccountsData = await retrieveTokenByProjectID(1, 'facebook_accounts', projectId);
+        const facebookAccountsData = await retrieveTokenByProjectID('facebook_accounts', projectId);
 
         return {
             accessToken: facebookAccountsData.data[0].access_token,
