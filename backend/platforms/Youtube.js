@@ -7,142 +7,181 @@ import { storeTokenByProjectID, retrieveTokenByProjectID } from '../utils/token_
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const CREDENTIALS_PATH = path.join(__dirname, 'credentials.json');
-const SCOPES = ['https://www.googleapis.com/auth/youtube.upload', 'https://www.googleapis.com/auth/yt-analytics.readonly', 'https://www.googleapis.com/auth/youtube.readonly'];
 
-async function uploadVideo(videoFile) {
-    console.log('Starting upload process...');
-    try {
-        const auth = await authorize();
+const SCOPES = [
+    'https://www.googleapis.com/auth/youtube.upload',
+    'https://www.googleapis.com/auth/yt-analytics.readonly',
+    'https://www.googleapis.com/auth/youtube.readonly'
+];
+
+class YouTubeManager {
+    constructor(credentialsPath = path.join(__dirname, 'credentials.json'), redirectUri = 'http://localhost:6709/api/oauth2callback/youtube') {
+        this.credentialsPath = credentialsPath;
+        this.redirectUri = redirectUri;
+        this.oAuth2Client = null;
+        this.credentials = null;
+    }
+
+    async initialize() {
+        if (!this.credentials) {
+            const content = await fs.readFile(this.credentialsPath, 'utf-8');
+            const { client_secret, client_id } = JSON.parse(content);
+            this.credentials = { client_secret, client_id };
+            this.oAuth2Client = new google.auth.OAuth2(
+                client_id,
+                client_secret,
+                this.redirectUri
+            );
+        }
+    }
+
+    async authorize(projectId = 1) {
+        await this.initialize();
+
+        try {
+            const token = await retrieveTokenByProjectID(1, 'youtube_token', projectId);
+
+            if (!token.refresh_token) {
+                return this.generateAuthUrl();
+            }
+
+            this.oAuth2Client.setCredentials(token);
+            return this.oAuth2Client;
+        } catch (err) {
+            console.log('No token found, need to get a new one');
+            return this.generateAuthUrl();
+        }
+    }
+
+    generateAuthUrl() {
+        const authUrl = this.oAuth2Client.generateAuthUrl({
+            access_type: 'offline',
+            prompt: 'consent',
+            scope: SCOPES,
+        });
+        return { authUrl };
+    }
+
+    async getTokenFromCode(code, projectId = 1) {
+        await this.initialize();
+
+        const tokenResponse = await this.oAuth2Client.getToken(code);
+        this.oAuth2Client.setCredentials(tokenResponse.tokens);
+
+        await storeTokenByProjectID(1, 'youtube_token', tokenResponse.tokens, projectId);
+        return tokenResponse.tokens;
+    }
+
+    /*async checkAuthentication(projectId = 1) {
+        const auth = await this.authorize(projectId);
 
         if (auth.authUrl) {
             console.log('Authentication required. Visit:', auth.authUrl);
             return { authUrl: auth.authUrl };
         }
 
-        console.log('Credentials loaded, uploading video...');
-        return await uploadToYouTube(auth, videoFile);
-    } catch (err) {
-        console.error('Error during upload process:', err);
-        throw err;
-    }
-}
+        return auth;
+    }*/
 
-async function authorize(PROJECT_ID = 1) {
-    try {
-        const content = await fs.readFile(CREDENTIALS_PATH, 'utf-8');
-        const { client_secret, client_id, redirect_uris } = JSON.parse(content);
-        const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, 'http://localhost:6709/api/oauth2callback/youtube');
-
+    async uploadVideo(videoFile, projectId = 1) {
         try {
-            const token = await retrieveTokenByProjectID(1, 'youtube_token', PROJECT_ID);
-            const tokenData = token;
+            console.log('Starting upload process...');
+            const auth = await this.authorize(projectId);
 
-            if (!tokenData.refresh_token) {
-                const authUrl = oAuth2Client.generateAuthUrl({
-                    access_type: 'offline',
-                    prompt: 'consent',
-                    scope: SCOPES,
-                });
-                return { authUrl };
+            if (auth.authUrl) {
+                console.log('Authentication required. Visit:', auth.authUrl);
+                return { authUrl: auth.authUrl };
             }
 
-            oAuth2Client.setCredentials(tokenData);
-            return oAuth2Client;
-        } catch {
-            console.log('No token found, need to get a new one');
-            const authUrl = oAuth2Client.generateAuthUrl({
-                access_type: 'offline',
-                prompt: 'consent',
-                scope: SCOPES,
-            });
-            return { authUrl };
+            console.log('Credentials loaded, uploading video...');
+            return await this._uploadToYouTube(auth, videoFile);
+        } catch (err) {
+            console.error('Error during upload process:', err);
+            throw err;
         }
-    } catch (err) {
-        console.error('Error loading credentials.json:', err);
-        throw err;
     }
-}
 
-async function getTokenFromCode(code, PROJECT_ID = 1) {
-    const content = await fs.readFile(CREDENTIALS_PATH, 'utf-8');
-    const { client_secret, client_id, redirect_uris } = JSON.parse(content);
-    const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, 'http://localhost:6709/api/oauth2callback/youtube');
+    async _uploadToYouTube(auth, videoFile) {
+        const youtube = google.youtube({ version: 'v3', auth });
 
-    const tokenResponse = await oAuth2Client.getToken(code);
-    oAuth2Client.setCredentials(tokenResponse.tokens);
-
-    await storeTokenByProjectID(1, 'youtube_token', tokenResponse.tokens, PROJECT_ID);
-}
-
-async function uploadToYouTube(auth, videoFile) {
-    const youtube = google.youtube({ version: 'v3', auth });
-
-    return new Promise((resolve, reject) => {
-        youtube.videos.insert(
-            {
-                resource: {
-                    snippet: {
-                        title: videoFile.title || 'Untitled Video',
-                        description: videoFile.description || 'Automatically uploaded by my bot!',
-                        tags: videoFile.tags || [],
-                        categoryId: videoFile.categoryId || '22',
+        return new Promise((resolve, reject) => {
+            youtube.videos.insert(
+                {
+                    resource: {
+                        snippet: {
+                            title: videoFile.title || 'Untitled Video',
+                            description: videoFile.description || 'Automatically uploaded by my bot!',
+                            tags: videoFile.tags || [],
+                            categoryId: videoFile.categoryId || '22',
+                        },
+                        status: {
+                            privacyStatus: videoFile.privacyStatus || 'public',
+                        },
                     },
-                    status: {
-                        privacyStatus: 'public',
+                    part: 'snippet,status',
+                    media: {
+                        body: fs2.createReadStream(videoFile.path),
                     },
                 },
-                part: 'snippet,status',
-                media: {
-                    body: fs2.createReadStream(videoFile.path),
-                },
-            },
-            (err, response) => {
-                if (err) {
-                    console.error('YouTube API error:', err);
-                    reject(err);
-                    return;
+                (err, response) => {
+                    if (err) {
+                        console.error('YouTube API error:', err);
+                        reject(err);
+                        return;
+                    }
+                    console.log('Video uploaded:', response.data);
+                    resolve(response.data);
                 }
-                console.log('Video uploaded:', response.data);
-                resolve(response.data);
-            }
-        );
-    });
-}
-
-async function getVideoAnalytics() {
-    const auth = await authorize(2);
-
-    if (auth.authUrl) {
-        console.log('Authentication required. Visit:', auth.authUrl);
-        return { authUrl: auth.authUrl };
+            );
+        });
     }
 
-    console.log('Fetching YouTube video analytics...');
+    async getVideoAnalytics(projectId = 2, options = {}) {
+        const auth = await this.authorize(projectId);
 
-    const youtubeAnalytics = google.youtubeAnalytics('v2');
+        if (auth.authUrl) {
+            console.log('Authentication required. Visit:', auth.authUrl);
+            return { authUrl: auth.authUrl };
+        }
 
-    const res = await youtubeAnalytics.reports.query({
-        auth,
-        ids: 'channel==MINE',
-        startDate: '2025-10-01',
-        endDate: '2025-10-27',
-        metrics: 'views,estimatedMinutesWatched,averageViewDuration,likes,subscribersGained,comments',
-        dimensions: 'video',
-        maxResults: 10,
-        sort: '-views',
-    });
+        console.log('Fetching YouTube video analytics...');
+        const youtubeAnalytics = google.youtubeAnalytics('v2');
 
-    console.log('Analytics result:', JSON.stringify(res.data, null, 2));
+        const defaultOptions = {
+            startDate: '2025-10-01',
+            endDate: '2025-10-27',
+            metrics: 'views,estimatedMinutesWatched,averageViewDuration,likes,subscribersGained,comments',
+            dimensions: 'video',
+            maxResults: 10,
+            sort: '-views',
+        };
 
-    return res.data;
+        const res = await youtubeAnalytics.reports.query({
+            auth,
+            ids: 'channel==MINE',
+            ...defaultOptions,
+            ...options,
+        });
+
+        console.log('Analytics result:', JSON.stringify(res.data, null, 2));
+        return res.data;
+    }
+
+    async getChannelInfo(projectId = 1) {
+        const auth = await this.authorize(projectId);
+
+        if (auth.authUrl) {
+            return { authUrl: auth.authUrl };
+        }
+
+        const youtube = google.youtube({ version: 'v3', auth });
+        const res = await youtube.channels.list({
+            part: 'snippet,statistics',
+            mine: true,
+        });
+
+        return res.data;
+    }
 }
 
-//getVideoAnalytics();
-
-export default {
-    uploadVideo,
-    authorize,
-    getTokenFromCode,
-    getVideoAnalytics
-}
+export default YouTubeManager;

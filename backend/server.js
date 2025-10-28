@@ -9,7 +9,7 @@ import { fileURLToPath } from 'url'
 import dotenv from 'dotenv'
 import { exec } from 'child_process'
 import { promisify } from 'util'
-import youtube from './platforms/Youtube.js'
+import YouTubeManager from './platforms/youtube.js'
 import instagram from './platforms/Instagram.js'
 import facebook from './platforms/Facebook.js'
 import tiktok from './platforms/Tiktok.js'
@@ -25,6 +25,8 @@ dotenv.config({ path: path.join(PROJECT_ROOT, '.env') })
 
 const app = express()
 const PORT = process.env.PORT || 6709
+
+const youTubeManager = new YouTubeManager();
 
 const uploadsDir = path.join(__dirname, 'uploads')
 if (!fs.existsSync(uploadsDir)) {
@@ -1012,7 +1014,7 @@ app.post('/api/connect/:platform', async (req, res) => {
 
     switch (platform) {
       case 'youtube':
-        const result = await youtube.authorize(PROJECT_ID);
+        const result = await youTubeManager.authorize(PROJECT_ID);
 
         if (result.authUrl) {
           return res.json({ authUrl: result.authUrl });
@@ -1105,7 +1107,7 @@ app.get('/api/oauth2callback/youtube', async (req, res) => {
 
   try {
     await storeTokenByProjectID(1, 'youtube_code', { code: code }, PROJECT_ID);
-    await youtube.getTokenFromCode(code, PROJECT_ID);
+    await youTubeManager.getTokenFromCode(code, PROJECT_ID);
     res.redirect('http://localhost:5185/accounts');
     //res.send('YouTube authorization successful! You can close this tab.');
   } catch (error) {
@@ -1226,7 +1228,7 @@ app.post('/api/publish', async (req, res) => {
     if (video.platforms.includes('youtube')) {
       console.log('Publishing to YouTube:', video.title);
       try {
-        await youtube.uploadVideo(video)
+        await youTubeManager.uploadVideo(video)
         platformStatuses.youtube = 'success'
         console.log(`✓ YouTube: Published successfully at ${new Date().toLocaleString()}`)
       } catch (error) {
@@ -1358,7 +1360,7 @@ app.get('/api/analytics/total', async (req, res) => {
       try {
         switch (platform) {
           case 'youtube':
-            const youtubeData = await youtube.getVideoAnalytics();
+            const youtubeData = await youTubeManager.getVideoAnalytics();
             if (youtubeData && youtubeData.rows) {
               analyticsData.totalVideos = youtubeData.rows.length;
               analyticsData.videos = youtubeData.rows.map(row => ({
@@ -1470,7 +1472,7 @@ app.get('/api/analytics/total', async (req, res) => {
         try {
           switch (plat) {
             case 'youtube':
-              const youtubeData = await youtube.getVideoAnalytics();
+              const youtubeData = await youTubeManager.getVideoAnalytics();
               if (youtubeData && youtubeData.rows) {
                 const platStats = {
                   views: 0,
@@ -1602,17 +1604,17 @@ app.get('/api/analytics/total', async (req, res) => {
 
     switch (platform) {
       case 'youtube':
-        analyticsData = await youtube.getVideoAnalytics()//videoId, startDate, endDate
+        analyticsData = await youTubeManager.getVideoAnalytics()//videoId, startDate, endDate
         break
       case 'tiktok':
         analyticsData = await tiktok.getUserVideos()//videoId, startDate, endDate
         break
       case 'instagram':
-        analyticsData = await youtube.getVideoAnalytics(videoId, startDate, endDate)
+        analyticsData = await youTubeManager.getVideoAnalytics(videoId, startDate, endDate)
         //  analyticsData = await instagram.getVideoAnalytics(videoId, startDate, endDate)
         break
       case 'facebook':
-        analyticsData = await youtube.getVideoAnalytics(videoId, startDate, endDate)
+        analyticsData = await youTubeManager.getVideoAnalytics(videoId, startDate, endDate)
         //analyticsData = await facebook.getVideoAnalytics(videoId, startDate, endDate)
         break
       default:
