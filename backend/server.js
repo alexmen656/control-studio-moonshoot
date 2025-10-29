@@ -656,6 +656,63 @@ app.put('/api/projects/:id', async (req, res) => {
   }
 });
 
+app.patch('/api/projects/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, initials, color1, color2 } = req.body;
+
+    const updates = [];
+    const values = [];
+    let paramCount = 1;
+
+    if (name !== undefined) {
+      updates.push(`name = $${paramCount}`);
+      values.push(name);
+      paramCount++;
+    }
+    if (initials !== undefined) {
+      updates.push(`initials = $${paramCount}`);
+      values.push(initials);
+      paramCount++;
+    }
+    if (color1 !== undefined) {
+      updates.push(`color1 = $${paramCount}`);
+      values.push(color1);
+      paramCount++;
+    }
+    if (color2 !== undefined) {
+      updates.push(`color2 = $${paramCount}`);
+      values.push(color2);
+      paramCount++;
+    }
+
+    if (updates.length === 0) {
+      return res.status(400).json({ error: 'No fields to update' });
+    }
+
+    updates.push(`updated_at = CURRENT_TIMESTAMP`);
+    values.push(id);
+
+    const query = `
+      UPDATE projects 
+      SET ${updates.join(', ')}
+      WHERE id = $${paramCount}
+      RETURNING *
+    `;
+
+    const result = await db.query(query, values);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Error updating project:', error);
+    res.status(500).json({ error: 'Failed to update project' });
+  }
+});
+
 app.delete('/api/projects/:id', async (req, res) => {
   try {
     const { id } = req.params;

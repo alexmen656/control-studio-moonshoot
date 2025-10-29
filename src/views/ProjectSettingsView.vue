@@ -13,8 +13,18 @@
                         :style="{ background: `linear-gradient(to bottom right, ${currentProject.color1}, ${currentProject.color2})` }">
                         <span class="text-white font-bold text-2xl">{{ currentProject.initials }}</span>
                     </div>
-                    <div>
-                        <h2 class="text-2xl font-semibold text-gray-900 dark:text-white">{{ currentProject?.name }}</h2>
+                    <div class="flex-1">
+                        <div class="flex items-center gap-3">
+                            <h2 class="text-2xl font-semibold text-gray-900 dark:text-white">{{ currentProject?.name }}
+                            </h2>
+                            <button @click="openEditProjectModal"
+                                class="p-2 text-gray-500 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path
+                                        d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                                </svg>
+                            </button>
+                        </div>
                         <p class="text-sm text-gray-500 dark:text-gray-400">{{ projectUsers.length }} member(s)</p>
                     </div>
                 </div>
@@ -140,6 +150,30 @@
                 </div>
             </div>
         </div>
+        <div v-if="showEditProjectModal" @click="showEditProjectModal = false"
+            class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div @click.stop class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md">
+                <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Rename Project</h3>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Project Name
+                    </label>
+                    <input v-model="editProjectName" type="text" placeholder="Enter project name..."
+                        class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        @keyup.enter="saveProjectName">
+                </div>
+                <div class="flex justify-end gap-2">
+                    <button @click="showEditProjectModal = false"
+                        class="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                        Cancel
+                    </button>
+                    <button @click="saveProjectName"
+                        class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-black dark:text-white rounded-lg transition-colors">
+                        Save
+                    </button>
+                </div>
+            </div>
+        </div>
         <div v-if="showAddUserModal" @click="showAddUserModal = false"
             class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div @click.stop class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md">
@@ -225,6 +259,8 @@ export default {
             currentProject: null as Project | null,
             projectUsers: [] as User[],
             showAddUserModal: false,
+            showEditProjectModal: false,
+            editProjectName: '',
             searchQuery: '',
             searchResults: [] as User[],
             availableRegions: [] as Region[]
@@ -345,6 +381,43 @@ export default {
                 console.error('Error updating region:', error);
                 alert('Failed to update region');
             }
+        },
+        async saveProjectName() {
+            if (!this.editProjectName || !this.editProjectName.trim()) {
+                alert('Please enter a project name');
+                return;
+            }
+
+            const projectId = localStorage.getItem('currentProjectId');
+            if (!projectId) return;
+
+            try {
+                const initials = this.editProjectName.split(' ').map(word => word[0]).join('').toUpperCase().slice(0, 2);
+
+                await axios.patch(`http://localhost:6709/api/projects/${projectId}`, {
+                    name: this.editProjectName,
+                    initials: initials
+                });
+
+                if (this.currentProject) {
+                    this.currentProject.name = this.editProjectName;
+                    this.currentProject.initials = initials;
+                }
+
+                window.dispatchEvent(new CustomEvent('project-changed', { detail: this.currentProject }));
+
+                this.showEditProjectModal = false;
+                this.editProjectName = '';
+            } catch (error) {
+                console.error('Error updating project name:', error);
+                alert('Failed to update project name');
+            }
+        },
+        openEditProjectModal() {
+            if (this.currentProject) {
+                this.editProjectName = this.currentProject.name;
+            }
+            this.showEditProjectModal = true;
         }
     }
 };

@@ -153,7 +153,7 @@
                     <div class="flex items-center justify-between text-sm">
                         <span class="text-gray-600 dark:text-gray-400">{{ storageUsed }} {{ unit }} of {{
                             storageTotal
-                        }}
+                            }}
                             GB
                             used</span>
                     </div>
@@ -173,9 +173,13 @@
             <button @click="toggleProjectDropdown"
                 class="w-full flex items-center justify-between mt-2 px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors group"><!-- mt-4-->
                 <div class="flex items-center gap-3">
-                    <div
+                    <div v-if="currentProject" class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                        :style="{ background: `linear-gradient(to bottom right, ${currentProject.color1}, ${currentProject.color2})` }">
+                        <span class="text-white font-bold text-sm">{{ currentProject.initials }}</span>
+                    </div>
+                    <div v-else
                         class="w-8 h-8 bg-gradient-to-br from-red-500 to-pink-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <span class="text-white font-bold text-sm">{{ currentProject?.initials || 'TP' }}</span>
+                        <span class="text-white font-bold text-sm">TP</span>
                     </div>
                     <div class="text-left">
                         <div class="text-sm font-semibold text-gray-900 dark:text-white">{{ currentProject?.name ||
@@ -257,9 +261,11 @@ export default {
     },
     mounted() {
         document.addEventListener('click', this.handleClickOutside);
+        window.addEventListener('project-changed', this.handleProjectChanged);
     },
     beforeUnmount() {
         document.removeEventListener('click', this.handleClickOutside);
+        window.removeEventListener('project-changed', this.handleProjectChanged);
     },
     methods: {
         handleClickOutside(event: MouseEvent) {
@@ -267,6 +273,15 @@ export default {
             if (!target.closest('.sidebar')) {
                 this.showNewDropdown = false;
                 this.showProjectDropdown = false;
+            }
+        },
+        handleProjectChanged(event: any) {
+            if (event.detail) {
+                this.currentProject = event.detail;
+                const index = this.projects.findIndex(p => p.id === event.detail.id);
+                if (index !== -1) {
+                    this.projects[index] = { ...this.projects[index], ...event.detail };
+                }
             }
         },
         toggleProjectDropdown() {
