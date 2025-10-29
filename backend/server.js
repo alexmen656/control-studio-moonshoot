@@ -1371,9 +1371,14 @@ app.get('/api/oauth2callback/facebook', async (req, res) => {
     return res.status(400).send('Authorization code not provided');
   }
 
+  if (!state) {
+    return res.status(400).send('State parameter is missing');
+  }
+
   try {
-    // const PROJECT_ID = localStorage.getItem('currentProjectId') || 1;
-    const PROJECT_ID = 2;
+    const stateData = await retrieveOAuthState(state);
+    const PROJECT_ID = stateData.project_id;
+
     await storeTokenByProjectID('facebook_code', { code: code }, PROJECT_ID);
     axios.get(facebookManager.getTokenExchangeUrl(code)).then(async (response) => {
       await storeTokenByProjectID('facebook_token', response.data, PROJECT_ID);

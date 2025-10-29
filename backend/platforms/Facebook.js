@@ -1,10 +1,12 @@
 import dotenv from 'dotenv';
 import fs from 'fs/promises';
+import crypto from 'crypto';
 import axios from 'axios';
 import FormData from 'form-data';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { retrieveTokenByProjectID } from '../utils/token_manager.js';
+import { storeOAuthState, retrieveOAuthState } from '../utils/oauth_states.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -38,10 +40,15 @@ class FacebookManager {
     }
 
     generateAuthUrl() {
+        const state = crypto.randomBytes(16).toString('hex');
+
+        storeOAuthState('facebook', this.projectId, state);
+
         let authUrl = `https://www.facebook.com/${this.apiVersion}/dialog/oauth`;
         authUrl += '?client_id=' + encodeURIComponent(this.appId);
         authUrl += '&redirect_uri=' + encodeURIComponent(this.redirectUri);
         authUrl += '&scope=' + encodeURIComponent(this.scopes);
+        authUrl += '&state=' + encodeURIComponent(state);
 
         return { auth_url: authUrl };
     }
