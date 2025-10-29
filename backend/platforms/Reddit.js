@@ -5,6 +5,7 @@ import path from 'path';
 import axios from 'axios';
 import FormData from 'form-data';
 import { storeTokenByProjectID, retrieveTokenByProjectID } from '../utils/token_manager.js';
+import { storeOAuthState, retrieveOAuthState } from '../utils/oauth_states.js';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -52,6 +53,8 @@ class RedditManager {
                 state: state
             }, this.projectId);
 
+            await storeOAuthState('reddit', this.projectId, state);
+
             const authUrl = new URL('https://www.reddit.com/api/v1/authorize');
             authUrl.searchParams.append('client_id', this.clientId);
             authUrl.searchParams.append('response_type', 'code');
@@ -70,7 +73,9 @@ class RedditManager {
 
     async exchangeCodeForToken(code, state) {
         try {
-            const oauthState = await retrieveTokenByProjectID('reddit_oauth_state', this.projectId);
+            const oauthState1 = await retrieveOAuthState(state);
+            const projectId = oauthState1.project_id;
+            const oauthState = await retrieveTokenByProjectID('reddit_oauth_state', projectId);
 
             if (state !== oauthState.state) {
                 throw new Error('State mismatch - possible CSRF attack');
@@ -101,7 +106,7 @@ class RedditManager {
                 expires_at: Date.now() + (tokenData.expires_in * 1000)
             };
 
-            await storeTokenByProjectID('reddit_token', tokenWithExpiry, this.projectId);
+            await storeTokenByProjectID('reddit_token', tokenWithExpiry, projectId);
             console.log('Reddit token stored successfully');
 
             return tokenWithExpiry;
