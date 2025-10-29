@@ -6,6 +6,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import crypto from 'crypto';
 import { storeTokenByProjectID, retrieveTokenByProjectID } from '../utils/token_manager.js';
+import { storeOAuthState, retrieveOAuthState } from '../utils/oauth_states.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -64,6 +65,8 @@ class XManager {
                 state: state
             }, this.projectId);
 
+            await storeOAuthState('x', this.projectId, state);
+
             const authUrl = new URL('https://x.com/i/oauth2/authorize');
             authUrl.searchParams.append('response_type', 'code');
             authUrl.searchParams.append('client_id', this.clientId);
@@ -82,7 +85,9 @@ class XManager {
 
     async exchangeCodeForToken(code, state) {
         try {
-            const oauthState = await retrieveTokenByProjectID('x_oauth_state', this.projectId);
+            const oauthState1 = await retrieveOAuthState(state);
+            const projectId = oauthState1.project_id;
+            const oauthState = await retrieveTokenByProjectID('x_oauth_state', projectId);
 
             if (state !== oauthState.state) {
                 throw new Error('State mismatch - possible CSRF attack');
@@ -111,7 +116,7 @@ class XManager {
                 expires_at: Date.now() + (tokenData.expires_in * 1000)
             };
 
-            await storeTokenByProjectID('x_token', tokenWithExpiry, this.projectId);
+            await storeTokenByProjectID('x_token', tokenWithExpiry, projectId);
             console.log('X token stored successfully');
 
             return tokenWithExpiry;
