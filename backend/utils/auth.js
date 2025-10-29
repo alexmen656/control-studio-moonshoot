@@ -160,7 +160,13 @@ export const loginWithGoogle = async (email, fullName, googleId) => {
 
 export const authMiddleware = async (req, res, next) => {
     try {
-        const token = req.headers.authorization?.replace('Bearer ', '');
+        const authHeader = req.headers.authorization;
+
+        if (!authHeader) {
+            return res.status(401).json({ error: 'No authorization header provided' });
+        }
+
+        const token = authHeader.replace('Bearer ', '').replace('bearer ', '');
 
         if (!token) {
             return res.status(401).json({ error: 'No token provided' });
@@ -169,13 +175,59 @@ export const authMiddleware = async (req, res, next) => {
         const decoded = verifyToken(token);
 
         if (!decoded) {
-            return res.status(401).json({ error: 'Invalid token' });
+            return res.status(401).json({ error: 'Invalid or expired token' });
         }
 
-        req.user = decoded;
+        const userResult = await query(
+            'SELECT id, email, username, full_name FROM users WHERE id = $1',
+            [decoded.id]
+        );
+
+        if (userResult.rows.length === 0) {
+            return res.status(401).json({ error: 'User not found' });
+        }
+
+        req.user = {
+            id: decoded.id,
+            email: decoded.email,
+            username: decoded.username
+        };
         next();
     } catch (error) {
+        console.error('Auth middleware error:', error);
         return res.status(401).json({ error: 'Authentication failed' });
+    }
+};
+
+export const projectAccessMiddleware = async (req, res, next) => {
+    try {
+        const projectId = req.query.project_id || req.body.project_id || req.params.project_id || req.params.id;
+
+        if (!projectId) {
+            return res.status(400).json({ error: 'Project ID is required' });
+        }
+
+        const accessResult = await query(
+            `SELECT p.id as project_id, p.name as project_name
+             FROM project_users pu
+             JOIN projects p ON p.id = pu.project_id
+             WHERE pu.project_id = $1 AND pu.user_id = $2`,
+            [projectId, req.user.id]
+        );
+
+        if (accessResult.rows.length === 0) {
+            return res.status(403).json({ error: 'Access denied: You do not have permission to access this project' });
+        }
+
+        req.project = {
+            id: accessResult.rows[0].project_id,
+            name: accessResult.rows[0].project_name
+        };
+
+        next();
+    } catch (error) {
+        console.error('Project access middleware error:', error);
+        return res.status(500).json({ error: 'Failed to verify project access' });
     }
 };
 

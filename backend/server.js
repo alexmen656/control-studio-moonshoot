@@ -17,7 +17,7 @@ import XManager from './platforms/X.js'
 import RedditManager from './platforms/Reddit.js'
 import * as db from './utils/db.js'
 import { storeTokenByProjectID, retrieveTokenByProjectID, removeTokenByProjectID } from './utils/token_manager.js'
-import { registerUser, loginUser, loginWithGoogle, authMiddleware, getUserById } from './utils/auth.js'
+import { registerUser, loginUser, loginWithGoogle, authMiddleware, projectAccessMiddleware, getUserById } from './utils/auth.js'
 import { getAvailableRegions, getRegionById, isValidRegion, getDefaultRegion } from './utils/regions.js'
 import { storeOAuthState, retrieveOAuthState } from './utils/oauth_states.js';
 
@@ -838,9 +838,9 @@ app.patch('/api/projects/:id/region', async (req, res) => {
 // VIDEO ROUTES
 // ============================================
 
-app.get('/api/videos', async (req, res) => {
+app.get('/api/videos', authMiddleware, projectAccessMiddleware, async (req, res) => {
   try {
-    const videos = await db.getVideosByProjectId(req.query.project_id)
+    const videos = await db.getVideosByProjectId(req.project.id)
     res.json(videos)
   } catch (error) {
     console.error('Error reading videos:', error)
@@ -848,21 +848,32 @@ app.get('/api/videos', async (req, res) => {
   }
 })
 
-app.get('/api/videos/:id', async (req, res) => {
+app.get('/api/videos/:id', authMiddleware, async (req, res) => {
   try {
     const video = await db.getVideoById(req.params.id)
-    if (video) {
-      res.json(video)
-    } else {
-      res.status(404).json({ error: 'Video not found' })
+    if (!video) {
+      return res.status(404).json({ error: 'Video not found' })
     }
+
+    if (video.project_id) {
+      const accessResult = await db.query(
+        'SELECT 1 FROM project_users WHERE project_id = $1 AND user_id = $2',
+        [video.project_id, req.user.id]
+      );
+
+      if (accessResult.rows.length === 0) {
+        return res.status(403).json({ error: 'Access denied to this video' });
+      }
+    }
+
+    res.json(video)
   } catch (error) {
     console.error('Error reading video:', error)
     res.status(500).json({ error: 'Error reading video' })
   }
 })
 
-app.post('/api/upload', upload.single('video'), async (req, res) => {
+app.post('/api/upload', authMiddleware, projectAccessMiddleware, upload.single('video'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No video file uploaded' })
@@ -884,7 +895,8 @@ app.post('/api/upload', upload.single('video'), async (req, res) => {
       progress: 100,
       platforms: req.body.platforms ? JSON.parse(req.body.platforms) : [],
       views: 0,
-      path: req.file.path
+      path: req.file.path,
+      project_id: req.project.id
     }
 
     const video = await db.createVideo(newVideo)
@@ -899,8 +911,8 @@ app.post('/api/upload', upload.single('video'), async (req, res) => {
   }
 })
 
-app.get('/api/accounts/status', async (req, res) => {
-  const PROJECT_ID = req.query.project_id || 1
+app.get('/api/accounts/status', authMiddleware, projectAccessMiddleware, async (req, res) => {
+  const PROJECT_ID = req.project.id
   try {
     res.json({
       youtube: await retrieveTokenByProjectID('youtube_token', PROJECT_ID) === null ? false : true,
@@ -958,7 +970,7 @@ app.post('/api/upload-multiple', upload.array('videos', 10), async (req, res) =>
   }
 })
 
-app.patch('/api/videos/:id/duration', async (req, res) => {
+app.patch('/api/videos/:id/duration', authMiddleware, async (req, res) => {
   try {
     const { id } = req.params
     const { duration } = req.body
@@ -967,15 +979,27 @@ app.patch('/api/videos/:id/duration', async (req, res) => {
       return res.status(400).json({ error: 'Duration is required' })
     }
 
-    const video = await db.updateVideo(id, { duration })
-
+    const video = await db.getVideoById(id)
     if (!video) {
       return res.status(404).json({ error: 'Video not found' })
     }
 
+    if (video.project_id) {
+      const accessResult = await db.query(
+        'SELECT 1 FROM project_users WHERE project_id = $1 AND user_id = $2',
+        [video.project_id, req.user.id]
+      );
+
+      if (accessResult.rows.length === 0) {
+        return res.status(403).json({ error: 'Access denied to this video' });
+      }
+    }
+
+    const updatedVideo = await db.updateVideo(id, { duration })
+
     res.status(200).json({
       message: 'Duration updated successfully',
-      video: video
+      video: updatedVideo
     })
   } catch (error) {
     console.error('Error updating duration:', error)
@@ -983,13 +1007,25 @@ app.patch('/api/videos/:id/duration', async (req, res) => {
   }
 })
 
-app.put('/api/videos/:id', async (req, res) => {
+app.put('/api/videos/:id', authMiddleware, async (req, res) => {
   try {
-    const video = await db.updateVideo(req.params.id, req.body)
-
-    if (!video) {
+    const videoCheck = await db.getVideoById(req.params.id)
+    if (!videoCheck) {
       return res.status(404).json({ error: 'Video not found' })
     }
+
+    if (videoCheck.project_id) {
+      const accessResult = await db.query(
+        'SELECT 1 FROM project_users WHERE project_id = $1 AND user_id = $2',
+        [videoCheck.project_id, req.user.id]
+      );
+
+      if (accessResult.rows.length === 0) {
+        return res.status(403).json({ error: 'Access denied to this video' });
+      }
+    }
+
+    const video = await db.updateVideo(req.params.id, req.body)
 
     res.json({
       message: 'Video updated successfully',
@@ -1001,13 +1037,25 @@ app.put('/api/videos/:id', async (req, res) => {
   }
 })
 
-app.patch('/api/videos/:id', async (req, res) => {
+app.patch('/api/videos/:id', authMiddleware, async (req, res) => {
   try {
-    const video = await db.updateVideo(req.params.id, req.body)
-
-    if (!video) {
+    const videoCheck = await db.getVideoById(req.params.id)
+    if (!videoCheck) {
       return res.status(404).json({ error: 'Video not found' })
     }
+
+    if (videoCheck.project_id) {
+      const accessResult = await db.query(
+        'SELECT 1 FROM project_users WHERE project_id = $1 AND user_id = $2',
+        [videoCheck.project_id, req.user.id]
+      );
+
+      if (accessResult.rows.length === 0) {
+        return res.status(403).json({ error: 'Access denied to this video' });
+      }
+    }
+
+    const video = await db.updateVideo(req.params.id, req.body)
 
     res.json({
       message: 'Video details updated successfully',
@@ -1019,12 +1067,23 @@ app.patch('/api/videos/:id', async (req, res) => {
   }
 })
 
-app.delete('/api/videos/:id', async (req, res) => {
+app.delete('/api/videos/:id', authMiddleware, async (req, res) => {
   try {
     const video = await db.getVideoById(req.params.id)
 
     if (!video) {
       return res.status(404).json({ error: 'Video not found' })
+    }
+
+    if (video.project_id) {
+      const accessResult = await db.query(
+        'SELECT 1 FROM project_users WHERE project_id = $1 AND user_id = $2',
+        [video.project_id, req.user.id]
+      );
+
+      if (accessResult.rows.length === 0) {
+        return res.status(403).json({ error: 'Access denied to this video' });
+      }
     }
 
     if (fs.existsSync(video.path)) {
@@ -1040,7 +1099,7 @@ app.delete('/api/videos/:id', async (req, res) => {
   }
 })
 
-app.get('/api/used-storage', async (req, res) => {
+app.get('/api/used-storage', authMiddleware, projectAccessMiddleware, async (req, res) => {
   try {
     const totalBytes = await db.getTotalStorageUsed()
 
@@ -1051,7 +1110,7 @@ app.get('/api/used-storage', async (req, res) => {
   }
 })
 
-app.post('/api/videos/bulk-delete', async (req, res) => {
+app.post('/api/videos/bulk-delete', authMiddleware, async (req, res) => {
   try {
     const { videoIds } = req.body
     if (!videoIds || !Array.isArray(videoIds)) {
@@ -1059,10 +1118,23 @@ app.post('/api/videos/bulk-delete', async (req, res) => {
     }
 
     let deletedCount = 0
+    const unauthorizedVideos = []
 
     for (const id of videoIds) {
       const video = await db.getVideoById(id)
       if (video) {
+        if (video.project_id) {
+          const accessResult = await db.query(
+            'SELECT 1 FROM project_users WHERE project_id = $1 AND user_id = $2',
+            [video.project_id, req.user.id]
+          );
+
+          if (accessResult.rows.length === 0) {
+            unauthorizedVideos.push(id);
+            continue;
+          }
+        }
+
         if (fs.existsSync(video.path)) {
           fs.unlinkSync(video.path)
         }
@@ -1070,7 +1142,10 @@ app.post('/api/videos/bulk-delete', async (req, res) => {
       }
     }
 
-    await db.bulkDeleteVideos(videoIds)
+    const authorizedVideoIds = videoIds.filter(id => !unauthorizedVideos.includes(id))
+    if (authorizedVideoIds.length > 0) {
+      await db.bulkDeleteVideos(authorizedVideoIds)
+    }
 
     res.json({
       message: `${deletedCount} videos deleted successfully`,
@@ -1200,9 +1275,9 @@ app.post('/api/disconnect/:platform', async (req, res) => {
   }
 })
 
-app.get('/api/connected-platforms', async (req, res) => {
+app.get('/api/connected-platforms', authMiddleware, projectAccessMiddleware, async (req, res) => {
   try {
-    const PROJECT_ID = req.query.project_id || 2;
+    const PROJECT_ID = req.project.id;
     const connectedPlatforms = [];
 
     try {

@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, getCurrentInstance } from 'vue'
 import { useRouter } from 'vue-router'
 import TableHeader from '@/components/TableHeader.vue'
 import StatusFilter from '@/components/StatusFilter.vue'
 import HomeHeader from '@/components/HomeHeader.vue'
 
 const router = useRouter()
+const instance = getCurrentInstance()
+const axios = instance?.appContext.config.globalProperties.$axios
 const API_URL = 'http://localhost:6709/api'
 
 interface Video {
@@ -50,7 +52,7 @@ const loadVideos = async () => {
 
   try {
     isLoading.value = true
-    const response = await this.$axios.get(`/videos?${PROJECT_ID}`)
+    const response = await axios.get(`/videos?${PROJECT_ID}`)
     if (response.status === 200) {
       videos.value = response.data.map((v: any) => ({
         ...v,
@@ -74,7 +76,7 @@ const loadConnectedPlatforms = async () => {
   const PROJECT_ID = localStorage.getItem('currentProjectId') || '2'
 
   try {
-    const response = await this.$axios.get(`/connected-platforms?project_id=${PROJECT_ID}`)
+    const response = await axios.get(`/connected-platforms?project_id=${PROJECT_ID}`)
     if (response.status === 200) {
       connectedPlatforms.value = response.data.platforms || []
     }
@@ -99,7 +101,7 @@ const updateVideoDuration = async (video: Video) => {
         videos.value[index].duration = formattedDuration
       }
 
-      await this.$axios.patch(`/videos/${video.id}/duration`, {
+      await axios.patch(`/videos/${video.id}/duration`, {
         duration: formattedDuration
       })
 
@@ -127,6 +129,11 @@ const uploadFiles = async (files: File[]) => {
       formData.append('video', file)
       formData.append('title', file.name.replace(/\.[^/.]+$/, ''))
 
+      const PROJECT_ID = localStorage.getItem('currentProjectId')
+      if (PROJECT_ID) {
+        formData.append('project_id', PROJECT_ID)
+      }
+
       const tempId = `temp-${Date.now()}`
       videos.value.unshift({
         id: tempId,
@@ -141,10 +148,10 @@ const uploadFiles = async (files: File[]) => {
         views: 0
       })
 
-      const response = await this.$axios.post(`/upload`, formData)
+      const response = await axios.post(`/upload`, formData)
 
-      if (response.status === 200) {
-        const result = await response.json()
+      if (response.status === 200 || response.status === 201) {
+        const result = response.data
         const index = videos.value.findIndex(v => v.id === tempId)
         if (index !== -1) {
           const updatedVideo = {
@@ -178,7 +185,7 @@ const deleteVideo = async (id: string) => {
   if (!confirm('Delete this video?')) return
 
   try {
-    const response = await this.$axios.delete(`/videos/${id}`)
+    const response = await axios.delete(`/videos/${id}`)
 
     if (response.status === 200) {
       videos.value = videos.value.filter(v => v.id !== id)
@@ -192,7 +199,7 @@ const bulkDelete = async () => {
   if (!confirm(`Delete ${selectedVideos.value.size} selected videos?`)) return
 
   try {
-    const response = await this.$axios.post(`/videos/bulk-delete`, {
+    const response = await axios.post(`/videos/bulk-delete`, {
       videoIds: Array.from(selectedVideos.value)
     })
 
@@ -364,7 +371,7 @@ const saveVideoDetails = async () => {
   if (!selectedVideoForDetails.value) return
 
   try {
-    const response = await this.$axios.patch(`/videos/${selectedVideoForDetails.value.id}`, {
+    const response = await axios.patch(`/videos/${selectedVideoForDetails.value.id}`, {
       title: videoDetailsForm.value.title,
       description: videoDetailsForm.value.description,
       tags: videoDetailsForm.value.tags.split(',').map(t => t.trim()).filter(t => t),
@@ -373,7 +380,7 @@ const saveVideoDetails = async () => {
     })
 
     if (response.status === 200) {
-      const result = await response.data
+      const result = response.data
       const index = videos.value.findIndex(v => v.id === selectedVideoForDetails.value!.id)
       if (index !== -1) {
         videos.value[index] = {
