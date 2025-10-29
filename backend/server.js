@@ -18,6 +18,7 @@ import RedditManager from './platforms/Reddit.js'
 import * as db from './utils/db.js'
 import { storeTokenByProjectID, retrieveTokenByProjectID, removeTokenByProjectID } from './utils/token_manager.js'
 import { registerUser, loginUser, loginWithGoogle, authMiddleware, getUserById } from './utils/auth.js'
+import { getAvailableRegions, getRegionById, isValidRegion, getDefaultRegion } from './utils/regions.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -608,13 +609,15 @@ app.post('/api/projects', async (req, res) => {
       return res.status(400).json({ error: 'All fields are required' });
     }
 
+    const defaultRegion = getDefaultRegion();
+
     const query = `
-      INSERT INTO projects (name, initials, color1, color2, user_id)
-      VALUES ($1, $2, $3, $4, $5)
+      INSERT INTO projects (name, initials, color1, color2, user_id, region_id)
+      VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING *
     `;
 
-    const result = await db.query(query, [name, initials, color1, color2, user_id]);
+    const result = await db.query(query, [name, initials, color1, color2, user_id, defaultRegion.id]);
     const project = result.rows[0];
 
     const memberQuery = 'INSERT INTO project_users (project_id, user_id) VALUES ($1, $2)';
@@ -764,6 +767,69 @@ app.get('/api/users/search', async (req, res) => {
   } catch (error) {
     console.error('Error searching users:', error);
     res.status(500).json({ error: 'Failed to search users' });
+  }
+});
+
+// ============================================
+// REGION ROUTES
+// ============================================
+
+app.get('/api/regions', async (req, res) => {
+  try {
+    const regions = getAvailableRegions();
+    res.json(regions);
+  } catch (error) {
+    console.error('Error fetching regions:', error);
+    res.status(500).json({ error: 'Failed to fetch regions' });
+  }
+});
+
+app.get('/api/regions/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const region = getRegionById(id);
+
+    if (!region) {
+      return res.status(404).json({ error: 'Region not found' });
+    }
+
+    res.json(region);
+  } catch (error) {
+    console.error('Error fetching region:', error);
+    res.status(500).json({ error: 'Failed to fetch region' });
+  }
+});
+
+app.patch('/api/projects/:id/region', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { region_id } = req.body;
+
+    if (!region_id) {
+      return res.status(400).json({ error: 'Region ID is required' });
+    }
+
+    if (!isValidRegion(region_id)) {
+      return res.status(400).json({ error: 'Invalid region ID' });
+    }
+
+    const query = `
+      UPDATE projects 
+      SET region_id = $1, updated_at = CURRENT_TIMESTAMP
+      WHERE id = $2
+      RETURNING *
+    `;
+
+    const result = await db.query(query, [region_id, id]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Error updating project region:', error);
+    res.status(500).json({ error: 'Failed to update project region' });
   }
 });
 

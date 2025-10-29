@@ -46,11 +46,11 @@
                                 <div
                                     class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
                                     <span class="text-white font-semibold text-lg">{{ getUserInitials(user.username)
-                                        }}</span>
+                                    }}</span>
                                 </div>
                                 <div>
                                     <h4 class="text-base font-semibold text-gray-900 dark:text-white">{{ user.username
-                                        }}</h4>
+                                    }}</h4>
                                     <p class="text-sm text-gray-500 dark:text-gray-400">{{ user.email }}</p>
                                 </div>
                             </div>
@@ -81,6 +81,61 @@
                                 d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                         </svg>
                         <p class="text-gray-600 dark:text-gray-400">No members yet. Add your first team member!</p>
+                    </div>
+                </div>
+            </div>
+            <div
+                class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 mt-6">
+                <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Upload Machine Region</h3>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Select the machine region for your
+                        project</p>
+                </div>
+                <div class="p-6">
+                    <div class="space-y-3">
+                        <div v-for="region in availableRegions" :key="region.id" @click="selectRegion(region.id)"
+                            :class="[
+                                'border rounded-lg p-4 cursor-pointer transition-all',
+                                currentProject?.region_id === region.id
+                                    ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
+                                    : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                            ]">
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-2">
+                                        <h4 class="font-semibold text-gray-900 dark:text-white">{{ region.name }}</h4>
+                                        <span v-if="currentProject?.region_id === region.id"
+                                            class="px-2 py-0.5 bg-primary-500 text-white text-xs font-medium rounded">
+                                            Active
+                                        </span>
+                                    </div>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">{{ region.description }}
+                                    </p>
+                                    <div class="flex items-center gap-4 mt-2">
+                                        <span class="text-xs text-gray-500 dark:text-gray-400">
+                                            <svg class="w-4 h-4 inline-block mr-1" fill="currentColor"
+                                                viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd"
+                                                    d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
+                                                    clip-rule="evenodd" />
+                                            </svg>
+                                            {{ region.location }}
+                                        </span>
+                                        <span
+                                            class="text-xs px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded">
+                                            {{ region.latency }} Latency
+                                        </span>
+                                    </div>
+                                </div>
+                                <div v-if="currentProject?.region_id === region.id" class="text-primary-500">
+                                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd"
+                                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                            clip-rule="evenodd" />
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -142,6 +197,25 @@ interface Project {
     color1: string;
     color2: string;
     user_id: number;
+    region_id?: string;
+}
+
+interface Region {
+    id: string;
+    name: string;
+    location: string;
+    description: string;
+    latency: string;
+    status: string;
+}
+
+interface Region {
+    id: string;
+    name: string;
+    location: string;
+    description: string;
+    latency: string;
+    status: string;
 }
 
 export default {
@@ -152,12 +226,14 @@ export default {
             projectUsers: [] as User[],
             showAddUserModal: false,
             searchQuery: '',
-            searchResults: [] as User[]
+            searchResults: [] as User[],
+            availableRegions: [] as Region[]
         };
     },
     created() {
         this.loadCurrentProject();
         this.loadProjectUsers();
+        this.loadAvailableRegions();
         window.addEventListener('project-changed', this.handleProjectChange);
     },
     beforeUnmount() {
@@ -242,6 +318,33 @@ export default {
         },
         getUserInitials(username: string): string {
             return username.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || username.slice(0, 2).toUpperCase();
+        },
+        async loadAvailableRegions() {
+            try {
+                const response = await axios.get('http://localhost:6709/api/regions');
+                this.availableRegions = response.data;
+            } catch (error) {
+                console.error('Error loading regions:', error);
+            }
+        },
+        async selectRegion(regionId: string) {
+            const projectId = localStorage.getItem('currentProjectId');
+            if (!projectId) return;
+
+            try {
+                await axios.patch(`http://localhost:6709/api/projects/${projectId}/region`, {
+                    region_id: regionId
+                });
+
+                if (this.currentProject) {
+                    this.currentProject.region_id = regionId;
+                }
+
+                console.log('Region updated successfully');
+            } catch (error) {
+                console.error('Error updating region:', error);
+                alert('Failed to update region');
+            }
         }
     }
 };
