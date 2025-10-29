@@ -5,9 +5,6 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-
-//logs
-
 /*
 > control-studio-worker@1.0.0 start
 > node server.js
@@ -29,12 +26,15 @@ class UploadWorker {
     this.workerName = process.env.WORKER_NAME || `Worker-${os.hostname()}`;
     this.backendUrl = process.env.BACKEND_URL || 'http://localhost:6709';
     this.heartbeatInterval = parseInt(process.env.HEARTBEAT_INTERVAL || '30000');
+    this.jobPollInterval = parseInt(process.env.JOB_POLL_INTERVAL || '5000'); // 5 seconds
     this.maxConcurrentTasks = parseInt(process.env.MAX_CONCURRENT_TASKS || '3');
     
     this.isRegistered = false;
     this.isRunning = false;
     this.heartbeatTimer = null;
+    this.jobPollTimer = null;
     this.currentLoad = 0;
+    this.activeJobs = new Map(); // Track active jobs
     
     this.capabilities = {
       platforms: ['youtube', 'tiktok', 'instagram', 'facebook', 'x', 'reddit'],
@@ -73,6 +73,39 @@ class UploadWorker {
     }
   }
 
+  getCPUUsage() {
+    const cpus = os.cpus();
+    let totalIdle = 0;
+    let totalTick = 0;
+
+    cpus.forEach(cpu => {
+      for (let type in cpu.times) {
+        totalTick += cpu.times[type];
+      }
+      totalIdle += cpu.times.idle;
+    });
+
+    const idle = totalIdle / cpus.length;
+    const total = totalTick / cpus.length;
+    const usage = 100 - ~~(100 * idle / total);
+    
+    return usage;
+  }
+
+  getMemoryUsage() {
+    const totalMem = os.totalmem();
+    const freeMem = os.freemem();
+    const usedMem = totalMem - freeMem;
+    const memUsagePercent = (usedMem / totalMem) * 100;
+
+    return {
+      used: usedMem,
+      free: freeMem,
+      total: totalMem,
+      usagePercent: Math.round(memUsagePercent * 100) / 100
+    };
+  }
+
   async sendHeartbeat() {
     if (!this.isRegistered) {
       console.warn('⚠️ Worker not registered, skipping heartbeat');
@@ -80,30 +113,41 @@ class UploadWorker {
     }
 
     try {
+      const cpuUsage = this.getCPUUsage();
+      const memoryUsage = this.getMemoryUsage();
+      
       const metadata = {
         uptime: process.uptime(),
         memory: {
-          used: process.memoryUsage().heapUsed,
-          total: process.memoryUsage().heapTotal,
-          free: os.freemem(),
-          total_system: os.totalmem()
+          process_used: process.memoryUsage().heapUsed,
+          process_total: process.memoryUsage().heapTotal,
+          system_used: memoryUsage.used,
+          system_free: memoryUsage.free,
+          system_total: memoryUsage.total,
+          usage_percent: memoryUsage.usagePercent
         },
-        cpu: os.cpus().length,
+        cpu: {
+          cores: os.cpus().length,
+          usage_percent: cpuUsage,
+          model: os.cpus()[0].model
+        },
         platform: os.platform(),
-        arch: os.arch()
+        arch: os.arch(),
+        load_average: os.loadavg()
       };
 
       await axios.post(`${this.backendUrl}/api/workers/heartbeat`, {
         worker_id: this.workerId,
         current_load: this.currentLoad,
+        cpu_usage: cpuUsage,
+        memory_usage: memoryUsage.usagePercent,
         metadata: metadata
       });
 
-      console.log(`Heartbeat sent [Load: ${this.currentLoad}/${this.maxConcurrentTasks}]`);
+      console.log(`💓 Heartbeat sent [Jobs: ${this.currentLoad}/${this.maxConcurrentTasks} | CPU: ${cpuUsage}% | RAM: ${memoryUsage.usagePercent}%]`);
     } catch (error) {
-      console.error(`Failed to send heartbeat:`, error.message);
+      console.error(`❌ Failed to send heartbeat:`, error.message);
       
-      // If heartbeat fails multiple times, try to re-register
       if (error.response?.status === 404) {
         console.log('🔄 Worker not found in backend, attempting re-registration...');
         this.isRegistered = false;
@@ -127,6 +171,70 @@ class UploadWorker {
       clearInterval(this.heartbeatTimer);
       this.heartbeatTimer = null;
       console.log('💓 Heartbeat stopped');
+    }
+  }
+
+  async pollForJobs() {
+    if (!this.isRegistered || !this.isRunning) {
+      return;
+    }
+
+    if (this.currentLoad >= this.maxConcurrentTasks) {
+      return;
+    }
+
+    try {
+      const response = await axios.get(`${this.backendUrl}/api/jobs/next/${this.workerId}`);
+      
+      if (response.data.job) {
+        const job = response.data.job;
+        console.log(`\n📦 Received job: ${job.job_id}`);
+        console.log(`   Platform: ${job.platform}`);
+        console.log(`   Video ID: ${job.video_id}`);
+        
+        this.currentLoad++;
+        this.activeJobs.set(job.job_id, job);
+        
+        this.processJob(job).catch(error => {
+          console.error(`Error processing job ${job.job_id}:`, error);
+        });
+      }
+    } catch (error) {
+      if (error.response?.status !== 404) {
+        console.error(`Error polling for jobs:`, error.message);
+      }
+    }
+  }
+
+  startJobPolling() {
+    console.log(`📋 Starting job polling (interval: ${this.jobPollInterval}ms)`);
+    
+    this.pollForJobs();
+    
+    this.jobPollTimer = setInterval(() => {
+      this.pollForJobs();
+    }, this.jobPollInterval);
+  }
+
+  stopJobPolling() {
+    if (this.jobPollTimer) {
+      clearInterval(this.jobPollTimer);
+      this.jobPollTimer = null;
+      console.log('📋 Job polling stopped');
+    }
+  }
+
+  async updateJobStatus(jobId, status, errorMessage = null, resultData = null) {
+    try {
+      await axios.patch(`${this.backendUrl}/api/jobs/${jobId}/status`, {
+        status,
+        error_message: errorMessage,
+        result_data: resultData
+      });
+      
+      console.log(`✓ Job ${jobId} status updated: ${status}`);
+    } catch (error) {
+      console.error(`Failed to update job status:`, error.message);
     }
   }
 
@@ -157,8 +265,7 @@ class UploadWorker {
       console.log('   Press Ctrl+C to stop');
       console.log('================================\n');
       
-      // TODO: Start polling for jobs
-      // this.startJobPolling();
+      this.startJobPolling();
       
     } catch (error) {
       console.error('❌ Failed to start worker:', error.message);
@@ -171,8 +278,21 @@ class UploadWorker {
     
     this.isRunning = false;
     this.stopHeartbeat();
+    this.stopJobPolling();
     
-    // TODO: Complete current jobs before stopping
+    if (this.activeJobs.size > 0) {
+      console.log(`⏳ Waiting for ${this.activeJobs.size} active job(s) to complete...`);
+      const timeout = 30000;
+      const startTime = Date.now();
+      
+      while (this.activeJobs.size > 0 && (Date.now() - startTime) < timeout) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+      
+      if (this.activeJobs.size > 0) {
+        console.log(`⚠️  Force stopping with ${this.activeJobs.size} job(s) still active`);
+      }
+    }
     
     await this.unregister();
     
@@ -180,10 +300,51 @@ class UploadWorker {
     process.exit(0);
   }
 
-  // Placeholder for future job processing
   async processJob(job) {
-    console.log(`📦 Processing job: ${job.job_id}`);
-    // TODO: Implement actual upload logic
+    console.log(`\n� Processing job: ${job.job_id}`);
+    console.log(`   Platform: ${job.platform}`);
+    console.log(`   Video: ${job.metadata?.video_title || job.video_id}`);
+    
+    try {
+      // TODO: Implement actual upload logic based on platform
+      // For now, simulate processing
+      console.log(`   Starting upload to ${job.platform}...`);
+      
+      // Simulate upload time (2-5 seconds)
+      const uploadTime = 2000 + Math.random() * 3000;
+      await new Promise(resolve => setTimeout(resolve, uploadTime));
+      
+      // Simulate success/failure (90% success rate for testing)
+      const success = Math.random() > 0.1;
+      
+      if (success) {
+        console.log(`✅ Successfully uploaded to ${job.platform}`);
+        
+        await this.updateJobStatus(job.job_id, 'completed', null, {
+          platform: job.platform,
+          uploaded_at: new Date().toISOString(),
+          video_id: job.video_id,
+          platform_response: 'Mock upload successful'
+        });
+      } else {
+        throw new Error('Simulated upload failure');
+      }
+      
+    } catch (error) {
+      console.error(`❌ Failed to process job ${job.job_id}:`, error.message);
+      
+      await this.updateJobStatus(
+        job.job_id, 
+        'failed', 
+        error.message,
+        { platform: job.platform, failed_at: new Date().toISOString() }
+      );
+    } finally {
+      // Clean up
+      this.activeJobs.delete(job.job_id);
+      this.currentLoad = Math.max(0, this.currentLoad - 1);
+      console.log(`📊 Current load: ${this.currentLoad}/${this.maxConcurrentTasks}\n`);
+    }
   }
 }
 

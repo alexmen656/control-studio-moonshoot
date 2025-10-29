@@ -92,7 +92,6 @@ app.get('/', (req, res) => {
 // WORKER ROUTES
 // ============================================
 
-// Worker Registration
 app.post('/api/workers/register', async (req, res) => {
   try {
     const { worker_id, worker_name, hostname, capabilities, max_concurrent_tasks } = req.body;
@@ -102,7 +101,6 @@ app.post('/api/workers/register', async (req, res) => {
       return res.status(400).json({ error: 'worker_id is required' });
     }
 
-    // Check if worker already exists
     const existingWorker = await db.query(
       'SELECT * FROM workers WHERE worker_id = $1',
       [worker_id]
@@ -110,7 +108,6 @@ app.post('/api/workers/register', async (req, res) => {
 
     let worker;
     if (existingWorker.rows.length > 0) {
-      // Update existing worker
       const result = await db.query(
         `UPDATE workers 
          SET worker_name = $1, hostname = $2, ip_address = $3, 
@@ -124,7 +121,6 @@ app.post('/api/workers/register', async (req, res) => {
       worker = result.rows[0];
       console.log(`Worker ${worker_id} re-registered`);
     } else {
-      // Insert new worker
       const result = await db.query(
         `INSERT INTO workers (worker_id, worker_name, hostname, ip_address, capabilities, max_concurrent_tasks)
          VALUES ($1, $2, $3, $4, $5, $6)
@@ -146,10 +142,9 @@ app.post('/api/workers/register', async (req, res) => {
   }
 });
 
-// Worker Heartbeat
 app.post('/api/workers/heartbeat', async (req, res) => {
   try {
-    const { worker_id, current_load, metadata } = req.body;
+    const { worker_id, current_load, cpu_usage, memory_usage, metadata } = req.body;
 
     if (!worker_id) {
       return res.status(400).json({ error: 'worker_id is required' });
@@ -160,10 +155,12 @@ app.post('/api/workers/heartbeat', async (req, res) => {
        SET last_heartbeat = CURRENT_TIMESTAMP, 
            status = 'online',
            current_load = $1,
-           metadata = $2
-       WHERE worker_id = $3
+           cpu_usage = $2,
+           memory_usage = $3,
+           metadata = $4
+       WHERE worker_id = $5
        RETURNING *`,
-      [current_load || 0, JSON.stringify(metadata || {}), worker_id]
+      [current_load || 0, cpu_usage || 0, memory_usage || 0, JSON.stringify(metadata || {}), worker_id]
     );
 
     if (result.rows.length === 0) {
@@ -180,10 +177,8 @@ app.post('/api/workers/heartbeat', async (req, res) => {
   }
 });
 
-// Get all workers
 app.get('/api/workers', async (req, res) => {
   try {
-    // Mark offline workers
     await db.query(`
       UPDATE workers 
       SET status = 'offline' 
@@ -206,7 +201,6 @@ app.get('/api/workers', async (req, res) => {
   }
 });
 
-// Get specific worker
 app.get('/api/workers/:workerId', async (req, res) => {
   try {
     const { workerId } = req.params;
@@ -227,7 +221,6 @@ app.get('/api/workers/:workerId', async (req, res) => {
   }
 });
 
-// Delete/Unregister worker
 app.delete('/api/workers/:workerId', async (req, res) => {
   try {
     const { workerId } = req.params;
@@ -246,6 +239,236 @@ app.delete('/api/workers/:workerId', async (req, res) => {
   } catch (error) {
     console.error('Error unregistering worker:', error);
     res.status(500).json({ error: 'Failed to unregister worker' });
+  }
+});
+
+// ============================================
+// JOB ROUTES
+// ============================================
+
+app.post('/api/jobs', authMiddleware, projectAccessMiddleware, async (req, res) => {
+  try {
+    const { video_id, platforms, priority } = req.body;
+
+    if (!video_id || !platforms || platforms.length === 0) {
+      return res.status(400).json({ error: 'video_id and platforms are required' });
+    }
+
+    const { selectBestWorker, assignJobToWorker } = await import('./utils/worker_selector.js');
+
+    const video = await db.getVideoById(video_id);
+    if (!video) {
+      return res.status(404).json({ error: 'Video not found' });
+    }
+
+    const jobs = [];
+
+    for (const platform of platforms) {
+      const jobId = `job-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+      try {
+        const selectedWorker = await selectBestWorker(req.project.id, [platform]);
+
+        await db.query(
+          `INSERT INTO worker_jobs 
+           (job_id, video_id, platform, status, priority, metadata)
+           VALUES ($1, $2, $3, $4, $5, $6)`,
+          [
+            jobId,
+            video_id,
+            platform,
+            'pending',
+            priority || 0,
+            JSON.stringify({
+              video_title: video.title,
+              video_path: video.path,
+              project_id: req.project.id
+            })
+          ]
+        );
+
+        await assignJobToWorker(selectedWorker.worker_id, jobId);
+
+        jobs.push({
+          job_id: jobId,
+          platform,
+          worker: selectedWorker,
+          status: 'assigned'
+        });
+
+        console.log(`✓ Created job ${jobId} for ${platform} → Worker: ${selectedWorker.worker_name}`);
+      } catch (error) {
+        console.error(`✗ Failed to create job for ${platform}:`, error.message);
+        jobs.push({
+          platform,
+          error: error.message,
+          status: 'failed_to_create'
+        });
+      }
+    }
+
+    res.status(201).json({
+      message: 'Jobs created',
+      jobs
+    });
+  } catch (error) {
+    console.error('Error creating jobs:', error);
+    res.status(500).json({ error: 'Failed to create jobs' });
+  }
+});
+
+app.get('/api/jobs/worker/:workerId', async (req, res) => {
+  try {
+    const { workerId } = req.params;
+    const { status } = req.query;
+
+    let query = 'SELECT * FROM worker_jobs WHERE worker_id = $1';
+    const params = [workerId];
+
+    if (status) {
+      query += ' AND status = $2';
+      params.push(status);
+    }
+
+    query += ' ORDER BY priority DESC, created_at ASC';
+
+    const result = await db.query(query, params);
+
+    res.json({
+      jobs: result.rows,
+      total: result.rows.length
+    });
+  } catch (error) {
+    console.error('Error fetching worker jobs:', error);
+    res.status(500).json({ error: 'Failed to fetch jobs' });
+  }
+});
+
+app.get('/api/jobs/next/:workerId', async (req, res) => {
+  try {
+    const { workerId } = req.params;
+
+    const result = await db.query(
+      `SELECT * FROM worker_jobs 
+       WHERE worker_id = $1 
+         AND status = 'assigned'
+       ORDER BY priority DESC, created_at ASC
+       LIMIT 1`,
+      [workerId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.json({ job: null });
+    }
+
+    await db.query(
+      `UPDATE worker_jobs 
+       SET status = 'processing', started_at = CURRENT_TIMESTAMP
+       WHERE job_id = $1`,
+      [result.rows[0].job_id]
+    );
+
+    res.json({
+      job: result.rows[0]
+    });
+  } catch (error) {
+    console.error('Error fetching next job:', error);
+    res.status(500).json({ error: 'Failed to fetch next job' });
+  }
+});
+
+app.patch('/api/jobs/:jobId/status', async (req, res) => {
+  try {
+    const { jobId } = req.params;
+    const { status, error_message, result_data } = req.body;
+
+    if (!status) {
+      return res.status(400).json({ error: 'status is required' });
+    }
+
+    const jobResult = await db.query(
+      'SELECT worker_id FROM worker_jobs WHERE job_id = $1',
+      [jobId]
+    );
+
+    if (jobResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Job not found' });
+    }
+
+    const workerId = jobResult.rows[0].worker_id;
+
+    const updateQuery = error_message
+      ? `UPDATE worker_jobs 
+         SET status = $1, completed_at = CURRENT_TIMESTAMP, error_message = $2, metadata = metadata || $3
+         WHERE job_id = $4
+         RETURNING *`
+      : `UPDATE worker_jobs 
+         SET status = $1, completed_at = CURRENT_TIMESTAMP, metadata = metadata || $2
+         WHERE job_id = $3
+         RETURNING *`;
+
+    const params = error_message
+      ? [status, error_message, JSON.stringify({ result: result_data }), jobId]
+      : [status, JSON.stringify({ result: result_data }), jobId];
+
+    const result = await db.query(updateQuery, params);
+
+    if (['completed', 'failed'].includes(status)) {
+      const { releaseWorkerFromJob } = await import('./utils/worker_selector.js');
+      await releaseWorkerFromJob(workerId, jobId, status, error_message);
+    }
+
+    res.json({
+      message: 'Job status updated',
+      job: result.rows[0]
+    });
+  } catch (error) {
+    console.error('Error updating job status:', error);
+    res.status(500).json({ error: 'Failed to update job status' });
+  }
+});
+
+app.get('/api/jobs', authMiddleware, async (req, res) => {
+  try {
+    const { status, project_id } = req.query;
+
+    let query = `
+      SELECT j.*, w.worker_name, w.hostname
+      FROM worker_jobs j
+      LEFT JOIN workers w ON j.worker_id = w.worker_id
+    `;
+    
+    const conditions = [];
+    const params = [];
+    let paramCount = 1;
+
+    if (status) {
+      conditions.push(`j.status = $${paramCount}`);
+      params.push(status);
+      paramCount++;
+    }
+
+    if (project_id) {
+      conditions.push(`(j.metadata->>'project_id')::bigint = $${paramCount}`);
+      params.push(project_id);
+      paramCount++;
+    }
+
+    if (conditions.length > 0) {
+      query += ' WHERE ' + conditions.join(' AND ');
+    }
+
+    query += ' ORDER BY j.created_at DESC LIMIT 100';
+
+    const result = await db.query(query, params);
+
+    res.json({
+      jobs: result.rows,
+      total: result.rows.length
+    });
+  } catch (error) {
+    console.error('Error fetching jobs:', error);
+    res.status(500).json({ error: 'Failed to fetch jobs' });
   }
 });
 
@@ -984,6 +1207,52 @@ app.get('/api/users/search', async (req, res) => {
   } catch (error) {
     console.error('Error searching users:', error);
     res.status(500).json({ error: 'Failed to search users' });
+  }
+});
+
+app.patch('/api/projects/:id/preferred-worker', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { worker_id } = req.body;
+
+    if (worker_id) {
+      const workerCheck = await db.query(
+        'SELECT worker_id, worker_name, status FROM workers WHERE worker_id = $1',
+        [worker_id]
+      );
+
+      if (workerCheck.rows.length === 0) {
+        return res.status(404).json({ error: 'Worker not found' });
+      }
+
+      if (workerCheck.rows[0].status !== 'online') {
+        return res.status(400).json({ 
+          error: 'Cannot set offline worker as preferred',
+          worker_status: workerCheck.rows[0].status
+        });
+      }
+    }
+
+    const query = `
+      UPDATE projects 
+      SET preferred_worker_id = $1, updated_at = CURRENT_TIMESTAMP
+      WHERE id = $2
+      RETURNING *
+    `;
+
+    const result = await db.query(query, [worker_id, id]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+
+    res.json({
+      message: 'Preferred worker updated',
+      project: result.rows[0]
+    });
+  } catch (error) {
+    console.error('Error updating preferred worker:', error);
+    res.status(500).json({ error: 'Failed to update preferred worker' });
   }
 });
 
