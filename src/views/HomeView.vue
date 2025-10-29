@@ -148,7 +148,8 @@ const uploadFiles = async (files: File[]) => {
         views: 0
       })
 
-      const response = await axios.post(`/upload`, formData)
+      //shitty as fuck since we alreday have project id in form data but I dont want to edit the auth backend
+      const response = await axios.post(`/upload?project_id=${PROJECT_ID}`, formData)
 
       if (response.status === 200 || response.status === 201) {
         const result = response.data
