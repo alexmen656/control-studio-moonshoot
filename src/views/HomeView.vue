@@ -50,10 +50,9 @@ const loadVideos = async () => {
 
   try {
     isLoading.value = true
-    const response = await fetch(`${API_URL}/videos?${PROJECT_ID}`)
-    if (response.ok) {
-      const data = await response.json()
-      videos.value = data.map((v: any) => ({
+    const response = await this.$axios.get(`/videos?${PROJECT_ID}`)
+    if (response.status === 200) {
+      videos.value = response.data.map((v: any) => ({
         ...v,
         uploadDate: new Date(v.uploadDate)
       }))
@@ -75,10 +74,9 @@ const loadConnectedPlatforms = async () => {
   const PROJECT_ID = localStorage.getItem('currentProjectId') || '2'
 
   try {
-    const response = await fetch(`${API_URL}/connected-platforms?project_id=${PROJECT_ID}`)
-    if (response.ok) {
-      const data = await response.json()
-      connectedPlatforms.value = data.platforms || []
+    const response = await this.$axios.get(`/connected-platforms?project_id=${PROJECT_ID}`)
+    if (response.status === 200) {
+      connectedPlatforms.value = response.data.platforms || []
     }
   } catch (error) {
     console.error('Error loading connected platforms:', error)
@@ -101,10 +99,8 @@ const updateVideoDuration = async (video: Video) => {
         videos.value[index].duration = formattedDuration
       }
 
-      await fetch(`${API_URL}/videos/${video.id}/duration`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ duration: formattedDuration })
+      await this.$axios.patch(`/videos/${video.id}/duration`, {
+        duration: formattedDuration
       })
 
       URL.revokeObjectURL(videoElement.src)
@@ -145,12 +141,9 @@ const uploadFiles = async (files: File[]) => {
         views: 0
       })
 
-      const response = await fetch(`${API_URL}/upload`, {
-        method: 'POST',
-        body: formData
-      })
+      const response = await this.$axios.post(`/upload`, formData)
 
-      if (response.ok) {
+      if (response.status === 200) {
         const result = await response.json()
         const index = videos.value.findIndex(v => v.id === tempId)
         if (index !== -1) {
@@ -185,11 +178,9 @@ const deleteVideo = async (id: string) => {
   if (!confirm('Delete this video?')) return
 
   try {
-    const response = await fetch(`${API_URL}/videos/${id}`, {
-      method: 'DELETE'
-    })
+    const response = await this.$axios.delete(`/videos/${id}`)
 
-    if (response.ok) {
+    if (response.status === 200) {
       videos.value = videos.value.filter(v => v.id !== id)
     }
   } catch (error) {
@@ -201,13 +192,11 @@ const bulkDelete = async () => {
   if (!confirm(`Delete ${selectedVideos.value.size} selected videos?`)) return
 
   try {
-    const response = await fetch(`${API_URL}/videos/bulk-delete`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ videoIds: Array.from(selectedVideos.value) })
+    const response = await this.$axios.post(`/videos/bulk-delete`, {
+      videoIds: Array.from(selectedVideos.value)
     })
 
-    if (response.ok) {
+    if (response.status === 200) {
       videos.value = videos.value.filter(v => !selectedVideos.value.has(v.id))
       selectedVideos.value.clear()
     }
@@ -375,20 +364,16 @@ const saveVideoDetails = async () => {
   if (!selectedVideoForDetails.value) return
 
   try {
-    const response = await fetch(`${API_URL}/videos/${selectedVideoForDetails.value.id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        title: videoDetailsForm.value.title,
-        description: videoDetailsForm.value.description,
-        tags: videoDetailsForm.value.tags.split(',').map(t => t.trim()).filter(t => t),
-        platforms: videoDetailsForm.value.platforms,
-        status: 'ready'
-      })
+    const response = await this.$axios.patch(`/videos/${selectedVideoForDetails.value.id}`, {
+      title: videoDetailsForm.value.title,
+      description: videoDetailsForm.value.description,
+      tags: videoDetailsForm.value.tags.split(',').map(t => t.trim()).filter(t => t),
+      platforms: videoDetailsForm.value.platforms,
+      status: 'ready'
     })
 
-    if (response.ok) {
-      const result = await response.json()
+    if (response.status === 200) {
+      const result = await response.data
       const index = videos.value.findIndex(v => v.id === selectedVideoForDetails.value!.id)
       if (index !== -1) {
         videos.value[index] = {
