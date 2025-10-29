@@ -437,10 +437,9 @@
     </div>
 </template>
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import axios from 'axios'
-
-const baseurl = 'http://localhost:6709/api/'
+import { ref, onMounted, getCurrentInstance } from 'vue'
+const instance = getCurrentInstance()
+const axios = instance?.appContext.config.globalProperties.$axios
 
 const connectedAccounts = ref({
     youtube: false,
@@ -458,7 +457,7 @@ const connectedAccounts = ref({
 
 const checkConnectedAccounts = () => {
     const projectId = localStorage.getItem('currentProjectId') || 1;
-    axios.get(`${baseurl}accounts/status?project_id=${projectId}`)
+    axios.get(`/accounts/status?project_id=${projectId}`)
         .then(response => {
             connectedAccounts.value.youtube = response.data.youtube || false
             connectedAccounts.value.instagram = response.data.instagram || false
@@ -477,7 +476,7 @@ const checkConnectedAccounts = () => {
         })
 }
 const connectLinkedIn = () => {
-    axios.post(`${baseurl}connect/linkedin`)
+    axios.post(`/connect/linkedin`)
         .then(response => {
             console.log('LinkedIn connection initiated')
             if (response.data.authUrl) {
@@ -491,7 +490,7 @@ const connectLinkedIn = () => {
 }
 
 const connectPinterest = () => {
-    axios.post(`${baseurl}connect/pinterest`)
+    axios.post(`/connect/pinterest`)
         .then(response => {
             console.log('Pinterest connection initiated')
             if (response.data.authUrl) {
@@ -505,7 +504,7 @@ const connectPinterest = () => {
 }
 
 const connectSnapchat = () => {
-    axios.post(`${baseurl}connect/snapchat`)
+    axios.post(`/connect/snapchat`)
         .then(response => {
             console.log('Snapchat connection initiated')
             if (response.data.authUrl) {
@@ -519,7 +518,7 @@ const connectSnapchat = () => {
 }
 
 const connectReddit = () => {
-    axios.post(`${baseurl}connect/reddit`)
+    axios.post(`/connect/reddit`)
         .then(response => {
             console.log('Reddit connection initiated')
             if (response.data.authUrl) {
@@ -533,7 +532,7 @@ const connectReddit = () => {
 }
 
 const connectWhatsApp = () => {
-    axios.post(`${baseurl}connect/whatsapp`)
+    axios.post(`/connect/whatsapp`)
         .then(response => {
             console.log('WhatsApp connection initiated')
             if (response.data.authUrl) {
@@ -582,7 +581,7 @@ const disconnectWhatsApp = () => {
 }
 
 const connectX = () => {
-    axios.post(`${baseurl}connect/x`)
+    axios.post(`/connect/x`)
         .then(response => {
             console.log('X connection initiated')
             if (response.data.authUrl) {
@@ -596,7 +595,7 @@ const connectX = () => {
 }
 
 const connectThreads = () => {
-    axios.post(`${baseurl}connect/threads`)
+    axios.post(`/connect/threads`)
         .then(response => {
             console.log('Threads connection initiated')
             if (response.data.authUrl) {
@@ -626,7 +625,7 @@ const disconnectThreads = () => {
 checkConnectedAccounts()
 
 const connectYouTube = () => {
-    axios.post(`${baseurl}connect/youtube`)
+    axios.post(`/connect/youtube`)
         .then(response => {
             console.log('YouTube connection initiated')
             if (response.data.authUrl) {
@@ -640,7 +639,7 @@ const connectYouTube = () => {
 }
 
 const connectInstagram = () => {
-    axios.post(`${baseurl}connect/instagram`)
+    axios.post(`/connect/instagram`)
         .then(response => {
             console.log('Instagram connection initiated')
             if (response.data.authUrl) {
@@ -654,7 +653,7 @@ const connectInstagram = () => {
 }
 
 const connectTiktok = () => {
-    axios.post(`${baseurl}connect/tiktok`)
+    axios.post(`/connect/tiktok`)
         .then(response => {
             console.log('TikTok connection initiated')
             if (response.data.authUrl) {
@@ -668,7 +667,7 @@ const connectTiktok = () => {
 }
 
 const connectFacebook = () => {
-    axios.post(`${baseurl}connect/facebook`)
+    axios.post(`/connect/facebook`)
         .then(response => {
             console.log('Facebook connection initiated')
             if (response.data.authUrl) {
@@ -685,7 +684,7 @@ const currentProjectId = localStorage.getItem('currentProjectId') || 1;
 
 const disconnectYouTube = () => {
     if (confirm('Disconnect YouTube account?')) {
-        axios.post(`${baseurl}disconnect/youtube?project_id=${currentProjectId}`)
+        axios.post(`/disconnect/youtube?project_id=${currentProjectId}`)
             .then(response => {
                 console.log('YouTube disconnected')
                 connectedAccounts.value.youtube = false
@@ -698,7 +697,7 @@ const disconnectYouTube = () => {
 
 const disconnectInstagram = () => {
     if (confirm('Disconnect Instagram account?')) {
-        axios.post(`${baseurl}disconnect/instagram?project_id=${currentProjectId}`)
+        axios.post(`/disconnect/instagram?project_id=${currentProjectId}`)
             .then(response => {
                 console.log('Instagram disconnected')
                 connectedAccounts.value.instagram = false
@@ -711,7 +710,7 @@ const disconnectInstagram = () => {
 
 const disconnectTiktok = () => {
     if (confirm('Disconnect TikTok account?')) {
-        axios.post(`${baseurl}disconnect/tiktok?project_id=${currentProjectId}`)
+        axios.post(`/disconnect/tiktok?project_id=${currentProjectId}`)
             .then(response => {
                 console.log('TikTok disconnected')
                 connectedAccounts.value.tiktok = false
@@ -724,7 +723,7 @@ const disconnectTiktok = () => {
 
 const disconnectFacebook = () => {
     if (confirm('Disconnect Facebook account?')) {
-        axios.post(`${baseurl}disconnect/facebook?project_id=${currentProjectId}`)
+        axios.post(`/disconnect/facebook?project_id=${currentProjectId}`)
             .then(response => {
                 console.log('Facebook disconnected')
                 connectedAccounts.value.facebook = false

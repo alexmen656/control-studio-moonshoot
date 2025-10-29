@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, getCurrentInstance } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
 const API_URL = 'http://localhost:6709/api'
 
+const instance = getCurrentInstance()
+const axios = instance?.appContext.config.globalProperties.$axios
 interface Video {
     id: string
     title: string
@@ -49,10 +51,9 @@ const loadVideos = async () => {
 
     try {
         isLoading.value = true
-        const response = await fetch(`${API_URL}/videos?${PROJECT_ID}`)
-        if (response.ok) {
-            const data = await response.json()
-            videos.value = data.map((v: any) => ({
+        const response = await axios.get(`${API_URL}/videos?${PROJECT_ID}`)
+        if (response.status === 200) {
+            videos.value = response.data.map((v: any) => ({
                 ...v,
                 uploadDate: v.uploadDate ? new Date(v.uploadDate) : new Date(),
                 scheduledDate: v.scheduledDate ? new Date(v.scheduledDate) : undefined,

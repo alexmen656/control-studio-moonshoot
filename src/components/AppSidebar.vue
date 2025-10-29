@@ -153,7 +153,7 @@
                     <div class="flex items-center justify-between text-sm">
                         <span class="text-gray-600 dark:text-gray-400">{{ storageUsed }} {{ unit }} of {{
                             storageTotal
-                            }}
+                        }}
                             GB
                             used</span>
                     </div>
@@ -220,7 +220,7 @@
     </div>
 </template>
 <script lang="ts">
-import axios from 'axios';
+import { getCurrentInstance } from 'vue';
 
 interface Project {
     id: number;
@@ -277,7 +277,9 @@ export default {
                 const user = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user') as string) : null;
                 if (!user) return;
 
-                const response = await axios.get(`http://localhost:6709/api/projects?user_id=${user.id}`);
+                const instance = getCurrentInstance()
+                const $axios = instance?.appContext.config.globalProperties.$axios
+                const response = await $axios.get(`/projects?user_id=${user.id}`);
                 this.projects = response.data;
 
                 const savedProjectId = localStorage.getItem('currentProjectId');
@@ -318,7 +320,9 @@ export default {
                 ];
                 const randomColor = colors[Math.floor(Math.random() * colors.length)] ?? colors[0];
 
-                const response = await axios.post('http://localhost:6709/api/projects', {
+                const instance = getCurrentInstance()
+                const $axios = instance?.appContext.config.globalProperties.$axios
+                const response = await $axios.post('/projects', {
                     name: projectName,
                     initials: initials,
                     color1: randomColor![0],
@@ -350,7 +354,11 @@ export default {
             }
         },
         fetchUsedStorage() {
-            axios.get('http://localhost:6709/api/used-storage').then(res => {
+            const instance = getCurrentInstance()
+            const $axios = instance?.appContext.config.globalProperties.$axios
+            const currentProjectId = localStorage.getItem('currentProjectId');
+
+            $axios.get('/used-storage?project_id=' + currentProjectId).then((res: any) => {
                 this.usedBytes = Number(res.data.used_storage);
                 this.totalBytes = Number(res.data.total_storage);
                 this.storagePercent = this.totalBytes
