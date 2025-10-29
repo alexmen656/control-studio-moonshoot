@@ -88,7 +88,166 @@ app.get('/', (req, res) => {
   res.send('Control Studio API - Social Media Manager')
 })
 
+// ============================================
+// WORKER ROUTES
+// ============================================
 
+// Worker Registration
+app.post('/api/workers/register', async (req, res) => {
+  try {
+    const { worker_id, worker_name, hostname, capabilities, max_concurrent_tasks } = req.body;
+    const ip_address = req.ip || req.connection.remoteAddress;
+
+    if (!worker_id) {
+      return res.status(400).json({ error: 'worker_id is required' });
+    }
+
+    // Check if worker already exists
+    const existingWorker = await db.query(
+      'SELECT * FROM workers WHERE worker_id = $1',
+      [worker_id]
+    );
+
+    let worker;
+    if (existingWorker.rows.length > 0) {
+      // Update existing worker
+      const result = await db.query(
+        `UPDATE workers 
+         SET worker_name = $1, hostname = $2, ip_address = $3, 
+             capabilities = $4, max_concurrent_tasks = $5,
+             status = 'online', last_heartbeat = CURRENT_TIMESTAMP
+         WHERE worker_id = $6
+         RETURNING *`,
+        [worker_name, hostname, ip_address, JSON.stringify(capabilities || {}), 
+         max_concurrent_tasks || 3, worker_id]
+      );
+      worker = result.rows[0];
+      console.log(`Worker ${worker_id} re-registered`);
+    } else {
+      // Insert new worker
+      const result = await db.query(
+        `INSERT INTO workers (worker_id, worker_name, hostname, ip_address, capabilities, max_concurrent_tasks)
+         VALUES ($1, $2, $3, $4, $5, $6)
+         RETURNING *`,
+        [worker_id, worker_name, hostname, ip_address, 
+         JSON.stringify(capabilities || {}), max_concurrent_tasks || 3]
+      );
+      worker = result.rows[0];
+      console.log(`Worker ${worker_id} registered successfully`);
+    }
+
+    res.status(201).json({
+      message: 'Worker registered successfully',
+      worker: worker
+    });
+  } catch (error) {
+    console.error('Error registering worker:', error);
+    res.status(500).json({ error: 'Failed to register worker' });
+  }
+});
+
+// Worker Heartbeat
+app.post('/api/workers/heartbeat', async (req, res) => {
+  try {
+    const { worker_id, current_load, metadata } = req.body;
+
+    if (!worker_id) {
+      return res.status(400).json({ error: 'worker_id is required' });
+    }
+
+    const result = await db.query(
+      `UPDATE workers 
+       SET last_heartbeat = CURRENT_TIMESTAMP, 
+           status = 'online',
+           current_load = $1,
+           metadata = $2
+       WHERE worker_id = $3
+       RETURNING *`,
+      [current_load || 0, JSON.stringify(metadata || {}), worker_id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Worker not found. Please register first.' });
+    }
+
+    res.json({
+      message: 'Heartbeat received',
+      worker: result.rows[0]
+    });
+  } catch (error) {
+    console.error('Error processing heartbeat:', error);
+    res.status(500).json({ error: 'Failed to process heartbeat' });
+  }
+});
+
+// Get all workers
+app.get('/api/workers', async (req, res) => {
+  try {
+    // Mark offline workers
+    await db.query(`
+      UPDATE workers 
+      SET status = 'offline' 
+      WHERE status = 'online' 
+        AND last_heartbeat < NOW() - INTERVAL '2 minutes'
+    `);
+
+    const result = await db.query(
+      'SELECT * FROM workers ORDER BY registered_at DESC'
+    );
+
+    res.json({
+      workers: result.rows,
+      total: result.rows.length,
+      online: result.rows.filter(w => w.status === 'online').length
+    });
+  } catch (error) {
+    console.error('Error fetching workers:', error);
+    res.status(500).json({ error: 'Failed to fetch workers' });
+  }
+});
+
+// Get specific worker
+app.get('/api/workers/:workerId', async (req, res) => {
+  try {
+    const { workerId } = req.params;
+
+    const result = await db.query(
+      'SELECT * FROM workers WHERE worker_id = $1',
+      [workerId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Worker not found' });
+    }
+
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Error fetching worker:', error);
+    res.status(500).json({ error: 'Failed to fetch worker' });
+  }
+});
+
+// Delete/Unregister worker
+app.delete('/api/workers/:workerId', async (req, res) => {
+  try {
+    const { workerId } = req.params;
+
+    const result = await db.query(
+      'DELETE FROM workers WHERE worker_id = $1 RETURNING *',
+      [workerId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Worker not found' });
+    }
+
+    console.log(`Worker ${workerId} unregistered`);
+    res.json({ message: 'Worker unregistered successfully' });
+  } catch (error) {
+    console.error('Error unregistering worker:', error);
+    res.status(500).json({ error: 'Failed to unregister worker' });
+  }
+});
 
 // ============================================
 // AUTH ROUTES
