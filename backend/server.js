@@ -19,6 +19,7 @@ import * as db from './utils/db.js'
 import { storeTokenByProjectID, retrieveTokenByProjectID, removeTokenByProjectID } from './utils/token_manager.js'
 import { registerUser, loginUser, loginWithGoogle, authMiddleware, getUserById } from './utils/auth.js'
 import { getAvailableRegions, getRegionById, isValidRegion, getDefaultRegion } from './utils/regions.js'
+import { storeOAuthState, retrieveOAuthState } from './utils/oauth_states.js';
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -1328,8 +1329,13 @@ app.get('/api/oauth2callback/instagram', async (req, res) => {
     return res.status(400).send('Authorization code not provided');
   }
 
+  if (!state) {
+    return res.status(400).send('State parameter is missing');
+  }
+
   try {
-    const PROJECT_ID = 2;//localStorage.getItem('currentProjectId') || 1;
+    const stateData = await retrieveOAuthState(state);
+    const PROJECT_ID = stateData.project_id;
 
     await storeTokenByProjectID('instagram_code', { code: code }, PROJECT_ID);
     axios.get(instagramManager.getTokenExchangeUrl(code)).then(async (response) => {
