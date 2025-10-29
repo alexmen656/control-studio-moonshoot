@@ -17,7 +17,7 @@ interface Video {
   uploadDate: Date | string
   status: 'ready' | 'uploading' | 'processing' | 'scheduled' | 'published' | 'failed' | 'awaiting-details'
   progress?: number
-  platforms: Array<'instagram' | 'tiktok' | 'youtube' | 'facebook' | 'x' | 'reddibt'>//| 'linkedin'
+  platforms: Array<'instagram' | 'tiktok' | 'youtube' | 'facebook' | 'x' | 'reddit'>//| 'linkedin'
   views?: number
   filename?: string
   originalName?: string
