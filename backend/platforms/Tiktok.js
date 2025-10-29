@@ -2,7 +2,8 @@ import fs from 'fs/promises';
 import crypto from 'crypto';
 import dotenv from 'dotenv';
 import path from 'path';
-import { storeTokenByProjectID, retrieveTokenByProjectID } from '../utils/token_manager.js';
+import { storeTokenByProjectID, retrieveTokenByProjectID, removeTokenByProjectID } from '../utils/token_manager.js';
+import { storeOAuthState, retrieveOAuthState } from '../utils/oauth_states.js';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -22,7 +23,7 @@ class TikTokManager {
     constructor(options = {}) {
         this.clientKey = options.clientKey || process.env.TIKTOK_CLIENT_KEY || '';
         this.clientSecret = options.clientSecret || process.env.TIKTOK_CLIENT_SECRET || '';
-        this.redirectUri = options.redirectUri || 'http://localhost:6709/api/oauth2callback/tiktok';
+        this.redirectUri = options.redirectUri || 'https://alex.polan.sk/tiktok_redirect.php';//tiktok does not allow localhost
         this.projectId = 2;//options.projectId || 2;
         this.scopes = options.scopes || SCOPES;
     }
@@ -54,6 +55,7 @@ class TikTokManager {
             const codeVerifier = this._generateCodeVerifier();
             const codeChallenge = this._generateCodeChallenge(codeVerifier);
             const csrfState = crypto.randomBytes(16).toString('hex');
+            await storeOAuthState('tiktok', this.projectId, csrfState);
 
             await storeTokenByProjectID('tiktok_oauth_state', {
                 code_verifier: codeVerifier,
@@ -78,7 +80,12 @@ class TikTokManager {
 
     async exchangeCodeForToken(code, state) {
         try {
-            const oauthState = await retrieveTokenByProjectID('tiktok_oauth_state', this.projectId);
+            console.log('Exchanging code for token with state:', state);
+            //const projectId = await retrieveOAuthState('tiktok', state);//.project_id;
+            const stateData = await retrieveOAuthState(state);
+            const projectId = stateData.project_id;
+            console.log('Retrieved project ID from OAuth state:', projectId);
+            const oauthState = await retrieveTokenByProjectID('tiktok_oauth_state', projectId);
 
             if (state !== oauthState.csrf_state) {
                 throw new Error('State mismatch - possible CSRF attack');
@@ -113,8 +120,8 @@ class TikTokManager {
                 expires_at: Date.now() + (tokenData.expires_in * 1000)
             };
 
-            await storeTokenByProjectID('tiktok_token', tokenWithExpiry, this.projectId);
-            await removeTokenByProjectID(1, 'tiktok_oauth_state', this.projectId);
+            await storeTokenByProjectID('tiktok_token', tokenWithExpiry, projectId);
+            await removeTokenByProjectID('tiktok_oauth_state', projectId);
             console.log('TikTok token stored successfully');
 
             return tokenWithExpiry;
