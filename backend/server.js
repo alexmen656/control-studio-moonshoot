@@ -912,7 +912,9 @@ app.post('/api/upload', authMiddleware, projectAccessMiddleware, upload.single('
 })
 
 app.get('/api/accounts/status', authMiddleware, projectAccessMiddleware, async (req, res) => {
-  const PROJECT_ID = req.project.id
+  const PROJECT_ID = req.query.project_id;
+  //console.log('Checking account status for project ID:', PROJECT_ID);
+
   try {
     res.json({
       youtube: await retrieveTokenByProjectID('youtube_token', PROJECT_ID) === null ? false : true,
@@ -1174,6 +1176,7 @@ app.post('/api/connect/:platform', async (req, res) => {
         }
 
       case 'instagram':
+        instagramManager.projectId = PROJECT_ID;
         const instagramAuth = instagramManager.generateAuthUrl();
         if (instagramAuth.auth_url) {
           return res.json({ authUrl: instagramAuth.auth_url });
@@ -1182,6 +1185,7 @@ app.post('/api/connect/:platform', async (req, res) => {
         }
 
       case 'facebook':
+        facebookManager.projectId = PROJECT_ID;
         const facebookAuth = facebookManager.generateAuthUrl();
         if (facebookAuth.auth_url) {
           return res.json({ authUrl: facebookAuth.auth_url });
@@ -1189,6 +1193,7 @@ app.post('/api/connect/:platform', async (req, res) => {
           res.json({ message: 'Connected to Facebook successfully' });
         }
       case 'tiktok':
+        tiktokManager.projectId = PROJECT_ID;
         const tiktokResult = await tiktokManager.authorize();
 
         if (tiktokResult.authUrl) {
@@ -1198,6 +1203,7 @@ app.post('/api/connect/:platform', async (req, res) => {
         }
 
       case 'x':
+        xManager.projectId = PROJECT_ID;
         const xResult = await xManager.authorize();
 
         if (xResult.authUrl) {
@@ -1207,6 +1213,7 @@ app.post('/api/connect/:platform', async (req, res) => {
         }
 
       case 'reddit':
+        redditManager.projectId = PROJECT_ID;
         const redditResult = await redditManager.authorize();
 
         if (redditResult.authUrl) {

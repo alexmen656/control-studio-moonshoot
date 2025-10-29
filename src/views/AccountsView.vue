@@ -476,7 +476,7 @@ const checkConnectedAccounts = () => {
         })
 }
 const connectLinkedIn = () => {
-    axios.post(`/connect/linkedin`)
+    axios.post(`/connect/linkedin?project_id=${localStorage.getItem('currentProjectId')}`)
         .then(response => {
             console.log('LinkedIn connection initiated')
             if (response.data.authUrl) {
@@ -490,7 +490,7 @@ const connectLinkedIn = () => {
 }
 
 const connectPinterest = () => {
-    axios.post(`/connect/pinterest`)
+    axios.post(`/connect/pinterest?project_id=${localStorage.getItem('currentProjectId')}`)
         .then(response => {
             console.log('Pinterest connection initiated')
             if (response.data.authUrl) {
@@ -504,7 +504,7 @@ const connectPinterest = () => {
 }
 
 const connectSnapchat = () => {
-    axios.post(`/connect/snapchat`)
+    axios.post(`/connect/snapchat?project_id=${localStorage.getItem('currentProjectId')}`)
         .then(response => {
             console.log('Snapchat connection initiated')
             if (response.data.authUrl) {
@@ -518,7 +518,7 @@ const connectSnapchat = () => {
 }
 
 const connectReddit = () => {
-    axios.post(`/connect/reddit`)
+    axios.post(`/connect/reddit?project_id=${localStorage.getItem('currentProjectId')}`)
         .then(response => {
             console.log('Reddit connection initiated')
             if (response.data.authUrl) {
@@ -532,7 +532,7 @@ const connectReddit = () => {
 }
 
 const connectWhatsApp = () => {
-    axios.post(`/connect/whatsapp`)
+    axios.post(`/connect/whatsapp?project_id=${localStorage.getItem('currentProjectId')}`)
         .then(response => {
             console.log('WhatsApp connection initiated')
             if (response.data.authUrl) {
@@ -581,7 +581,7 @@ const disconnectWhatsApp = () => {
 }
 
 const connectX = () => {
-    axios.post(`/connect/x`)
+    axios.post(`/connect/x?project_id=${localStorage.getItem('currentProjectId')}`)
         .then(response => {
             console.log('X connection initiated')
             if (response.data.authUrl) {
@@ -595,7 +595,7 @@ const connectX = () => {
 }
 
 const connectThreads = () => {
-    axios.post(`/connect/threads`)
+    axios.post(`/connect/threads?project_id=${localStorage.getItem('currentProjectId')}`)
         .then(response => {
             console.log('Threads connection initiated')
             if (response.data.authUrl) {
@@ -625,7 +625,7 @@ const disconnectThreads = () => {
 checkConnectedAccounts()
 
 const connectYouTube = () => {
-    axios.post(`/connect/youtube`)
+    axios.post(`/connect/youtube?project_id=${localStorage.getItem('currentProjectId')}`)
         .then(response => {
             console.log('YouTube connection initiated')
             if (response.data.authUrl) {
@@ -639,7 +639,7 @@ const connectYouTube = () => {
 }
 
 const connectInstagram = () => {
-    axios.post(`/connect/instagram`)
+    axios.post(`/connect/instagram?project_id=${localStorage.getItem('currentProjectId')}`)
         .then(response => {
             console.log('Instagram connection initiated')
             if (response.data.authUrl) {
@@ -653,7 +653,7 @@ const connectInstagram = () => {
 }
 
 const connectTiktok = () => {
-    axios.post(`/connect/tiktok`)
+    axios.post(`/connect/tiktok?project_id=${localStorage.getItem('currentProjectId')}`)
         .then(response => {
             console.log('TikTok connection initiated')
             if (response.data.authUrl) {
@@ -667,7 +667,7 @@ const connectTiktok = () => {
 }
 
 const connectFacebook = () => {
-    axios.post(`/connect/facebook`)
+    axios.post(`/connect/facebook?project_id=${localStorage.getItem('currentProjectId')}`)
         .then(response => {
             console.log('Facebook connection initiated')
             if (response.data.authUrl) {
