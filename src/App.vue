@@ -7,11 +7,22 @@ import AppSidebar from './components/AppSidebar.vue'
 const route = useRoute()
 
 const showHeader = computed(() => {
-  return !['landing', 'login', 'signup'].includes(route.name as string)
+  if (localStorage.getItem('auth_token')) {
+    return !['landing', 'login', 'signup', 'undefined'].includes(route.name as string)
+  } else {
+    return false;
+  }
 })
 
 const showSidebar = computed(() => {
-  return !['landing', 'login', 'signup'].includes(route.name as string)
+  //console.log(route.name);
+  //alert(route.name);
+
+  if (localStorage.getItem('auth_token')) {
+    return !['landing', 'login', 'signup', 'undefined'].includes(route.name as string)
+  } else {
+    return false;
+  }
 })
 </script>
 
