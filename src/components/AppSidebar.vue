@@ -302,6 +302,10 @@ export default {
 
                 const instance = getCurrentInstance()
                 const $axios = instance?.appContext.config.globalProperties.$axios
+                if (!$axios) {
+                    console.error('Axios is not available');
+                    return;
+                }
                 const response = await $axios.get(`/projects?user_id=${user.id}`);
                 this.projects = response.data;
 
@@ -345,6 +349,11 @@ export default {
 
                 const instance = getCurrentInstance()
                 const $axios = instance?.appContext.config.globalProperties.$axios
+                if (!$axios) {
+                    console.error('Axios is not available');
+                    alert('Failed to create project: Network error');
+                    return;
+                }
                 const response = await $axios.post('/projects', {
                     name: projectName,
                     initials: initials,
@@ -379,6 +388,10 @@ export default {
         fetchUsedStorage() {
             const instance = getCurrentInstance()
             const $axios = instance?.appContext.config.globalProperties.$axios
+            if (!$axios) {
+                console.error('Axios is not available');
+                return;
+            }
             const currentProjectId = localStorage.getItem('currentProjectId');
 
             $axios.get('/used-storage?project_id=' + currentProjectId).then((res: any) => {
