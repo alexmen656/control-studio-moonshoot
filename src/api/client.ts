@@ -1,7 +1,9 @@
 import axios from 'axios'
 
+const isProd = import.meta.env.MODE === 'production';
+
 const apiClient = axios.create({
-  baseURL: 'http://localhost:6709/api',
+  baseURL: isProd ? 'https://api.reelmia.com/api' : 'http://localhost:6709/api',
   headers: {
     'Content-Type': 'application/json',
   },
