@@ -7,8 +7,7 @@ import path from 'path';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const PROJECT_ROOT = path.join(__dirname, '..', '..');
-
+const PROJECT_ROOT = path.join(__dirname, '..');
 dotenv.config({ path: path.join(PROJECT_ROOT, '.env') });
 
 const JWT_SECRET = process.env.JWT_SECRET || 'secret123';

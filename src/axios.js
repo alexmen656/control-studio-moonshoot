@@ -1,8 +1,11 @@
 import axios from 'axios';
 
+const isProd = import.meta.env.MODE === 'production';
+
 const instance = axios.create({
-    baseURL: 'http://localhost:6709/api'
+  baseURL: isProd ? 'https://api.reelmia.com/api' : 'http://localhost:6709/api'
 });
+
 
 instance.interceptors.request.use(
     (config) => {

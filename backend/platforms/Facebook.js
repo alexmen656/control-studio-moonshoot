@@ -10,8 +10,7 @@ import { storeOAuthState, retrieveOAuthState } from '../utils/oauth_states.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const PROJECT_ROOT = path.join(__dirname, '..', '..');
-dotenv.config({ path: path.join(PROJECT_ROOT, '.env') });
+const PROJECT_ROOT = path.join(__dirname, '..');dotenv.config({ path: path.join(PROJECT_ROOT, '.env') });
 
 const DEFAULT_SCOPES = 'pages_show_list,pages_read_engagement,pages_manage_posts,pages_manage_engagement,public_profile';
 const API_VERSION = 'v21.0';

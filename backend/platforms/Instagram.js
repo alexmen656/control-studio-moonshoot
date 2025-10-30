@@ -9,7 +9,8 @@ import { storeOAuthState, retrieveOAuthState } from '../utils/oauth_states.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const PROJECT_ROOT = path.join(__dirname, '..', '..');
+const PROJECT_ROOT = path.join(__dirname, '..');
+console.log('path', path.join(PROJECT_ROOT, '.env'));
 dotenv.config({ path: path.join(PROJECT_ROOT, '.env') });
 
 const DEFAULT_SCOPES = 'instagram_basic,instagram_content_publish,pages_read_engagement,pages_show_list,business_management,instagram_manage_insights';
