@@ -1,0 +1,21 @@
+#!/bin/bash
+
+for i in {1..5}
+do
+  curl 'http://localhost:6709/api/jobs?project_id=4' \
+    -H 'Accept: application/json, text/plain, */*' \
+    -H 'Accept-Language: de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7' \
+    -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwiZW1haWwiOiJhbGV4QGNvbnRyb2wtY2VudGVyLmV1IiwidXNlcm5hbWUiOiJhbGV4IiwiaWF0IjoxNzYxNzU0NTExLCJleHAiOjE3NjIzNTkzMTF9.0wnpXf1eo1MFUQcMmvM2ZIh1Ya9_-8Iz1zd458QNULU' \
+    -H 'Connection: keep-alive' \
+    -H 'Content-Type: application/json' \
+    -H 'Origin: http://localhost:5185' \
+    -H 'Referer: http://localhost:5185/' \
+    -H 'Sec-Fetch-Dest: empty' \
+    -H 'Sec-Fetch-Mode: cors' \
+    -H 'Sec-Fetch-Site: same-site' \
+    -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36' \
+    -H 'sec-ch-ua: "Google Chrome";v="141", "Not?A_Brand";v="8", "Chromium";v="141"' \
+    -H 'sec-ch-ua-mobile: ?0' \
+    -H 'sec-ch-ua-platform: "macOS"' \
+    --data-raw '{"video_id":1761781124284,"platforms":["youtube"],"priority":2}'
+done

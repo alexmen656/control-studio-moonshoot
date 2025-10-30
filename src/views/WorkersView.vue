@@ -321,7 +321,8 @@ async function createJob() {
     createError.value = ''
     createSuccess.value = false
 
-    await axios.post('/jobs', newJob.value)
+    const project_id = localStorage.getItem('currentProjectId') || 2
+    await axios.post(`/jobs?project_id=${project_id}`, newJob.value)
 
     createSuccess.value = true
     

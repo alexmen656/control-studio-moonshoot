@@ -18,6 +18,9 @@ dotenv.config();
 
 solutionm:host.docker.internal
 
+
+test video id:
+1761781124284
 */
 
 class UploadWorker {
@@ -26,7 +29,7 @@ class UploadWorker {
     this.workerName = process.env.WORKER_NAME || `Worker-${os.hostname()}`;
     this.backendUrl = process.env.BACKEND_URL || 'http://localhost:6709';
     this.heartbeatInterval = parseInt(process.env.HEARTBEAT_INTERVAL || '30000');
-    this.jobPollInterval = parseInt(process.env.JOB_POLL_INTERVAL || '5000'); // 5 seconds
+    this.jobPollInterval = parseInt(process.env.JOB_POLL_INTERVAL || '5000');
     this.maxConcurrentTasks = parseInt(process.env.MAX_CONCURRENT_TASKS || '3');
     
     this.isRegistered = false;
@@ -34,7 +37,7 @@ class UploadWorker {
     this.heartbeatTimer = null;
     this.jobPollTimer = null;
     this.currentLoad = 0;
-    this.activeJobs = new Map(); // Track active jobs
+    this.activeJobs = new Map();
     
     this.capabilities = {
       platforms: ['youtube', 'tiktok', 'instagram', 'facebook', 'x', 'reddit'],
@@ -301,7 +304,7 @@ class UploadWorker {
   }
 
   async processJob(job) {
-    console.log(`\n� Processing job: ${job.job_id}`);
+    console.log(`\n Processing job: ${job.job_id}`);
     console.log(`   Platform: ${job.platform}`);
     console.log(`   Video: ${job.metadata?.video_title || job.video_id}`);
     
