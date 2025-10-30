@@ -4,9 +4,12 @@ import fs2 from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { storeTokenByProjectID, retrieveTokenByProjectID } from '../utils/token_manager.js';
+import dotenv from 'dotenv';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const PROJECT_ROOT = path.join(__dirname, '..');
+dotenv.config({ path: path.join(PROJECT_ROOT, '.env') });
 
 const SCOPES = [
     'https://www.googleapis.com/auth/youtube.upload',
@@ -15,7 +18,7 @@ const SCOPES = [
 ];
 
 class YouTubeManager {
-    constructor(credentialsPath = path.join(__dirname, 'credentials.json'), redirectUri = 'http://localhost:6709/api/oauth2callback/youtube') {
+    constructor(credentialsPath = path.join(__dirname, 'credentials.json'), redirectUri = process.env.MODE === 'prod' ? 'https://api.reelmia.com/api/oauth2callback/youtube' : 'http://localhost:6709/api/oauth2callback/youtube') {
         this.credentialsPath = credentialsPath;
         this.redirectUri = redirectUri;
         this.oAuth2Client = null;

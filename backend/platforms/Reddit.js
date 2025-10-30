@@ -21,7 +21,7 @@ class RedditManager {
     constructor(options = {}) {
         this.clientId = options.clientId || process.env.REDDIT_CLIENT_ID || '';
         this.clientSecret = options.clientSecret || process.env.REDDIT_CLIENT_SECRET || '';
-        this.redirectUri = options.redirectUri || 'http://localhost:6709/api/oauth2callback/reddit';
+        this.redirectUri = options.redirectUri || (process.env.MODE === 'prod' ? 'https://api.reelmia.com/api/oauth2callback/reddit' : 'http://localhost:6709/api/oauth2callback/reddit');
         this.projectId = 2;
         this.scopes = options.scopes || SCOPES;
         this.userAgent = options.userAgent || 'Control Studio/1.0';

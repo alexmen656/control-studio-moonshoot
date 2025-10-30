@@ -22,7 +22,7 @@ class TikTokManager {
     constructor(options = {}) {
         this.clientKey = options.clientKey || process.env.TIKTOK_CLIENT_KEY || '';
         this.clientSecret = options.clientSecret || process.env.TIKTOK_CLIENT_SECRET || '';
-        this.redirectUri = options.redirectUri || 'https://alex.polan.sk/tiktok_redirect.php';//tiktok does not allow localhost
+        this.redirectUri = options.redirectUri || (process.env.MODE === 'prod' ? 'https://api.reelmia.com/api/oauth2callback/tiktok' : 'https://alex.polan.sk/tiktok_redirect.php');//tiktok does not allow localhost
         this.projectId = 2;//options.projectId || 2;
         this.scopes = options.scopes || SCOPES;
     }

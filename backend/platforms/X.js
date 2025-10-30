@@ -22,7 +22,7 @@ class XManager {
     constructor(options = {}) {
         this.clientId = options.clientId || process.env.X_CLIENT_ID || '';
         this.clientSecret = options.clientSecret || process.env.X_CLIENT_SECRET || '';
-        this.redirectUri = options.redirectUri || 'http://localhost:6709/api/oauth2callback/x';
+        this.redirectUri = options.redirectUri || (process.env.MODE === 'prod' ? 'https://api.reelmia.com/api/oauth2callback/x' : 'http://localhost:6709/api/oauth2callback/x');
         this.projectId = options.projectId || 2;
         this.scopes = options.scopes || DEFAULT_SCOPES;
         this.apiVersion = options.apiVersion || API_VERSION;
