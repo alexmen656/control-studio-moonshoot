@@ -20,7 +20,7 @@ class InstagramManager {
     constructor(options = {}) {
         this.appId = options.appId || process.env.IG_APP_ID;
         this.appSecret = options.appSecret || process.env.IG_APP_SECRET;
-        this.redirectUri = options.redirectUri || 'http://localhost:6709/api/oauth2callback/instagram';
+        this.redirectUri = options.redirectUri || (process.env.MODE === 'prod' ? 'https://api.reelmia.com/api/oauth2callback/instagram' : 'http://localhost:6709/api/oauth2callback/instagram');
         this.projectId = 2; //options.projectId || 1;
         this.scopes = options.scopes || DEFAULT_SCOPES;
         this.apiVersion = options.apiVersion || API_VERSION;

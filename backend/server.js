@@ -30,6 +30,7 @@ dotenv.config({ path: path.join(PROJECT_ROOT, '.env') })
 const app = express()
 const PORT = process.env.PORT || 6709
 
+const baseDomain = process.env.MODE === 'prod' ? 'https://reelmia.com' : `http://localhost:5185`
 const youTubeManager = new YouTubeManager();
 const tiktokManager = new TikTokManager();
 const instagramManager = new InstagramManager();
@@ -1854,7 +1855,7 @@ app.get('/api/oauth2callback/youtube', async (req, res) => {
   try {
     await storeTokenByProjectID('youtube_code', { code: code }, PROJECT_ID);
     await youTubeManager.getTokenFromCode(code, PROJECT_ID);
-    res.redirect('http://localhost:5185/accounts');
+    res.redirect(`${baseDomain}/accounts`);
     //res.send('YouTube authorization successful! You can close this tab.');
   } catch (error) {
     console.error('Error during YouTube OAuth2 callback:', error);
@@ -1867,7 +1868,7 @@ app.get('/api/oauth2callback/tiktok', async (req, res) => {
 
   if (error) {
     console.error('TikTok OAuth error:', error, error_description);
-    return res.redirect(`http://localhost:5185/accounts?error=${error}`);
+    return res.redirect(`${baseDomain}/accounts?error=${error}`);
   }
 
   if (!code) {
@@ -1877,10 +1878,10 @@ app.get('/api/oauth2callback/tiktok', async (req, res) => {
   try {
     await tiktokManager.exchangeCodeForToken(code, state);
 
-    res.redirect('http://localhost:5185/accounts?tiktok=connected');
+    res.redirect(`${baseDomain}/accounts?tiktok=connected`);
   } catch (error) {
     console.error('Error during TikTok OAuth2 callback:', error);
-    res.redirect('http://localhost:5185/accounts?error=tiktok_auth_failed');
+    res.redirect(`${baseDomain}/accounts?error=tiktok_auth_failed`);
   }
 });
 
@@ -1889,7 +1890,7 @@ app.get('/api/oauth2callback/instagram', async (req, res) => {
 
   if (error) {
     console.error('Instagram OAuth error:', error, error_description);
-    return res.redirect(`http://localhost:5185/accounts?error=${error}`);
+    return res.redirect(`${baseDomain}/accounts?error=${error}`);
   }
 
   if (!code) {
@@ -1919,10 +1920,10 @@ app.get('/api/oauth2callback/instagram', async (req, res) => {
         });
     });
 
-    res.redirect('http://localhost:5185/accounts?instagram=connected');
+    res.redirect(`${baseDomain}/accounts?instagram=connected`);
   } catch (error) {
     console.error('Error during Instagram OAuth2 callback:', error);
-    res.redirect('http://localhost:5185/accounts?error=instagram_auth_failed');
+    res.redirect(`${baseDomain}/accounts?error=instagram_auth_failed`);
   }
 });
 
@@ -1931,7 +1932,7 @@ app.get('/api/oauth2callback/facebook', async (req, res) => {
 
   if (error) {
     console.error('Facebook OAuth error:', error, error_description);
-    return res.redirect(`http://localhost:5185/accounts?error=${error}`);
+    return res.redirect(`${baseDomain}/accounts?error=${error}`);
   }
 
   if (!code) {
@@ -1956,10 +1957,10 @@ app.get('/api/oauth2callback/facebook', async (req, res) => {
         });
     });
 
-    res.redirect('http://localhost:5185/accounts?facebook=connected');
+    res.redirect(`${baseDomain}/accounts?facebook=connected`);
   } catch (error) {
     console.error('Error during Facebook OAuth2 callback:', error);
-    res.redirect('http://localhost:5185/accounts?error=facebook_auth_failed');
+    res.redirect(`${baseDomain}/accounts?error=facebook_auth_failed`);
   }
 });
 
@@ -1968,7 +1969,7 @@ app.get('/api/oauth2callback/x', async (req, res) => {
 
   if (error) {
     console.error('X OAuth error:', error, error_description);
-    return res.redirect(`http://localhost:5185/accounts?error=${error}`);
+    return res.redirect(`${baseDomain}/accounts?error=${error}`);
   }
 
   if (!code) {
@@ -1979,10 +1980,10 @@ app.get('/api/oauth2callback/x', async (req, res) => {
     const PROJECT_ID = 2;
     const tokenData = await xManager.exchangeCodeForToken(code, state);
     console.log('X token stored successfully');
-    res.redirect('http://localhost:5185/accounts?x=connected');
+    res.redirect(`${baseDomain}/accounts?x=connected`);
   } catch (error) {
     console.error('Error during X OAuth2 callback:', error);
-    res.redirect('http://localhost:5185/accounts?error=x_auth_failed');
+    res.redirect(`${baseDomain}/accounts?error=x_auth_failed`);
   }
 });
 
@@ -1991,7 +1992,7 @@ app.get('/api/oauth2callback/reddit', async (req, res) => {
 
   if (error) {
     console.error('Reddit OAuth error:', error, error_description);
-    return res.redirect(`http://localhost:5185/accounts?error=${error}`);
+    return res.redirect(`${baseDomain}/accounts?error=${error}`);
   }
 
   if (!code) {
@@ -2002,10 +2003,10 @@ app.get('/api/oauth2callback/reddit', async (req, res) => {
     const PROJECT_ID = 2;
     const tokenData = await redditManager.exchangeCodeForToken(code, state);
     console.log('Reddit token stored successfully');
-    res.redirect('http://localhost:5185/accounts?reddit=connected');
+    res.redirect(`${baseDomain}/accounts?reddit=connected`);
   } catch (error) {
     console.error('Error during Reddit OAuth2 callback:', error);
-    res.redirect('http://localhost:5185/accounts?error=reddit_auth_failed');
+    res.redirect(`${baseDomain}/accounts?error=reddit_auth_failed`);
   }
 });
 
