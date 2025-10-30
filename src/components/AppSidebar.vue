@@ -232,7 +232,6 @@
     </div>
 </template>
 <script lang="ts">
-import { getCurrentInstance } from 'vue';
 
 interface Project {
     id: number;
@@ -300,13 +299,7 @@ export default {
                 const user = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user') as string) : null;
                 if (!user) return;
 
-                const instance = getCurrentInstance()
-                const $axios = instance?.appContext.config.globalProperties.$axios
-                if (!$axios) {
-                    console.error('Axios is not available');
-                    return;
-                }
-                const response = await $axios.get(`/projects?user_id=${user.id}`);
+                const response = await (this as any).$axios.get(`/projects?user_id=${user.id}`);
                 this.projects = response.data;
 
                 const savedProjectId = localStorage.getItem('currentProjectId');
@@ -347,14 +340,7 @@ export default {
                 ];
                 const randomColor = colors[Math.floor(Math.random() * colors.length)] ?? colors[0];
 
-                const instance = getCurrentInstance()
-                const $axios = instance?.appContext.config.globalProperties.$axios
-                if (!$axios) {
-                    console.error('Axios is not available');
-                    alert('Failed to create project: Network error');
-                    return;
-                }
-                const response = await $axios.post('/projects', {
+                const response = await (this as any).$axios.post('/projects', {
                     name: projectName,
                     initials: initials,
                     color1: randomColor![0],
@@ -386,15 +372,9 @@ export default {
             }
         },
         fetchUsedStorage() {
-            const instance = getCurrentInstance()
-            const $axios = instance?.appContext.config.globalProperties.$axios
-            if (!$axios) {
-                console.error('Axios is not available');
-                return;
-            }
             const currentProjectId = localStorage.getItem('currentProjectId');
 
-            $axios.get('/used-storage?project_id=' + currentProjectId).then((res: any) => {
+            (this as any).$axios.get('/used-storage?project_id=' + currentProjectId).then((res: any) => {
                 this.usedBytes = Number(res.data.used_storage);
                 this.totalBytes = Number(res.data.total_storage);
                 this.storagePercent = this.totalBytes
