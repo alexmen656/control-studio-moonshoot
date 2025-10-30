@@ -242,12 +242,53 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import axios from '../axios.js'
+import axios from '../axios'
 
-const workers = ref([])
-const jobs = ref([])
+interface Worker {
+  id: number
+  worker_id: string
+  worker_name: string
+  hostname: string
+  ip_address: string
+  status: string
+  cpu_usage: number
+  memory_usage: number
+  current_load: number
+  max_concurrent_tasks: number
+  last_heartbeat: string
+  registered_at: string
+  metadata: Record<string, any>
+  capabilities: Record<string, any>
+}
+
+interface Job {
+  id: number
+  job_id: string
+  worker_id: string | null
+  worker_name?: string
+  video_id: number
+  platform: string
+  status: string
+  priority: number
+  created_at: string
+  started_at: string | null
+  completed_at: string | null
+  error_message: string | null
+  retry_count: number
+  max_retries: number
+  metadata: Record<string, any>
+}
+
+interface NewJob {
+  video_id: number | null
+  platforms: string[]
+  priority: number
+}
+
+const workers = ref<Worker[]>([])
+const jobs = ref<Job[]>([])
 const loading = ref(false)
 const jobFilter = ref('all')
 const showCreateJobModal = ref(false)
@@ -255,7 +296,7 @@ const submitting = ref(false)
 const createError = ref('')
 const createSuccess = ref(false)
 
-const newJob = ref({
+const newJob = ref<NewJob>({
   video_id: null,
   platforms: [],
   priority: 0
@@ -263,7 +304,7 @@ const newJob = ref({
 
 const availablePlatforms = ['youtube', 'tiktok', 'instagram', 'facebook', 'x', 'reddit']
 
-let refreshInterval = null
+let refreshInterval: number | null = null
 
 // Computed
 const onlineWorkers = computed(() => 
@@ -340,7 +381,7 @@ async function createJob() {
       createSuccess.value = false
     }, 1500)
 
-  } catch (error) {
+  } catch (error: any) {
     createError.value = error.response?.data?.error || 'Failed to create job'
     console.error('Error creating job:', error)
   } finally {
@@ -348,11 +389,11 @@ async function createJob() {
   }
 }
 
-function formatDate(dateString) {
+function formatDate(dateString: string | null): string {
   if (!dateString) return 'N/A'
   const date = new Date(dateString)
   const now = new Date()
-  const diff = now - date
+  const diff = now.getTime() - date.getTime()
   
   if (diff < 60000) return 'Just now'
   if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`
@@ -361,19 +402,19 @@ function formatDate(dateString) {
   return date.toLocaleString()
 }
 
-function getJobDuration(job) {
+function getJobDuration(job: Job): string {
   if (!job.started_at) return 'N/A'
   
   const start = new Date(job.started_at)
   const end = job.completed_at ? new Date(job.completed_at) : new Date()
-  const diff = end - start
+  const diff = end.getTime() - start.getTime()
   
   if (diff < 1000) return '< 1s'
   if (diff < 60000) return `${Math.floor(diff / 1000)}s`
   return `${Math.floor(diff / 60000)}m ${Math.floor((diff % 60000) / 1000)}s`
 }
 
-function getPriorityClass(priority) {
+function getPriorityClass(priority: number): string {
   if (priority >= 2) return 'high'
   if (priority >= 1) return 'medium'
   return 'normal'

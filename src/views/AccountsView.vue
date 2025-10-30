@@ -458,7 +458,7 @@ const connectedAccounts = ref({
 const checkConnectedAccounts = () => {
     const projectId = localStorage.getItem('currentProjectId') || 1;
     axios.get(`/accounts/status?project_id=${projectId}`)
-        .then(response => {
+        .then((response: any) => {
             connectedAccounts.value.youtube = response.data.youtube || false
             connectedAccounts.value.instagram = response.data.instagram || false
             connectedAccounts.value.tiktok = response.data.tiktok || false
@@ -471,76 +471,76 @@ const checkConnectedAccounts = () => {
             connectedAccounts.value.reddit = response.data.reddit || false
             connectedAccounts.value.whatsapp = response.data.whatsapp || false
         })
-        .catch(error => {
+        .catch((error: any) => {
             console.error('Error fetching connected accounts status:', error)
         })
 }
 const connectLinkedIn = () => {
     axios.post(`/connect/linkedin?project_id=${localStorage.getItem('currentProjectId')}`)
-        .then(response => {
+        .then((response: any) => {
             console.log('LinkedIn connection initiated')
             if (response.data.authUrl) {
                 window.location.href = response.data.authUrl
             }
             connectedAccounts.value.linkedin = true
         })
-        .catch(error => {
+        .catch((error: any) => {
             console.error('Error connecting to LinkedIn:', error)
         })
 }
 
 const connectPinterest = () => {
     axios.post(`/connect/pinterest?project_id=${localStorage.getItem('currentProjectId')}`)
-        .then(response => {
+        .then((response: any) => {
             console.log('Pinterest connection initiated')
             if (response.data.authUrl) {
                 window.location.href = response.data.authUrl
             }
             connectedAccounts.value.pinterest = true
         })
-        .catch(error => {
+        .catch((error: any) => {
             console.error('Error connecting to Pinterest:', error)
         })
 }
 
 const connectSnapchat = () => {
     axios.post(`/connect/snapchat?project_id=${localStorage.getItem('currentProjectId')}`)
-        .then(response => {
+        .then((response: any) => {
             console.log('Snapchat connection initiated')
             if (response.data.authUrl) {
                 window.location.href = response.data.authUrl
             }
             connectedAccounts.value.snapchat = true
         })
-        .catch(error => {
+        .catch((error: any) => {
             console.error('Error connecting to Snapchat:', error)
         })
 }
 
 const connectReddit = () => {
     axios.post(`/connect/reddit?project_id=${localStorage.getItem('currentProjectId')}`)
-        .then(response => {
+        .then((response: any) => {
             console.log('Reddit connection initiated')
             if (response.data.authUrl) {
                 window.location.href = response.data.authUrl
             }
             connectedAccounts.value.reddit = true
         })
-        .catch(error => {
+        .catch((error: any) => {
             console.error('Error connecting to Reddit:', error)
         })
 }
 
 const connectWhatsApp = () => {
     axios.post(`/connect/whatsapp?project_id=${localStorage.getItem('currentProjectId')}`)
-        .then(response => {
+        .then((response: any) => {
             console.log('WhatsApp connection initiated')
             if (response.data.authUrl) {
                 window.location.href = response.data.authUrl
             }
             connectedAccounts.value.whatsapp = true
         })
-        .catch(error => {
+        .catch((error: any) => {
             console.error('Error connecting to WhatsApp:', error)
         })
 }
@@ -582,28 +582,28 @@ const disconnectWhatsApp = () => {
 
 const connectX = () => {
     axios.post(`/connect/x?project_id=${localStorage.getItem('currentProjectId')}`)
-        .then(response => {
+        .then((response: any) => {
             console.log('X connection initiated')
             if (response.data.authUrl) {
                 window.location.href = response.data.authUrl
             }
             connectedAccounts.value.x = true
         })
-        .catch(error => {
+        .catch((error: any) => {
             console.error('Error connecting to X:', error)
         })
 }
 
 const connectThreads = () => {
     axios.post(`/connect/threads?project_id=${localStorage.getItem('currentProjectId')}`)
-        .then(response => {
+        .then((response: any) => {
             console.log('Threads connection initiated')
             if (response.data.authUrl) {
                 window.location.href = response.data.authUrl
             }
             connectedAccounts.value.threads = true
         })
-        .catch(error => {
+        .catch((error: any) => {
             console.error('Error connecting to Threads:', error)
         })
 }
@@ -626,56 +626,56 @@ checkConnectedAccounts()
 
 const connectYouTube = () => {
     axios.post(`/connect/youtube?project_id=${localStorage.getItem('currentProjectId')}`)
-        .then(response => {
+        .then((response: any) => {
             console.log('YouTube connection initiated')
             if (response.data.authUrl) {
                 window.location.href = response.data.authUrl
             }
             connectedAccounts.value.youtube = true
         })
-        .catch(error => {
+        .catch((error: any) => {
             console.error('Error connecting to YouTube:', error)
         })
 }
 
 const connectInstagram = () => {
     axios.post(`/connect/instagram?project_id=${localStorage.getItem('currentProjectId')}`)
-        .then(response => {
+        .then((response: any) => {
             console.log('Instagram connection initiated')
             if (response.data.authUrl) {
                 window.location.href = response.data.authUrl
             }
             connectedAccounts.value.instagram = true
         })
-        .catch(error => {
+        .catch((error: any) => {
             console.error('Error connecting to Instagram:', error)
         })
 }
 
 const connectTiktok = () => {
     axios.post(`/connect/tiktok?project_id=${localStorage.getItem('currentProjectId')}`)
-        .then(response => {
+        .then((response: any) => {
             console.log('TikTok connection initiated')
             if (response.data.authUrl) {
                 window.location.href = response.data.authUrl
             }
             connectedAccounts.value.tiktok = true
         })
-        .catch(error => {
+        .catch((error: any) => {
             console.error('Error connecting to TikTok:', error)
         })
 }
 
 const connectFacebook = () => {
     axios.post(`/connect/facebook?project_id=${localStorage.getItem('currentProjectId')}`)
-        .then(response => {
+        .then((response: any) => {
             console.log('Facebook connection initiated')
             if (response.data.authUrl) {
                 window.location.href = response.data.authUrl
             }
             connectedAccounts.value.facebook = true
         })
-        .catch(error => {
+        .catch((error: any) => {
             console.error('Error connecting to Facebook:', error)
         })
 }
@@ -685,11 +685,11 @@ const currentProjectId = localStorage.getItem('currentProjectId') || 1;
 const disconnectYouTube = () => {
     if (confirm('Disconnect YouTube account?')) {
         axios.post(`/disconnect/youtube?project_id=${currentProjectId}`)
-            .then(response => {
+            .then((response: any) => {
                 console.log('YouTube disconnected')
                 connectedAccounts.value.youtube = false
             })
-            .catch(error => {
+            .catch((error: any) => {
                 console.error('Error disconnecting YouTube on server:', error)
             })
     }
@@ -698,11 +698,11 @@ const disconnectYouTube = () => {
 const disconnectInstagram = () => {
     if (confirm('Disconnect Instagram account?')) {
         axios.post(`/disconnect/instagram?project_id=${currentProjectId}`)
-            .then(response => {
+            .then((response: any) => {
                 console.log('Instagram disconnected')
                 connectedAccounts.value.instagram = false
             })
-            .catch(error => {
+            .catch((error: any) => {
                 console.error('Error disconnecting Instagram on server:', error)
             })
     }
@@ -711,11 +711,11 @@ const disconnectInstagram = () => {
 const disconnectTiktok = () => {
     if (confirm('Disconnect TikTok account?')) {
         axios.post(`/disconnect/tiktok?project_id=${currentProjectId}`)
-            .then(response => {
+            .then((response: any) => {
                 console.log('TikTok disconnected')
                 connectedAccounts.value.tiktok = false
             })
-            .catch(error => {
+            .catch((error: any) => {
                 console.error('Error disconnecting TikTok on server:', error)
             })
     }
@@ -724,11 +724,11 @@ const disconnectTiktok = () => {
 const disconnectFacebook = () => {
     if (confirm('Disconnect Facebook account?')) {
         axios.post(`/disconnect/facebook?project_id=${currentProjectId}`)
-            .then(response => {
+            .then((response: any) => {
                 console.log('Facebook disconnected')
                 connectedAccounts.value.facebook = false
             })
-            .catch(error => {
+            .catch((error: any) => {
                 console.error('Error disconnecting Facebook on server:', error)
             })
     }
