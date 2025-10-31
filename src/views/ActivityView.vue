@@ -167,12 +167,13 @@ export default defineComponent({
     },
     methods: {
         async loadActivities() {
+           // console.log('Loading activities for project ID:', this.currentProjectId);
             try {
                 this.isLoading = true;
                 
-                const storedProject = localStorage.getItem('selectedProject');
+                const storedProject = localStorage.getItem('currentProjectId');
                 if (storedProject) {
-                    this.currentProjectId = JSON.parse(storedProject).id;
+                    this.currentProjectId = JSON.parse(storedProject);
                 }
 
                 if (!this.currentProjectId) {
