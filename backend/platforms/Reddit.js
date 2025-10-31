@@ -21,7 +21,7 @@ class RedditManager {
     constructor(options = {}) {
         this.clientId = options.clientId || process.env.REDDIT_CLIENT_ID || '';
         this.clientSecret = options.clientSecret || process.env.REDDIT_CLIENT_SECRET || '';
-        this.redirectUri = options.redirectUri || (process.env.MODE === 'prod' ? 'https://api.reelmia.com/api/oauth2callback/reddit' : 'http://localhost:6709/api/oauth2callback/reddit');
+        this.redirectUri = options.redirectUri || 'https://api.reelmia.com/api/oauth2callback/reddit';// : 'http://localhost:6709/api/oauth2callback/reddit', process.env.MODE === 'prod' ? 
         this.projectId = 2;
         this.scopes = options.scopes || SCOPES;
         this.userAgent = options.userAgent || 'Control Studio/1.0';
@@ -74,6 +74,11 @@ class RedditManager {
     async exchangeCodeForToken(code, state) {
         try {
             const oauthState1 = await retrieveOAuthState(state);
+
+            if (!oauthState1) {
+                return { redirect: 'to_local' }
+            }
+
             const projectId = oauthState1.project_id;
             const oauthState = await retrieveTokenByProjectID('reddit_oauth_state', projectId);
 

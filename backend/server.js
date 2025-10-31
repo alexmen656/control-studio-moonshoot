@@ -116,8 +116,8 @@ app.post('/api/workers/register', async (req, res) => {
              status = 'online', last_heartbeat = CURRENT_TIMESTAMP
          WHERE worker_id = $6
          RETURNING *`,
-        [worker_name, hostname, ip_address, JSON.stringify(capabilities || {}), 
-         max_concurrent_tasks || 3, worker_id]
+        [worker_name, hostname, ip_address, JSON.stringify(capabilities || {}),
+          max_concurrent_tasks || 3, worker_id]
       );
       worker = result.rows[0];
       console.log(`Worker ${worker_id} re-registered`);
@@ -126,8 +126,8 @@ app.post('/api/workers/register', async (req, res) => {
         `INSERT INTO workers (worker_id, worker_name, hostname, ip_address, capabilities, max_concurrent_tasks)
          VALUES ($1, $2, $3, $4, $5, $6)
          RETURNING *`,
-        [worker_id, worker_name, hostname, ip_address, 
-         JSON.stringify(capabilities || {}), max_concurrent_tasks || 3]
+        [worker_id, worker_name, hostname, ip_address,
+          JSON.stringify(capabilities || {}), max_concurrent_tasks || 3]
       );
       worker = result.rows[0];
       console.log(`Worker ${worker_id} registered successfully`);
@@ -438,7 +438,7 @@ app.get('/api/jobs', authMiddleware, async (req, res) => {
       FROM worker_jobs j
       LEFT JOIN workers w ON j.worker_id = w.worker_id
     `;
-    
+
     const conditions = [];
     const params = [];
     let paramCount = 1;
@@ -1227,7 +1227,7 @@ app.patch('/api/projects/:id/preferred-worker', async (req, res) => {
       }
 
       if (workerCheck.rows[0].status !== 'online') {
-        return res.status(400).json({ 
+        return res.status(400).json({
           error: 'Cannot set offline worker as preferred',
           worker_status: workerCheck.rows[0].status
         });
@@ -1399,17 +1399,98 @@ app.post('/api/upload', authMiddleware, projectAccessMiddleware, upload.single('
 
 app.get('/api/accounts/status', authMiddleware, projectAccessMiddleware, async (req, res) => {
   const PROJECT_ID = req.query.project_id;
-  //console.log('Checking account status for project ID:', PROJECT_ID);
 
   try {
-    res.json({
-      youtube: await retrieveTokenByProjectID('youtube_token', PROJECT_ID) === null ? false : true,
-      tiktok: await retrieveTokenByProjectID('tiktok_token', PROJECT_ID) === null ? false : true,
-      instagram: await retrieveTokenByProjectID('instagram_business_account', PROJECT_ID) === null ? false : true,
-      facebook: await retrieveTokenByProjectID('facebook_accounts', PROJECT_ID) === null ? false : true,
-      x: await retrieveTokenByProjectID('x_token', PROJECT_ID) === null ? false : true,
-      reddit: await retrieveTokenByProjectID('reddit_token', PROJECT_ID) === null ? false : true
-    })
+    const accountDetails = {
+      youtube: null,
+      tiktok: null,
+      instagram: null,
+      facebook: null,
+      x: null,
+      reddit: null
+    };
+
+    try {
+      const youtubeToken = await retrieveTokenByProjectID('youtube_token', PROJECT_ID);
+      const youtubeInfo = await retrieveTokenByProjectID('youtube_channel_info', PROJECT_ID);
+      if (youtubeToken && youtubeToken.refresh_token) {
+        accountDetails.youtube = {
+          name: youtubeInfo?.channelTitle || 'YouTube Channel',
+          type: 'channel'
+        };
+      }
+    } catch (err) {
+      // Not connected
+    }
+
+    try {
+      const tiktokToken = await retrieveTokenByProjectID('tiktok_token', PROJECT_ID);
+      const tiktokInfo = await retrieveTokenByProjectID('tiktok_user_info', PROJECT_ID);
+      if (tiktokToken && tiktokToken.access_token) {
+        accountDetails.tiktok = {
+          name: tiktokInfo?.display_name || tiktokInfo?.username || 'TikTok User',
+          username: tiktokInfo?.username,
+          type: 'user'
+        };
+      }
+    } catch (err) {
+      // Not connected
+    }
+
+    try {
+      const instagramAccount = await retrieveTokenByProjectID('instagram_business_account', PROJECT_ID);
+      if (instagramAccount && instagramAccount.username) {
+        accountDetails.instagram = {
+          name: instagramAccount.name || instagramAccount.username,
+          username: instagramAccount.username,
+          type: 'business'
+        };
+      }
+    } catch (err) {
+      // Not connected
+    }
+
+    try {
+      const facebookAccounts = await retrieveTokenByProjectID('facebook_accounts', PROJECT_ID);
+      if (facebookAccounts && facebookAccounts.data && facebookAccounts.data.length > 0) {
+        const firstAccount = facebookAccounts.data[0];
+        accountDetails.facebook = {
+          name: firstAccount.name || 'Facebook Page',
+          type: 'page'
+        };
+      }
+    } catch (err) {
+      // Not connected
+    }
+
+    try {
+      const xToken = await retrieveTokenByProjectID('x_token', PROJECT_ID);
+      const xInfo = await retrieveTokenByProjectID('x_user_info', PROJECT_ID);
+      if (xToken && xToken.access_token) {
+        accountDetails.x = {
+          name: xInfo?.name || 'X User',
+          username: xInfo?.username,
+          type: 'user'
+        };
+      }
+    } catch (err) {
+      // Not connected
+    }
+
+    try {
+      const redditToken = await retrieveTokenByProjectID('reddit_token', PROJECT_ID);
+      const redditInfo = await retrieveTokenByProjectID('reddit_user_info', PROJECT_ID);
+      if (redditToken && redditToken.access_token) {
+        accountDetails.reddit = {
+          name: redditInfo?.name || 'Reddit User',
+          type: 'user'
+        };
+      }
+    } catch (err) {
+      // Not connected
+    }
+
+    res.json(accountDetails);
   } catch (error) {
     console.error('Error checking account status:', error)
     res.status(500).json({ error: 'Error checking account status' })
@@ -1699,6 +1780,7 @@ app.post('/api/connect/:platform', async (req, res) => {
         }
 
       case 'reddit':
+        console.log('Connecting to Reddit for project ID:', PROJECT_ID);
         redditManager.projectId = PROJECT_ID;
         const redditResult = await redditManager.authorize();
 
@@ -1726,36 +1808,40 @@ app.post('/api/disconnect/:platform', async (req, res) => {
 
     switch (platform) {
       case 'youtube':
-        removeTokenByProjectID(1, 'youtube_token', PROJECT_ID);
-        removeTokenByProjectID(1, 'youtube_code', PROJECT_ID);
+        removeTokenByProjectID('youtube_token', PROJECT_ID);
+        removeTokenByProjectID('youtube_code', PROJECT_ID);
+        removeTokenByProjectID('youtube_channel_info', PROJECT_ID);
         return res.json({ message: 'Disconnected from YouTube successfully' });
 
       case 'instagram':
-        removeTokenByProjectID(1, 'instagram_business_account', PROJECT_ID);
-        removeTokenByProjectID(1, 'instagram_token', PROJECT_ID);
-        removeTokenByProjectID(1, 'instagram_code', PROJECT_ID);
-        removeTokenByProjectID(1, 'facebook_accounts_for_instagram', PROJECT_ID);
+        removeTokenByProjectID('instagram_business_account', PROJECT_ID);
+        removeTokenByProjectID('instagram_token', PROJECT_ID);
+        removeTokenByProjectID('instagram_code', PROJECT_ID);
+        removeTokenByProjectID('facebook_accounts_for_instagram', PROJECT_ID);
         return res.json({ message: 'Disconnected from Instagram successfully' });
 
       case 'facebook':
-        removeTokenByProjectID(1, 'facebook_token', PROJECT_ID);
-        removeTokenByProjectID(1, 'facebook_code', PROJECT_ID);
-        removeTokenByProjectID(1, 'facebook_accounts', PROJECT_ID);
+        removeTokenByProjectID('facebook_token', PROJECT_ID);
+        removeTokenByProjectID('facebook_code', PROJECT_ID);
+        removeTokenByProjectID('facebook_accounts', PROJECT_ID);
         return res.json({ message: 'Disconnected from Facebook successfully' });
 
       case 'tiktok':
-        removeTokenByProjectID(1, 'tiktok_token', PROJECT_ID);
-        removeTokenByProjectID(1, 'tiktok_code', PROJECT_ID);
+        removeTokenByProjectID('tiktok_token', PROJECT_ID);
+        removeTokenByProjectID('tiktok_code', PROJECT_ID);
+        removeTokenByProjectID('tiktok_user_info', PROJECT_ID);
         return res.json({ message: 'Disconnected from TikTok successfully' });
 
       case 'x':
-        removeTokenByProjectID(1, 'x_token', PROJECT_ID);
-        removeTokenByProjectID(1, 'x_oauth_state', PROJECT_ID);
+        removeTokenByProjectID('x_token', PROJECT_ID);
+        removeTokenByProjectID('x_oauth_state', PROJECT_ID);
+        removeTokenByProjectID('x_user_info', PROJECT_ID);
         return res.json({ message: 'Disconnected from X successfully' });
 
       case 'reddit':
-        removeTokenByProjectID(1, 'reddit_token', PROJECT_ID);
-        removeTokenByProjectID(1, 'reddit_oauth_state', PROJECT_ID);
+        removeTokenByProjectID('reddit_token', PROJECT_ID);
+        removeTokenByProjectID('reddit_oauth_state', PROJECT_ID);
+        removeTokenByProjectID('reddit_user_info', PROJECT_ID);
         return res.json({ message: 'Disconnected from Reddit successfully' });
 
       default:
@@ -1844,26 +1930,58 @@ app.get('/api/connected-platforms', authMiddleware, projectAccessMiddleware, asy
 })
 
 app.get('/api/oauth2callback/youtube', async (req, res) => {
-  const { code } = req.query;
-  //fuck this wont work because the request is comming grom google redirect, how to figure it out with state later
-  const PROJECT_ID = 2;//req.query.project_id || 
-
+  const { code, state } = req.query;
+  
   if (!code) {
     return res.status(400).send('Authorization code not provided');
   }
 
   try {
+    let PROJECT_ID = 2;
+    if (state) {
+      try {
+        const stateData = await retrieveOAuthState(state);
+        PROJECT_ID = stateData.project_id;
+      } catch (err) {
+        console.warn('Could not retrieve state for YouTube, using default PROJECT_ID=2');
+      }
+    }
+
     await storeTokenByProjectID('youtube_code', { code: code }, PROJECT_ID);
     await youTubeManager.getTokenFromCode(code, PROJECT_ID);
+    
+    try {
+      const youtubeToken = await retrieveTokenByProjectID('youtube_token', PROJECT_ID);
+      if (youtubeToken && youtubeToken.access_token) {
+        const auth = new google.auth.OAuth2(
+          process.env.YOUTUBE_CLIENT_ID,
+          process.env.YOUTUBE_CLIENT_SECRET,
+          process.env.YOUTUBE_REDIRECT_URI
+        );
+        auth.setCredentials(youtubeToken);
+        const youtube = google.youtube({ version: 'v3', auth });
+        const channelResponse = await youtube.channels.list({
+          part: 'snippet',
+          mine: true
+        });
+        if (channelResponse.data.items && channelResponse.data.items.length > 0) {
+          await storeTokenByProjectID('youtube_channel_info', {
+            channelTitle: channelResponse.data.items[0].snippet.title,
+            channelId: channelResponse.data.items[0].id
+          }, PROJECT_ID);
+          console.log('✅ YouTube channel info stored:', channelResponse.data.items[0].snippet.title);
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching YouTube channel info:', err);
+    }
+
     res.redirect(`${baseDomain}/accounts`);
-    //res.send('YouTube authorization successful! You can close this tab.');
   } catch (error) {
     console.error('Error during YouTube OAuth2 callback:', error);
     res.status(500).send('Error during YouTube authorization');
   }
-});
-
-app.get('/api/oauth2callback/tiktok', async (req, res) => {
+});app.get('/api/oauth2callback/tiktok', async (req, res) => {
   const { code, state, error, error_description } = req.query;
 
   if (error) {
@@ -1877,6 +1995,49 @@ app.get('/api/oauth2callback/tiktok', async (req, res) => {
 
   try {
     await tiktokManager.exchangeCodeForToken(code, state);
+
+    try {
+      const stateData = await retrieveOAuthState(state);
+      const PROJECT_ID = stateData.project_id;
+      
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      const tiktokToken = await retrieveTokenByProjectID('tiktok_token', PROJECT_ID);
+      console.log('🔍 TikTok token retrieved:', tiktokToken ? 'exists' : 'null', tiktokToken?.access_token ? 'has access_token' : 'no access_token');
+
+      if (tiktokToken && tiktokToken.access_token) {
+        const userInfoResponse = await fetch('https://open.tiktokapis.com/v2/user/info/?fields=open_id,display_name,username', {
+          headers: {
+            'Authorization': `Bearer ${tiktokToken.access_token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        const responseText = await userInfoResponse.text();
+       // console.log('🔍 TikTok API response status:', userInfoResponse.status);
+        //console.log('🔍 TikTok API response:', responseText);
+        
+        if (userInfoResponse.ok) {
+          const userData = JSON.parse(responseText);
+          if (userData.data && userData.data.user) {
+            await storeTokenByProjectID('tiktok_user_info', {
+              display_name: userData.data.user.display_name,
+              username: userData.data.user.username,
+              open_id: userData.data.user.open_id
+            }, PROJECT_ID);
+            console.log('✅ TikTok user info stored:', userData.data.user.display_name, '@' + userData.data.user.username);
+          } else {
+            console.error('❌ TikTok response missing user data:', userData);
+          }
+        } else {
+          console.error('❌ TikTok user info fetch failed:', userInfoResponse.status, responseText);
+        }
+      } else {
+        console.error('❌ TikTok token not found or missing access_token');
+      }
+    } catch (err) {
+      console.error('Error fetching TikTok user info:', err);
+    }
 
     res.redirect(`${baseDomain}/accounts?tiktok=connected`);
   } catch (error) {
@@ -1913,9 +2074,19 @@ app.get('/api/oauth2callback/instagram', async (req, res) => {
         .then(async (response) => {
           await storeTokenByProjectID('facebook_accounts_for_instagram', response.data, PROJECT_ID);
 
-          axios.get(`https://graph.facebook.com/v24.0/${response.data.data[0].id}?fields=instagram_business_account&access_token=${response.data.data[0].access_token}`)
-            .then(async (response) => {
-              await storeTokenByProjectID('instagram_business_account', response.data, PROJECT_ID);
+          const pageAccessToken = response.data.data[0].access_token;
+          axios.get(`https://graph.facebook.com/v24.0/${response.data.data[0].id}?fields=instagram_business_account&access_token=${pageAccessToken}`)
+            .then(async (igResponse) => {
+              const igAccountId = igResponse.data.instagram_business_account.id;
+
+              axios.get(`https://graph.facebook.com/v24.0/${igAccountId}?fields=username,name&access_token=${pageAccessToken}`)
+                .then(async (detailsResponse) => {
+                  await storeTokenByProjectID('instagram_business_account', {
+                    id: igAccountId,
+                    username: detailsResponse.data.username,
+                    name: detailsResponse.data.name
+                  }, PROJECT_ID);
+                });
             });
         });
     });
@@ -1977,8 +2148,36 @@ app.get('/api/oauth2callback/x', async (req, res) => {
   }
 
   try {
-    const PROJECT_ID = 2;
-    const tokenData = await xManager.exchangeCodeForToken(code, state);
+    await xManager.exchangeCodeForToken(code, state);
+    
+    try {
+      const stateData = await retrieveOAuthState(state);
+      const PROJECT_ID = stateData.project_id;
+      const xToken = await retrieveTokenByProjectID('x_token', PROJECT_ID);
+      if (xToken && xToken.access_token) {
+        const userResponse = await fetch('https://api.twitter.com/2/users/me', {
+          headers: {
+            'Authorization': `Bearer ${xToken.access_token}`
+          }
+        });
+        if (userResponse.ok) {
+          const userData = await userResponse.json();
+          if (userData.data) {
+            await storeTokenByProjectID('x_user_info', {
+              name: userData.data.name,
+              username: userData.data.username,
+              id: userData.data.id
+            }, PROJECT_ID);
+            console.log('✅ X user info stored:', userData.data.name, '@' + userData.data.username);
+          }
+        } else {
+          console.error('❌ X user info fetch failed:', userResponse.status, await userResponse.text());
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching X user info:', err);
+    }
+    
     console.log('X token stored successfully');
     res.redirect(`${baseDomain}/accounts?x=connected`);
   } catch (error) {
@@ -1988,14 +2187,9 @@ app.get('/api/oauth2callback/x', async (req, res) => {
 });
 
 app.get('/api/oauth2callback/reddit', async (req, res) => {
-  //reddit only always 1 redirect uri and only 1 app
-  if (process.env.MODE !== 'prod') {
-    return res.redirect('http://localhost:6709/api/oauth2callback/reddit');
-  }
-  
   const { code, state, error, error_description } = req.query;
 
-  if (error) {
+  if (error && process.env.NODE_ENV == 'prod') {
     console.error('Reddit OAuth error:', error, error_description);
     return res.redirect(`${baseDomain}/accounts?error=${error}`);
   }
@@ -2005,17 +2199,44 @@ app.get('/api/oauth2callback/reddit', async (req, res) => {
   }
 
   try {
-    const PROJECT_ID = 2;
     const tokenData = await redditManager.exchangeCodeForToken(code, state);
+
+        if (tokenData.redirect === 'to_local') {
+          res.redirect('http://localhost:6709/api/oauth2callback/reddit?code=' + code + '&state=' + state + '&error=' + (error || '') + '&error_description=' + (error_description || ''));
+        }
+    try {
+      const stateData = await retrieveOAuthState(state);
+      const PROJECT_ID = stateData.project_id;
+      const redditToken = await retrieveTokenByProjectID('reddit_token', PROJECT_ID);
+      if (redditToken && redditToken.access_token) {
+        const userResponse = await fetch('https://oauth.reddit.com/api/v1/me', {
+          headers: {
+            'Authorization': `Bearer ${redditToken.access_token}`,
+            'User-Agent': 'ControlStudio/1.0'
+          }
+        });
+        if (userResponse.ok) {
+          const userData = await userResponse.json();
+          await storeTokenByProjectID('reddit_user_info', {
+            name: userData.name,
+            id: userData.id
+          }, PROJECT_ID);
+          console.log('✅ Reddit user info stored:', userData.name);
+        } else {
+          console.error('❌ Reddit user info fetch failed:', userResponse.status);
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching Reddit user info:', err);
+    }
+    
     console.log('Reddit token stored successfully');
     res.redirect(`${baseDomain}/accounts?reddit=connected`);
   } catch (error) {
     console.error('Error during Reddit OAuth2 callback:', error);
     res.redirect(`${baseDomain}/accounts?error=reddit_auth_failed`);
   }
-});
-
-app.post('/api/publish', async (req, res) => {
+});app.post('/api/publish', async (req, res) => {
   const platformStatuses = {}
 
   try {

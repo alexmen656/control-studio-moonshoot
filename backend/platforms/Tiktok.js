@@ -13,6 +13,7 @@ dotenv.config({ path: path.join(PROJECT_ROOT, '.env') });
 
 const SCOPES = [
     'user.info.basic',
+    'user.info.profile',
     'video.upload',
     'video.publish',
     'video.list'
@@ -60,6 +61,8 @@ class TikTokManager {
                 code_verifier: codeVerifier,
                 csrf_state: csrfState
             }, this.projectId);
+
+            console.log("scopes:", this.scopes);
 
             const authUrl = new URL('https://www.tiktok.com/v2/auth/authorize/');
             authUrl.searchParams.append('client_key', this.clientKey);
