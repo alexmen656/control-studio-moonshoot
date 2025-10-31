@@ -1988,6 +1988,11 @@ app.get('/api/oauth2callback/x', async (req, res) => {
 });
 
 app.get('/api/oauth2callback/reddit', async (req, res) => {
+  //reddit only always 1 redirect uri and only 1 app
+  if (process.env.MODE !== 'prod') {
+    return res.redirect('http://localhost:6709/api/oauth2callback/reddit');
+  }
+  
   const { code, state, error, error_description } = req.query;
 
   if (error) {
