@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, getCurrentInstance } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import axios from 'axios'
 
 const route = useRoute()
 const router = useRouter()
 const API_URL = 'http://localhost:6709/api'
+
+const instance = getCurrentInstance()
+const axios = instance?.appContext.config.globalProperties.$axios
 
 interface Video {
     id: string
