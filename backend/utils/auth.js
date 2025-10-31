@@ -200,7 +200,12 @@ export const authMiddleware = async (req, res, next) => {
 
 export const projectAccessMiddleware = async (req, res, next) => {
     try {
-        const projectId = req.query.project_id || req.body.project_id || req.params.project_id || req.params.id;
+        const projectId = req.query.project_id || req.body?.project_id || req.params.project_id || req.params.id;
+
+      //  console.log('projectAccessMiddleware - projectId:', projectId);
+      //  console.log('projectAccessMiddleware - req.query:', req.query);
+      //  console.log('projectAccessMiddleware - req.body:', req.body);
+      // console.log('projectAccessMiddleware - req.params:', req.params);
 
         if (!projectId) {
             return res.status(400).json({ error: 'Project ID is required' });
@@ -222,6 +227,8 @@ export const projectAccessMiddleware = async (req, res, next) => {
             id: accessResult.rows[0].project_id,
             name: accessResult.rows[0].project_name
         };
+
+        console.log('projectAccessMiddleware - req.project set to:', req.project);
 
         next();
     } catch (error) {

@@ -15,7 +15,11 @@
                     {{ filter.label }}
                 </button>
             </div>
-            <div class="space-y-6">
+            <div v-if="isLoading" class="text-center py-16">
+                <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-600"></div>
+                <p class="mt-4 text-gray-600 dark:text-gray-400">Loading activity...</p>
+            </div>
+            <div v-else class="space-y-6">
                 <div v-if="getTodayActivities.length > 0">
                     <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                         <span class="w-2 h-2 bg-green-500 rounded-full"></span>
@@ -63,6 +67,7 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import ActivityItem from '../components/ActivityItem.vue';
+import apiClient from '@/api/client';
 
 interface Activity {
     id: string;
@@ -73,6 +78,30 @@ interface Activity {
     platforms?: string[];
     thumbnail?: string;
     status?: 'success' | 'pending' | 'failed';
+}
+
+interface Video {
+    id: string;
+    title: string;
+    filename: string;
+    thumbnail: string;
+    upload_date: string;
+    updated_at?: string;
+    scheduled_date?: string;
+    published_at?: string;
+    status: string;
+    project_id: number;
+}
+
+interface Job {
+    job_id: string;
+    video_id: string;
+    platform: string;
+    status: string;
+    created_at: string;
+    started_at?: string;
+    completed_at?: string;
+    error_message?: string;
 }
 
 export default defineComponent({
@@ -90,53 +119,16 @@ export default defineComponent({
                 { label: 'Published', value: 'published' },
                 { label: 'Edited', value: 'edited' }
             ],
-            activities: [
-                {
-                    id: '1',
-                    type: 'upload',
-                    title: 'Video uploaded: How to use Control Studio',
-                    description: 'New video uploaded successfully',
-                    timestamp: new Date(),
-                    thumbnail: 'https://via.placeholder.com/150',
-                    status: 'success'
-                },
-                {
-                    id: '2',
-                    type: 'scheduled',
-                    title: 'Post scheduled for Instagram & TikTok',
-                    description: 'Scheduled for tomorrow at 3:00 PM',
-                    timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
-                    platforms: ['instagram', 'tiktok'],
-                    status: 'pending'
-                },
-                {
-                    id: '3',
-                    type: 'published',
-                    title: 'Post published on YouTube',
-                    description: 'Your video "Tutorial #1" is now live',
-                    timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000),
-                    platforms: ['youtube'],
-                    status: 'success'
-                },
-                {
-                    id: '4',
-                    type: 'edited',
-                    title: 'Video metadata updated',
-                    description: 'Changed title and description',
-                    timestamp: new Date(Date.now() - 25 * 60 * 60 * 1000),
-                    status: 'success'
-                },
-                {
-                    id: '5',
-                    type: 'scheduled',
-                    title: 'Post scheduled for Facebook',
-                    description: 'Scheduled for Friday at 10:00 AM',
-                    timestamp: new Date(Date.now() - 48 * 60 * 60 * 1000),
-                    platforms: ['facebook'],
-                    status: 'pending'
-                }
-            ] as Activity[]
+            activities: [] as Activity[],
+            isLoading: true,
+            currentProjectId: null as number | null
         };
+    },
+    async mounted() {
+        await this.loadActivities();
+        setInterval(() => {
+            this.loadActivities();
+        }, 30000);
     },
     computed: {
         filteredActivities(): Activity[] {
@@ -174,6 +166,35 @@ export default defineComponent({
         }
     },
     methods: {
+        async loadActivities() {
+            try {
+                this.isLoading = true;
+                
+                const storedProject = localStorage.getItem('selectedProject');
+                if (storedProject) {
+                    this.currentProjectId = JSON.parse(storedProject).id;
+                }
+
+                if (!this.currentProjectId) {
+                    this.activities = [];
+                    this.isLoading = false;
+                    return;
+                }
+
+                const response = await apiClient.get(`/activity?project_id=${this.currentProjectId}`);
+                
+                this.activities = response.data.activities.map((activity: any) => ({
+                    ...activity,
+                    timestamp: new Date(activity.timestamp)
+                }));
+
+            } catch (error) {
+                console.error('Error loading activities:', error);
+                this.activities = [];
+            } finally {
+                this.isLoading = false;
+            }
+        },
         formatDate(date: Date): string {
             return date.toLocaleDateString('de-DE', {
                 day: '2-digit',

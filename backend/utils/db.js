@@ -92,8 +92,8 @@ export const createVideo = async (videoData) => {
         const result = await client.query(`
       INSERT INTO videos (
         id, title, filename, original_name, thumbnail, duration, 
-        size, size_bytes, upload_date, status, progress, views, path
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+        size, size_bytes, upload_date, status, progress, views, path, project_id
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
       RETURNING *
     `, [
             videoData.id,
@@ -108,7 +108,8 @@ export const createVideo = async (videoData) => {
             videoData.status,
             videoData.progress,
             videoData.views,
-            videoData.path
+            videoData.path,
+            videoData.project_id
         ]);
 
         const video = result.rows[0];

@@ -1365,6 +1365,10 @@ app.post('/api/upload', authMiddleware, projectAccessMiddleware, upload.single('
       return res.status(400).json({ error: 'No video file uploaded' })
     }
 
+    console.log('Upload - req.project:', req.project)
+    console.log('Upload - req.query.project_id:', req.query.project_id)
+    console.log('Upload - req.body.project_id:', req.body.project_id)
+
     const stats = getVideoStats(req.file.path)
 
     const newVideo = {
@@ -2730,6 +2734,156 @@ app.get('/api/analytics/total', async (req, res) => {
   } catch (error) {
     console.error('Error fetching total analytics:', error);
     res.status(500).json({ error: 'Error fetching analytics', details: error.message });
+  }
+});
+
+// ============================================
+// ACTIVITY ROUTES
+// ============================================
+
+app.get('/api/activity', authMiddleware, projectAccessMiddleware, async (req, res) => {
+  try {
+    const PROJECT_ID = req.query.project_id;
+
+    if (!PROJECT_ID) {
+      return res.status(400).json({ error: 'project_id is required' });
+    }
+
+    const videosQuery = `
+      SELECT 
+        id, title, filename, thumbnail, 
+        upload_date, updated_at, scheduled_date, 
+        published_at, status
+      FROM videos 
+      WHERE project_id = $1
+      ORDER BY upload_date DESC
+      LIMIT 100
+    `;
+    const videosResult = await db.query(videosQuery, [PROJECT_ID]);
+
+    const jobsQuery = `
+      SELECT 
+        j.job_id, j.video_id, j.platform, 
+        j.status, j.created_at, j.started_at, 
+        j.completed_at, j.error_message,
+        w.worker_name, w.hostname
+      FROM worker_jobs j
+      LEFT JOIN workers w ON j.worker_id = w.worker_id
+      WHERE j.metadata->>'project_id' = $1
+      ORDER BY j.created_at DESC
+      LIMIT 100
+    `;
+    const jobsResult = await db.query(jobsQuery, [PROJECT_ID.toString()]);
+
+    const activities = [];
+
+    videosResult.rows.forEach(video => {
+      activities.push({
+        id: `upload-${video.id}`,
+        type: 'upload',
+        title: `Video uploaded: ${video.title}`,
+        description: 'New video uploaded successfully',
+        timestamp: video.upload_date,
+        thumbnail: video.thumbnail,
+        status: 'success',
+        videoId: video.id
+      });
+
+      if (video.scheduled_date) {
+        activities.push({
+          id: `scheduled-${video.id}`,
+          type: 'scheduled',
+          title: `Video scheduled: ${video.title}`,
+          description: `Scheduled for ${new Date(video.scheduled_date).toLocaleString('de-DE')}`,
+          timestamp: video.upload_date,
+          thumbnail: video.thumbnail,
+          status: 'pending',
+          videoId: video.id
+        });
+      }
+
+      if (video.published_at) {
+        activities.push({
+          id: `published-${video.id}`,
+          type: 'published',
+          title: `Video published: ${video.title}`,
+          description: 'Your video is now live',
+          timestamp: video.published_at,
+          thumbnail: video.thumbnail,
+          status: 'success',
+          videoId: video.id
+        });
+      }
+
+      if (video.updated_at && video.updated_at !== video.upload_date) {
+        activities.push({
+          id: `edited-${video.id}`,
+          type: 'edited',
+          title: `Video updated: ${video.title}`,
+          description: 'Video metadata or details updated',
+          timestamp: video.updated_at,
+          thumbnail: video.thumbnail,
+          status: 'success',
+          videoId: video.id
+        });
+      }
+    });
+
+    jobsResult.rows.forEach(job => {
+      const video = videosResult.rows.find(v => v.id === job.video_id);
+      const videoTitle = video?.title || 'Unknown Video';
+
+      if (job.status === 'assigned' || job.status === 'processing') {
+        activities.push({
+          id: `job-${job.job_id}`,
+          type: 'scheduled',
+          title: `Processing for ${job.platform}`,
+          description: `Video: ${videoTitle}${job.worker_name ? ` (Worker: ${job.worker_name})` : ''}`,
+          timestamp: job.started_at || job.created_at,
+          platforms: [job.platform],
+          thumbnail: video?.thumbnail,
+          status: 'pending',
+          videoId: job.video_id,
+          jobId: job.job_id
+        });
+      } else if (job.status === 'completed') {
+        activities.push({
+          id: `job-completed-${job.job_id}`,
+          type: 'published',
+          title: `Published on ${job.platform}`,
+          description: `Video: ${videoTitle}`,
+          timestamp: job.completed_at || job.created_at,
+          platforms: [job.platform],
+          thumbnail: video?.thumbnail,
+          status: 'success',
+          videoId: job.video_id,
+          jobId: job.job_id
+        });
+      } else if (job.status === 'failed') {
+        activities.push({
+          id: `job-failed-${job.job_id}`,
+          type: 'published',
+          title: `Failed on ${job.platform}`,
+          description: job.error_message || `Video: ${videoTitle}`,
+          timestamp: job.completed_at || job.created_at,
+          platforms: [job.platform],
+          thumbnail: video?.thumbnail,
+          status: 'failed',
+          videoId: job.video_id,
+          jobId: job.job_id
+        });
+      }
+    });
+
+    activities.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+    res.json({
+      activities,
+      total: activities.length
+    });
+  } catch (error) {
+    console.error('Error fetching activities:', error);
+    res.status(500).json({ error: 'Failed to fetch activities', details: error.message });
   }
 });
 
