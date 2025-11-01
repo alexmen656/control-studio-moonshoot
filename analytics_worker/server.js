@@ -2,6 +2,8 @@ import axios from 'axios';
 import os from 'os';
 import { v4 as uuidv4 } from 'uuid';
 import dotenv from 'dotenv';
+import https from 'https';
+import fs from 'fs';
 
 dotenv.config();
 
@@ -9,7 +11,7 @@ class AnalyticsWorker {
   constructor() {
     this.workerId = process.env.WORKER_ID || `analytics-worker-${uuidv4()}`;
     this.workerName = process.env.WORKER_NAME || `Analytics-Worker-${os.hostname()}`;
-    this.backendUrl = process.env.BACKEND_URL || 'http://localhost:3001';
+    this.backendUrl = process.env.BACKEND_URL || 'https://localhost:3001';
     this.heartbeatInterval = parseInt(process.env.HEARTBEAT_INTERVAL || '30000');
     this.jobPollInterval = parseInt(process.env.JOB_POLL_INTERVAL || '10000');
     this.maxConcurrentTasks = parseInt(process.env.MAX_CONCURRENT_TASKS || '5');
@@ -26,19 +28,30 @@ class AnalyticsWorker {
       platforms: ['youtube', 'tiktok', 'instagram', 'facebook', 'x', 'reddit'],
       metrics: ['views', 'likes', 'comments', 'shares', 'engagement_rate', 'watch_time']
     };
+
+    this.httpsAgent = new https.Agent({
+      cert: fs.readFileSync(`certs/worker-${this.workerId}.crt`),
+      key: fs.readFileSync(`certs/worker-${this.workerId}.key`),
+      ca: fs.readFileSync('certs/ca.crt'),
+      minVersion: 'TLSv1.2',
+      maxVersion: 'TLSv1.3'
+    });
   }
 
   async register() {
     try {
       console.log(`Registering worker ${this.workerId}...`);
       
+      //just for debug
+      console.log(this.httpsAgent)
+
       const response = await axios.post(`${this.backendUrl}/api/workers/register`, {
         worker_id: this.workerId,
         worker_name: this.workerName,
         hostname: os.hostname(),
         capabilities: this.capabilities,
         max_concurrent_tasks: this.maxConcurrentTasks
-      });
+      }, { httpsAgent: this.httpsAgent });
 
       this.isRegistered = true;
       console.log(`✅ Worker registered successfully!`);
@@ -127,7 +140,7 @@ class AnalyticsWorker {
         cpu_usage: cpuUsage,
         memory_usage: memoryUsage.usagePercent,
         metadata: metadata
-      });
+      }, { httpsAgent: this.httpsAgent });
 
       console.log(`💓 Heartbeat sent [Jobs: ${this.currentLoad}/${this.maxConcurrentTasks} | CPU: ${cpuUsage}% | RAM: ${memoryUsage.usagePercent}%]`);
     } catch (error) {
@@ -169,7 +182,7 @@ class AnalyticsWorker {
     }
 
     try {
-      const response = await axios.get(`${this.backendUrl}/api/jobs/next/${this.workerId}`);
+      const response = await axios.get(`${this.backendUrl}/api/jobs/next/${this.workerId}`, { httpsAgent: this.httpsAgent });
       
       if (response.data.job) {
         const job = response.data.job;
@@ -215,7 +228,7 @@ class AnalyticsWorker {
         status,
         error_message: errorMessage,
         result_data: resultData
-      });
+      }, { httpsAgent: this.httpsAgent });
       
       console.log(`✓ Job ${jobId} status updated: ${status}`);
     } catch (error) {
@@ -227,7 +240,7 @@ class AnalyticsWorker {
     try {
       console.log(`🔄 Unregistering worker ${this.workerId}...`);
       
-      await axios.delete(`${this.backendUrl}/api/workers/${this.workerId}`);
+      await axios.delete(`${this.backendUrl}/api/workers/${this.workerId}`, { httpsAgent: this.httpsAgent });
       
       this.isRegistered = false;
       console.log('✅ Worker unregistered successfully');
@@ -353,7 +366,7 @@ class AnalyticsWorker {
     console.log(`   Fetching channel analytics for ${platform}...`);
     
     const tokenResponse = await axios.get(
-      `${this.backendUrl}/api/platform-token/${platform}/${projectId}`
+      `${this.backendUrl}/api/platform-token/${platform}/${projectId}`, { httpsAgent: this.httpsAgent }
     );
     
     if (!tokenResponse.data || !tokenResponse.data.access_token) {

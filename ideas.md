@@ -1,3 +1,4 @@
 - import already posted videos from plattforms
 - updated activity currently when you change the title 5x times it would only show 1x
 - massive server.js clean up and splitting up into different files
+- send warning email to admin when somebody tries to connect without/unguilty cert
