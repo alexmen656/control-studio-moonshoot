@@ -1,6 +1,6 @@
 import db from './db.js';
 
-export async function selectBestWorker(projectId, platformRequirements = []) {
+export async function selectBestWorker(projectId, platformRequirements = [], workerType = 'upload') {
   try {
     const projectResult = await db.query(
       'SELECT preferred_worker_id FROM projects WHERE id = $1',
@@ -38,8 +38,26 @@ export async function selectBestWorker(projectId, platformRequirements = []) {
 
     const workers = workersResult.rows;
 
+    let typeFilteredWorkers = workers;
+    if (workerType) {
+      typeFilteredWorkers = workers.filter(w => {
+        const capabilities = w.capabilities || {};
+        const type = capabilities.type;
+        
+        if (workerType === 'analytics') {
+          return type === 'analytics';
+        }
+        
+        return !type || type === workerType;
+      });
+
+      if (typeFilteredWorkers.length === 0) {
+        throw new Error(`No workers of type '${workerType}' available`);
+      }
+    }
+
     if (preferredWorkerId) {
-      const preferredWorker = workers.find(w => w.worker_id === preferredWorkerId);
+      const preferredWorker = typeFilteredWorkers.find(w => w.worker_id === preferredWorkerId);
       
       if (preferredWorker) {
         if (preferredWorker.current_load < preferredWorker.max_concurrent_tasks) {
@@ -61,7 +79,7 @@ export async function selectBestWorker(projectId, platformRequirements = []) {
       }
     }
 
-    const availableWorkers = workers.filter(w => 
+    const availableWorkers = typeFilteredWorkers.filter(w => 
       w.current_load < w.max_concurrent_tasks
     );
 

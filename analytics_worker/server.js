@@ -5,32 +5,14 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-/*
-> control-studio-worker@1.0.0 start
-> node server.js
-
-🚀 Starting Upload Worker...
-================================
-🔄 Registering worker worker-a8ca79b1-bc31-4e4d-af24-e0d1afc6d1a9...
-❌ Failed to register worker: getaddrinfo ENOTFOUND backend
-❌ Failed to start worker: getaddrinfo ENOTFOUND backend
-(base) alexpolan@Alexs-MacBook-Pro control-studio-moonshoot-1 % 
-
-solutionm:host.docker.internal
-
-
-test video id:
-1761781124284
-*/
-
-class UploadWorker {
+class AnalyticsWorker {
   constructor() {
-    this.workerId = process.env.WORKER_ID || `worker-${uuidv4()}`;
-    this.workerName = process.env.WORKER_NAME || `Worker-${os.hostname()}`;
+    this.workerId = process.env.WORKER_ID || `analytics-worker-${uuidv4()}`;
+    this.workerName = process.env.WORKER_NAME || `Analytics-Worker-${os.hostname()}`;
     this.backendUrl = process.env.BACKEND_URL || 'http://localhost:6709';
     this.heartbeatInterval = parseInt(process.env.HEARTBEAT_INTERVAL || '30000');
-    this.jobPollInterval = parseInt(process.env.JOB_POLL_INTERVAL || '5000');
-    this.maxConcurrentTasks = parseInt(process.env.MAX_CONCURRENT_TASKS || '3');
+    this.jobPollInterval = parseInt(process.env.JOB_POLL_INTERVAL || '10000');
+    this.maxConcurrentTasks = parseInt(process.env.MAX_CONCURRENT_TASKS || '5');
     
     this.isRegistered = false;
     this.isRunning = false;
@@ -40,9 +22,9 @@ class UploadWorker {
     this.activeJobs = new Map();
     
     this.capabilities = {
+      type: 'analytics',
       platforms: ['youtube', 'tiktok', 'instagram', 'facebook', 'x', 'reddit'],
-      maxFileSize: 500 * 1024 * 1024,
-      supportedFormats: ['mp4', 'avi', 'mov', 'wmv', 'flv', 'mkv', 'webm']
+      metrics: ['views', 'likes', 'comments', 'shares', 'engagement_rate', 'watch_time']
     };
   }
 
@@ -255,7 +237,7 @@ class UploadWorker {
   }
 
   async start() {
-    console.log('🚀 Starting Upload Worker...');
+    console.log('🚀 Starting Analytics Worker...');
     console.log('================================');
     
     try {
@@ -264,7 +246,7 @@ class UploadWorker {
       
       this.isRunning = true;
       console.log('================================');
-      console.log('✅ Worker is now running and ready!');
+      console.log('✅ Analytics Worker is now running and ready!');
       console.log('   Press Ctrl+C to stop');
       console.log('================================\n');
       
@@ -302,36 +284,47 @@ class UploadWorker {
     console.log('✅ Worker stopped successfully');
     process.exit(0);
   }
-
+  
   async processJob(job) {
-    console.log(`\n Processing job: ${job.job_id}`);
+    console.log('raw job:', job);
+    //ts gets projectId - undefined???
+
+    //job.metadata.project_id, not job.metadata.project_id
+    console.log(`\n📊 Processing analytics job: ${job.job_id}`);
     console.log(`   Platform: ${job.platform}`);
-    console.log(`   Video: ${job.metadata?.video_title || job.video_id}`);
+    console.log(`   Task Type: ${job.metadata?.task_type || 'analytics_fetch'}`);
+    console.log(`   Project ID: ${job.metadata.project_id}`);
     
     try {
-      // TODO: Implement actual upload logic based on platform
-      // For now, simulate processing
-      console.log(`   Starting upload to ${job.platform}...`);
+      const taskType = job.metadata?.task_type || 'channel_analytics';
       
-      // Simulate upload time (2-5 seconds)
-      const uploadTime = 2000 + Math.random() * 3000;
-      await new Promise(resolve => setTimeout(resolve, uploadTime));
+      console.log(`   Starting analytics fetch from ${job.platform}...`);
       
-      // Simulate success/failure (90% success rate for testing)
-      const success = Math.random() > 0.1;
+      let analyticsData = null;
       
-      if (success) {
-        console.log(`✅ Successfully uploaded to ${job.platform}`);
-        
-        await this.updateJobStatus(job.job_id, 'completed', null, {
-          platform: job.platform,
-          uploaded_at: new Date().toISOString(),
-          video_id: job.video_id,
-          platform_response: 'Mock upload successful'
-        });
-      } else {
-        throw new Error('Simulated upload failure');
+      switch (taskType) {
+        case 'channel_analytics':
+          analyticsData = await this.fetchChannelAnalytics(job);
+          break;
+        case 'video_analytics':
+          analyticsData = await this.fetchVideoAnalytics(job);
+          break;
+        case 'hourly_analytics':
+          analyticsData = await this.fetchHourlyAnalytics(job);
+          break;
+        default:
+          throw new Error(`Unknown task type: ${taskType}`);
       }
+      
+      console.log(`✅ Successfully fetched analytics from ${job.platform}`);
+      
+      await this.updateJobStatus(job.job_id, 'completed', null, {
+        platform: job.platform,
+        task_type: taskType,
+        fetched_at: new Date().toISOString(),
+        project_id: job.metadata.project_id,
+        analytics_data: analyticsData
+      });
       
     } catch (error) {
       console.error(`❌ Failed to process job ${job.job_id}:`, error.message);
@@ -340,18 +333,190 @@ class UploadWorker {
         job.job_id, 
         'failed', 
         error.message,
-        { platform: job.platform, failed_at: new Date().toISOString() }
+        { 
+          platform: job.platform, 
+          failed_at: new Date().toISOString(),
+          error_details: error.stack 
+        }
       );
     } finally {
-      // Clean up
       this.activeJobs.delete(job.job_id);
       this.currentLoad = Math.max(0, this.currentLoad - 1);
       console.log(`📊 Current load: ${this.currentLoad}/${this.maxConcurrentTasks}\n`);
     }
   }
+
+  async fetchChannelAnalytics(job) {
+    const platform = job.platform;
+    const projectId = job.metadata.project_id;
+    
+    console.log(`   Fetching channel analytics for ${platform}...`);
+    
+    const tokenResponse = await axios.get(
+      `${this.backendUrl}/api/platform-token/${platform}/${projectId}`
+    );
+    
+    if (!tokenResponse.data || !tokenResponse.data.access_token) {
+      throw new Error(`No access token found for ${platform}`);
+    }
+    
+    const accessToken = tokenResponse.data.access_token;
+    
+    switch (platform) {
+      case 'youtube':
+        return await this.fetchYouTubeAnalytics(accessToken, job.metadata);
+      case 'tiktok':
+        return await this.fetchTikTokAnalytics(accessToken, job.metadata);
+      case 'instagram':
+        return await this.fetchInstagramAnalytics(accessToken, job.metadata);
+      case 'facebook':
+        return await this.fetchFacebookAnalytics(accessToken, job.metadata);
+      case 'x':
+        return await this.fetchXAnalytics(accessToken, job.metadata);
+      case 'reddit':
+        return await this.fetchRedditAnalytics(accessToken, job.metadata);
+      default:
+        throw new Error(`Unsupported platform: ${platform}`);
+    }
+  }
+
+  async fetchVideoAnalytics(job) {
+    const platform = job.platform;
+    const videoId = job.metadata?.video_id;
+    
+    if (!videoId) {
+      throw new Error('No video_id provided for video analytics');
+    }
+    
+    console.log(`   Fetching video analytics for ${platform} video ${videoId}...`);
+    
+    // For now, simulate with delay
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    return {
+      video_id: videoId,
+      platform: platform,
+      views: Math.floor(Math.random() * 10000),
+      likes: Math.floor(Math.random() * 1000),
+      comments: Math.floor(Math.random() * 500),
+      shares: Math.floor(Math.random() * 200),
+      fetched_at: new Date().toISOString()
+    };
+  }
+
+  async fetchHourlyAnalytics(job) {
+    console.log(`   Fetching hourly analytics for ${job.platform}...`);
+    
+    // Simulate hourly analytics fetch
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    const hours = job.metadata?.hours || 24;
+    const hourlyData = [];
+    
+    for (let i = 0; i < hours; i++) {
+      hourlyData.push({
+        hour: new Date(Date.now() - i * 3600000).toISOString(),
+        views: Math.floor(Math.random() * 1000),
+        likes: Math.floor(Math.random() * 100),
+        comments: Math.floor(Math.random() * 50)
+      });
+    }
+    
+    return {
+      platform: job.platform,
+      hourly_data: hourlyData,
+      fetched_at: new Date().toISOString()
+    };
+  }
+
+  async fetchYouTubeAnalytics(accessToken, metadata) {
+    // TODO: Implement actual YouTube Analytics API calls
+    console.log('   Calling YouTube Analytics API...');
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    return {
+      platform: 'youtube',
+      subscribers: Math.floor(Math.random() * 100000),
+      total_views: Math.floor(Math.random() * 1000000),
+      total_videos: Math.floor(Math.random() * 500),
+      average_view_duration: Math.floor(Math.random() * 300),
+      engagement_rate: (Math.random() * 10).toFixed(2)
+    };
+  }
+
+  async fetchTikTokAnalytics(accessToken, metadata) {
+    // simulate
+    console.log('   Calling TikTok Analytics API...');
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    return {
+      platform: 'tiktok',
+      followers: Math.floor(Math.random() * 50000),
+      total_views: Math.floor(Math.random() * 500000),
+      total_videos: Math.floor(Math.random() * 200),
+      average_watch_time: Math.floor(Math.random() * 30),
+      engagement_rate: (Math.random() * 15).toFixed(2)
+    };
+  }
+
+  async fetchInstagramAnalytics(accessToken, metadata) {
+    //simulate
+    console.log('   Calling Instagram Analytics API...');
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    return {
+      platform: 'instagram',
+      followers: Math.floor(Math.random() * 75000),
+      total_posts: Math.floor(Math.random() * 300),
+      total_reach: Math.floor(Math.random() * 200000),
+      engagement_rate: (Math.random() * 8).toFixed(2)
+    };
+  }
+
+  async fetchFacebookAnalytics(accessToken, metadata) {
+    // simulate
+    console.log('   Calling Facebook Analytics API...');
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    return {
+      platform: 'facebook',
+      page_likes: Math.floor(Math.random() * 100000),
+      total_reach: Math.floor(Math.random() * 500000),
+      total_posts: Math.floor(Math.random() * 400),
+      engagement_rate: (Math.random() * 5).toFixed(2)
+    };
+  }
+
+  async fetchXAnalytics(accessToken, metadata) {
+    // simulate
+    console.log('   Calling X Analytics API...');
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    return {
+      platform: 'x',
+      followers: Math.floor(Math.random() * 80000),
+      total_tweets: Math.floor(Math.random() * 1000),
+      total_impressions: Math.floor(Math.random() * 300000),
+      engagement_rate: (Math.random() * 3).toFixed(2)
+    };
+  }
+
+  async fetchRedditAnalytics(accessToken, metadata) {
+    // simulate
+    console.log('   Calling Reddit Analytics API...');
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    return {
+      platform: 'reddit',
+      karma: Math.floor(Math.random() * 50000),
+      total_posts: Math.floor(Math.random() * 200),
+      total_comments: Math.floor(Math.random() * 500),
+      average_score: (Math.random() * 100).toFixed(2)
+    };
+  }
 }
 
-const worker = new UploadWorker();
+const worker = new AnalyticsWorker();
 
 process.on('SIGINT', async () => {
   await worker.stop();

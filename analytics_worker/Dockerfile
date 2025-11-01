@@ -11,7 +11,8 @@ COPY . .
 ENV NODE_ENV=production
 ENV BACKEND_URL=http://backend:6709
 ENV HEARTBEAT_INTERVAL=30000
-ENV MAX_CONCURRENT_TASKS=3
+ENV JOB_POLL_INTERVAL=10000
+ENV MAX_CONCURRENT_TASKS=5
 
 HEALTHCHECK --interval=60s --timeout=5s --start-period=10s --retries=3 \
   CMD node -e "process.exit(0)"

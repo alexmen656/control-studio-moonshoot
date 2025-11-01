@@ -244,7 +244,7 @@ app.delete('/api/workers/:workerId', async (req, res) => {
 });
 
 // ============================================
-// JOB ROUTES
+// JOB ROUTES (Upload Jobs)
 // ============================================
 
 app.post('/api/jobs', authMiddleware, projectAccessMiddleware, async (req, res) => {
@@ -268,7 +268,7 @@ app.post('/api/jobs', authMiddleware, projectAccessMiddleware, async (req, res) 
       const jobId = `job-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
       try {
-        const selectedWorker = await selectBestWorker(req.project.id, [platform]);
+        const selectedWorker = await selectBestWorker(req.project.id, [platform], 'upload');
 
         await db.query(
           `INSERT INTO worker_jobs 
@@ -281,6 +281,7 @@ app.post('/api/jobs', authMiddleware, projectAccessMiddleware, async (req, res) 
             'pending',
             priority || 0,
             JSON.stringify({
+              job_type: 'upload',
               video_title: video.title,
               video_path: video.path,
               project_id: req.project.id
@@ -297,7 +298,7 @@ app.post('/api/jobs', authMiddleware, projectAccessMiddleware, async (req, res) 
           status: 'assigned'
         });
 
-        console.log(`✓ Created job ${jobId} for ${platform} → Worker: ${selectedWorker.worker_name}`);
+        console.log(`✓ Created upload job ${jobId} for ${platform} → Worker: ${selectedWorker.worker_name}`);
       } catch (error) {
         console.error(`✗ Failed to create job for ${platform}:`, error.message);
         jobs.push({
@@ -315,6 +316,191 @@ app.post('/api/jobs', authMiddleware, projectAccessMiddleware, async (req, res) 
   } catch (error) {
     console.error('Error creating jobs:', error);
     res.status(500).json({ error: 'Failed to create jobs' });
+  }
+});
+
+// ============================================
+// ANALYTICS JOB ROUTES
+// ============================================
+
+app.post('/api/analytics-jobs', authMiddleware, projectAccessMiddleware, async (req, res) => {
+  try {
+    const { platforms, task_type, priority, metadata } = req.body;
+    const projectId = req.project.id;
+
+    //debug
+    console.log('projectId in /api/analytics-jobs:', projectId);
+
+    if (!platforms || platforms.length === 0) {
+      return res.status(400).json({ error: 'platforms are required' });
+    }
+
+    const validTaskTypes = ['channel_analytics', 'video_analytics', 'hourly_analytics'];
+    if (task_type && !validTaskTypes.includes(task_type)) {
+      return res.status(400).json({ error: `task_type must be one of: ${validTaskTypes.join(', ')}` });
+    }
+
+    const { selectBestWorker, assignJobToWorker } = await import('./utils/worker_selector.js');
+
+    const jobs = [];
+
+    for (const platform of platforms) {
+      const jobId = `analytics-job-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+      try {
+        const selectedWorker = await selectBestWorker(projectId, [platform], 'analytics');
+
+        await db.query(
+          `INSERT INTO worker_jobs 
+           (job_id, platform, status, priority, metadata)
+           VALUES ($1, $2, $3, $4, $5)`,
+          [
+            jobId,
+            platform,
+            'pending',
+            priority || 0,
+            JSON.stringify({
+              job_type: 'analytics',
+              task_type: task_type || 'channel_analytics',
+              project_id: projectId,
+              ...metadata
+            })
+          ]
+        );
+
+        await assignJobToWorker(selectedWorker.worker_id, jobId);
+
+        jobs.push({
+          job_id: jobId,
+          platform,
+          task_type: task_type || 'channel_analytics',
+          worker: selectedWorker,
+          status: 'assigned'
+        });
+
+        console.log(`✓ Created analytics job ${jobId} for ${platform} → Worker: ${selectedWorker.worker_name}`);
+      } catch (error) {
+        console.error(`✗ Failed to create analytics job for ${platform}:`, error.message);
+        jobs.push({
+          platform,
+          error: error.message,
+          status: 'failed_to_create'
+        });
+      }
+    }
+
+    res.status(201).json({
+      message: 'Analytics jobs created',
+      jobs
+    });
+  } catch (error) {
+    console.error('Error creating analytics jobs:', error);
+    res.status(500).json({ error: 'Failed to create analytics jobs' });
+  }
+});
+
+app.get('/api/analytics-jobs', authMiddleware, projectAccessMiddleware, async (req, res) => {
+  try {
+    const { status, platform } = req.query;
+    const projectId = req.project.id;
+
+    let query = `
+      SELECT j.*, w.worker_name, w.hostname
+      FROM worker_jobs j
+      LEFT JOIN workers w ON j.worker_id = w.worker_id
+      WHERE j.metadata->>'job_type' = 'analytics'
+        AND j.metadata->>'project_id' = $1
+    `;
+
+    const params = [projectId.toString()];
+    let paramCount = 2;
+
+    if (status) {
+      query += ` AND j.status = $${paramCount}`;
+      params.push(status);
+      paramCount++;
+    }
+
+    if (platform) {
+      query += ` AND j.platform = $${paramCount}`;
+      params.push(platform);
+      paramCount++;
+    }
+
+    query += ' ORDER BY j.created_at DESC LIMIT 100';
+
+    const result = await db.query(query, params);
+
+    res.json({
+      jobs: result.rows,
+      total: result.rows.length
+    });
+  } catch (error) {
+    console.error('Error fetching analytics jobs:', error);
+    res.status(500).json({ error: 'Failed to fetch analytics jobs' });
+  }
+});
+
+app.get('/api/platform-token/:platform/:projectId', async (req, res) => {
+  try {
+    const { platform, projectId } = req.params;
+
+    console.log(`Fetching token for platform: ${platform}, projectId: ${projectId}`);
+
+    if(platform == 'youtube') {
+    try {
+      const youtubeToken = await retrieveTokenByProjectID('youtube_token', projectId);
+      res.json(youtubeToken);
+    } catch (err) {
+      // Not connected
+      console.error('Error fetching YouTube token:', err);
+    }
+    } else if(platform == 'tiktok') {
+    try {
+      const tiktokToken = await retrieveTokenByProjectID('tiktok_token', projectId);
+      res.json(tiktokToken);
+    } catch (err) {
+      // Not connected
+      console.error('Error fetching TikTok token:', err);
+    }
+    } else if(platform == 'instagram') {
+    try {
+      const instagramAccount = await retrieveTokenByProjectID('instagram_business_account', projectId);
+      res.json(instagramAccount);
+      
+    } catch (err) {
+      // Not connected
+      console.error('Error fetching Instagram account:', err);
+    }
+    } else if(platform == 'facebook') {
+    try {
+      const facebookAccounts = await retrieveTokenByProjectID('facebook_accounts', projectId);
+      res.json(facebookAccounts);
+
+    } catch (err) {
+      // Not connected
+      console.error('Error fetching Facebook accounts:', err);
+    }
+    } else if(platform == 'x') {
+    try {
+      const xToken = await retrieveTokenByProjectID('x_token', projectId);
+      res.json(xToken);
+    } catch (err) {
+      // Not connected
+      console.error('Error fetching X token:', err);
+    }
+    } else if(platform == 'reddit') {
+    try {
+      const redditToken = await retrieveTokenByProjectID('reddit_token', projectId);
+       res.json(redditToken);
+    } catch (err) {
+      // Not connected
+      console.error('Error fetching Reddit token:', err);
+    }
+    }
+  } catch (error) {
+    console.error('Error fetching platform token:', error);
+    res.status(500).json({ error: 'Failed to fetch platform token' });
   }
 });
 
