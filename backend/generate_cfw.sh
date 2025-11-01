@@ -27,6 +27,7 @@ openssl x509 -req -in worker-${worker_id}.csr -CA ca.crt -CAkey ca.key -CAcreate
   -out worker-${worker_id}.crt -days 365 -sha256
 
 rm -f worker-${worker_id}.csr
+rm -f ca.srl
 
 echo -e "${GREEN}✓ worker-${worker_id} certificate generated!${NC}"
 echo ""
