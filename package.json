@@ -27,6 +27,7 @@
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "googleapis": "^162.0.0",
+    "https": "^1.0.0",
     "inquirer": "^12.10.0",
     "instagram-private-api": "^1.46.1",
     "jsonwebtoken": "^9.0.2",

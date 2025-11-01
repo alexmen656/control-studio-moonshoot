@@ -284,7 +284,7 @@ class AnalyticsWorker {
     console.log('✅ Worker stopped successfully');
     process.exit(0);
   }
-  
+
   async processJob(job) {
     console.log('raw job:', job);
     //ts gets projectId - undefined???

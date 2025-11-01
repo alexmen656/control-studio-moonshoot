@@ -6,3 +6,8 @@ update-durations.js
 credentials.json
 migrate-from-json.js
 test-db.js
+
+# Ignore test certs (only test certs for localhost but still)
+*.key
+*.crt
+*.csr
