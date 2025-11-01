@@ -2409,6 +2409,93 @@ app.get('/api/oauth2callback/reddit', async (req, res) => {
   }
 })
 
+app.get('/api/analytics/hourly', async (req, res) => {
+  try {
+    const { platform, project_id, hours = 48 } = req.query;
+    const PROJECT_ID = project_id || 2;
+
+  //simulate cause I need to build anoher worker to fetch hourly data from each platform
+    let totalViews = 0;
+    const platforms = platform ? [platform] : ['youtube', 'tiktok', 'instagram', 'facebook', 'x', 'reddit'];
+
+    for (const plat of platforms) {
+      try {
+        switch (plat) {
+          case 'youtube':
+            const youtubeData = await youTubeManager.getVideoAnalytics();
+            if (youtubeData && youtubeData.rows) {
+              youtubeData.rows.forEach(row => {
+                totalViews += row[1] || 0;
+              });
+            }
+            break;
+          case 'tiktok':
+            const tiktokData = await tiktokManager.getUserVideos();
+            if (tiktokData && tiktokData.data && tiktokData.data.videos) {
+              tiktokData.data.videos.forEach(video => {
+                totalViews += video.statistics?.view_count || 0;
+              });
+            }
+            break;
+          case 'instagram':
+            const instagramData = await instagramManager.getUserMedia(PROJECT_ID);
+            if (instagramData && instagramData.data && instagramData.data.media) {
+              instagramData.data.media.forEach(media => {
+                totalViews += media.video_views || media.reach || 0;
+              });
+            }
+            break;
+          case 'facebook':
+            const facebookData = await facebookManager.getPageVideosWithInsights(PROJECT_ID);
+            if (facebookData && facebookData.data && facebookData.data.videos) {
+              facebookData.data.videos.forEach(video => {
+                totalViews += video.views || 0;
+              });
+            }
+            break;
+        }
+      } catch (error) {
+        console.error(`Error fetching ${plat} for hourly data:`, error);
+      }
+    }
+
+    const hourlyData = [];
+    const labels = [];
+    const now = new Date();
+    
+    for (let i = parseInt(hours) - 1; i >= 0; i--) {
+      const hour = new Date(now.getTime() - i * 60 * 60 * 1000);
+      const hourStr = hour.getHours().toString().padStart(2, '0') + ':00';
+      labels.push(hourStr);
+      
+      
+      const hourOfDay = hour.getHours();
+      let multiplier = 1;
+      
+      if (hourOfDay >= 12 && hourOfDay <= 20) {
+        multiplier = 1.5 + Math.random() * 0.5;
+      } else if (hourOfDay >= 6 && hourOfDay < 12) {
+        multiplier = 1 + Math.random() * 0.3;
+      } else {
+        multiplier = 0.5 + Math.random() * 0.3;
+      }
+      
+      const viewsForHour = Math.floor((totalViews / parseInt(hours)) * multiplier);
+      hourlyData.push(viewsForHour);
+    }
+
+    res.json({
+      labels,
+      data: hourlyData,
+      totalViews,
+      hours: parseInt(hours)
+    });
+  } catch (error) {
+    console.error('Error fetching hourly analytics:', error);
+    res.status(500).json({ error: 'Error fetching hourly analytics', details: error.message });
+  }
+});
+
 app.get('/api/analytics/total', async (req, res) => {
   try {
     const { platform, project_id } = req.query;
@@ -2591,6 +2678,14 @@ app.get('/api/analytics/total', async (req, res) => {
                 };
 
                 youtubeData.rows.forEach(row => {
+                  const videoData = {
+                    platform: 'youtube',
+                    views: row[1] || 0,
+                    likes: row[4] || 0,
+                    comments: row[6] || 0
+                  };
+                  analyticsData.videos.push(videoData);
+                  
                   platStats.views += row[1] || 0;
                   platStats.likes += row[4] || 0;
                   platStats.comments += row[6] || 0;
@@ -2616,6 +2711,17 @@ app.get('/api/analytics/total', async (req, res) => {
                 };
 
                 tiktokData.data.videos.forEach(video => {
+                  const videoData = {
+                    platform: 'tiktok',
+                    id: video.id,
+                    title: video.title,
+                    views: video.statistics?.view_count || 0,
+                    likes: video.statistics?.like_count || 0,
+                    comments: video.statistics?.comment_count || 0,
+                    shares: video.statistics?.share_count || 0
+                  };
+                  analyticsData.videos.push(videoData);
+                  
                   platStats.views += video.statistics?.view_count || 0;
                   platStats.likes += video.statistics?.like_count || 0;
                   platStats.comments += video.statistics?.comment_count || 0;
@@ -2643,6 +2749,17 @@ app.get('/api/analytics/total', async (req, res) => {
                 };
 
                 instagramData.data.media.forEach(media => {
+                  const videoData = {
+                    platform: 'instagram',
+                    id: media.id,
+                    title: media.caption ? media.caption.substring(0, 50) + '...' : 'No caption',
+                    views: media.video_views || media.reach || 0,
+                    likes: media.likes || 0,
+                    comments: media.comments || 0,
+                    shares: media.shares || 0
+                  };
+                  analyticsData.videos.push(videoData);
+                  
                   platStats.views += media.video_views || media.reach || 0;
                   platStats.likes += media.likes || 0;
                   platStats.comments += media.comments || 0;
@@ -2670,6 +2787,17 @@ app.get('/api/analytics/total', async (req, res) => {
                 };
 
                 facebookData.data.videos.forEach(video => {
+                  const videoData = {
+                    platform: 'facebook',
+                    id: video.id,
+                    title: video.title || 'Untitled',
+                    views: video.views || 0,
+                    likes: video.likes || 0,
+                    comments: video.comments || 0,
+                    shares: video.shares || 0
+                  };
+                  analyticsData.videos.push(videoData);
+                  
                   platStats.views += video.views || 0;
                   platStats.likes += video.likes || 0;
                   platStats.comments += video.comments || 0;
@@ -2687,7 +2815,7 @@ app.get('/api/analytics/total', async (req, res) => {
 
             case 'x':
               const xData = await xManager.getAccountAnalytics({ maxResults: 10 });
-              if (xData) {
+              if (xData && xData.tweets) {
                 const platStats = {
                   views: xData.total_impressions || 0,
                   likes: xData.total_likes || 0,
@@ -2695,6 +2823,19 @@ app.get('/api/analytics/total', async (req, res) => {
                   shares: xData.total_retweets || 0,
                   videos: xData.tweet_count || 0
                 };
+
+                xData.tweets.forEach(tweet => {
+                  const videoData = {
+                    platform: 'x',
+                    id: tweet.id,
+                    title: tweet.text ? tweet.text.substring(0, 50) + '...' : 'No text',
+                    views: tweet.public_metrics?.impression_count || 0,
+                    likes: tweet.public_metrics?.like_count || 0,
+                    comments: tweet.public_metrics?.reply_count || 0,
+                    shares: tweet.public_metrics?.retweet_count || 0
+                  };
+                  analyticsData.videos.push(videoData);
+                });
 
                 analyticsData.platforms.x = platStats;
                 analyticsData.totalViews += platStats.views;
@@ -2707,7 +2848,7 @@ app.get('/api/analytics/total', async (req, res) => {
 
             case 'reddit':
               const redditData = await redditManager.getAccountAnalytics({ limit: 25 });
-              if (redditData) {
+              if (redditData && redditData.posts) {
                 const platStats = {
                   views: 0, // Reddit doesn't provide view counts
                   likes: redditData.total_score || 0,
@@ -2715,6 +2856,19 @@ app.get('/api/analytics/total', async (req, res) => {
                   shares: 0, // Reddit doesn't provide share counts
                   videos: redditData.total_posts || 0
                 };
+
+                redditData.posts.forEach(post => {
+                  const videoData = {
+                    platform: 'reddit',
+                    id: post.id,
+                    title: post.title,
+                    views: 0,
+                    likes: post.score || 0,
+                    comments: post.num_comments || 0,
+                    shares: 0
+                  };
+                  analyticsData.videos.push(videoData);
+                });
 
                 analyticsData.platforms.reddit = platStats;
                 analyticsData.totalLikes += platStats.likes;

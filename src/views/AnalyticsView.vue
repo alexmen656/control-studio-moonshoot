@@ -33,6 +33,16 @@
             <p class="text-gray-600 dark:text-gray-400">Loading analytics...</p>
         </div>
         <div v-else-if="analytics">
+            <div class="bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-xl shadow-sm p-6 mb-8">
+                <h2 class="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-4">View-Entwicklung (Letzte 48h)</h2>
+                <div v-if="hourlyData" class="h-80">
+                    <canvas ref="chartCanvas"></canvas>
+                </div>
+                <div v-else class="h-80 flex items-center justify-center">
+                    <div class="text-gray-500 dark:text-gray-400">Lade Chart-Daten...</div>
+                </div>
+            </div>
+
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 <div
                     class="bg-white rounded-xl p-6 flex items-center gap-4 shadow-sm hover:shadow-md transition-all hover:-translate-y-1 dark:bg-gray-800 border dark:border-gray-700 shadow-sm hover:shadow-lg border border-gray-200">
@@ -178,8 +188,8 @@
                     </div>
                 </div>
             </div>
-            <div v-if="analytics.videos && analytics.videos.length > 0">
-                <h2 class="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Recent Videos</h2>
+            <div v-if="allVideos && allVideos.length > 0" class="mt-8">
+                <h2 class="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Alle Videos</h2>
                 <div class="bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-xl shadow-sm overflow-hidden">
                     <div class="overflow-x-auto">
                         <table class="w-full">
@@ -188,9 +198,9 @@
                                     <th
                                         class="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                                         Platform</th>
-                                    <th v-if="analytics.videos && analytics.videos.length > 0 && analytics.videos[0]?.title"
+                                    <th
                                         class="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-                                        Title</th>
+                                        Titel</th>
                                     <th
                                         class="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                                         Views</th>
@@ -200,37 +210,42 @@
                                     <th
                                         class="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                                         Comments</th>
-                                    <th v-if="analytics.videos && analytics.videos.length > 0 && analytics.videos[0]?.shares !== undefined"
+                                    <th
                                         class="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                                         Shares</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-                                <tr v-for="(video, index) in analytics.videos" :key="index"
-                                    class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                                <tr v-for="(video, index) in allVideos" :key="index"
+                                    class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <span class="inline-flex px-3 py-1 rounded-md text-xs font-semibold uppercase"
                                             :class="{
-                                                'bg-red-100 text-red-700': video.platform === 'youtube',
-                                                'bg-pink-100 text-pink-700': video.platform === 'tiktok',
-                                                'bg-purple-100 text-purple-700': video.platform === 'instagram',
-                                                'bg-blue-100 text-blue-700': video.platform === 'facebook'
+                                                'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300': video.platform === 'youtube',
+                                                'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-300': video.platform === 'tiktok',
+                                                'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300': video.platform === 'instagram',
+                                                'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300': video.platform === 'facebook',
+                                                'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-300': video.platform === 'x',
+                                                'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300': video.platform === 'reddit'
                                             }">
                                             {{ video.platform }}
                                         </span>
                                     </td>
-                                    <td v-if="video.title" class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">{{
-                                        video.title }}
+                                    <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100 max-w-md truncate">
+                                        {{ video.title || '-' }}
                                     </td>
-                                    <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">{{
-                                        formatNumber(video.views) }}</td>
-                                    <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">{{
-                                        formatNumber(video.likes) }}</td>
-                                    <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">{{
-                                        formatNumber(video.comments) }}</td>
-                                    <td v-if="video.shares !== undefined"
-                                        class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">{{
-                                            formatNumber(video.shares) }}</td>
+                                    <td class="px-6 py-4 text-sm font-semibold text-gray-900 dark:text-gray-100">
+                                        {{ formatNumber(video.views) }}
+                                    </td>
+                                    <td class="px-6 py-4 text-sm font-semibold text-gray-900 dark:text-gray-100">
+                                        {{ formatNumber(video.likes) }}
+                                    </td>
+                                    <td class="px-6 py-4 text-sm font-semibold text-gray-900 dark:text-gray-100">
+                                        {{ formatNumber(video.comments) }}
+                                    </td>
+                                    <td class="px-6 py-4 text-sm font-semibold text-gray-900 dark:text-gray-100">
+                                        {{ formatNumber(video.shares) }}
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>
@@ -253,8 +268,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed, nextTick, watch } from 'vue'
 import axios from 'axios'
+import { Chart, registerables } from 'chart.js'
+
+Chart.register(...registerables)
 
 interface Video {
     title?: string
@@ -285,10 +303,145 @@ interface Analytics {
     error?: string
 }
 
+interface HourlyData {
+    labels: string[]
+    data: number[]
+    totalViews: number
+    hours: number
+}
+
 const analytics = ref<Analytics | null>(null)
+const hourlyData = ref<HourlyData | null>(null)
 const loading = ref(false)
 const error = ref<string | null>(null)
 const selectedPlatform = ref('')
+const chartCanvas = ref<HTMLCanvasElement | null>(null)
+let viewsChart: Chart | null = null
+
+const allVideos = computed(() => {
+    if (!analytics.value?.videos) return []
+    
+    return analytics.value.videos.sort((a, b) => {
+        const viewsA = a.views || 0
+        const viewsB = b.views || 0
+        return viewsB - viewsA
+    })
+})
+
+watch([hourlyData, chartCanvas], async ([newHourlyData, newChartCanvas]) => {
+    if (newHourlyData && newChartCanvas) {
+        console.log('Watch triggered - creating chart')
+        await nextTick()
+        setTimeout(() => {
+            createViewsChart()
+        }, 100)
+    }
+}, { immediate: false })
+
+const createViewsChart = () => {
+    if (!chartCanvas.value || !hourlyData.value) {
+        console.log('Chart canvas or hourly data not available yet', {
+            canvas: chartCanvas.value,
+            data: hourlyData.value
+        })
+        return
+    }
+
+    console.log('Creating views chart with data:', hourlyData.value)
+
+    if (viewsChart) {
+        viewsChart.destroy()
+    }
+    
+    const ctx = chartCanvas.value.getContext('2d')
+    if (!ctx) {
+        console.error('Failed to get 2d context')
+        return
+    }
+    
+    viewsChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: hourlyData.value.labels,
+            datasets: [{
+                label: 'Views pro Stunde',
+                data: hourlyData.value.data,
+                backgroundColor: 'rgba(239, 68, 68, 0.8)',
+                borderColor: 'rgba(220, 38, 38, 1)',
+                borderWidth: 1,
+                borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(17, 24, 39, 0.9)',
+                    padding: 12,
+                    titleColor: '#fff',
+                    bodyColor: '#fff',
+                    borderColor: '#374151',
+                    borderWidth: 1,
+                    displayColors: false,
+                    callbacks: {
+                        label: (context: any) => {
+                            return `${formatNumber(context.parsed.y || 0)} Views`
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        maxRotation: 45,
+                        minRotation: 45,
+                        color: '#9CA3AF',
+                        font: {
+                            size: 10
+                        },
+                        callback: function(value: any, index: number) {
+                            return index % 4 === 0 ? hourlyData.value?.labels[value] : ''
+                        }
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(156, 163, 175, 0.1)'
+                    },
+                    ticks: {
+                        color: '#9CA3AF',
+                        callback: function(value: any) {
+                            return formatNumber(value as number)
+                        }
+                    }
+                }
+            }
+        }
+    })
+}
+
+const fetchHourlyData = async () => {
+    try {
+        const params: Record<string, string> = { hours: '48' }
+        if (selectedPlatform.value) {
+            params.platform = selectedPlatform.value
+        }
+
+        const response = await axios.get('http://localhost:6709/api/analytics/hourly', { params })
+        console.log('Fetched hourly data:', response.data)
+        hourlyData.value = response.data
+    } catch (err) {
+        console.error('Error fetching hourly data:', err)
+    }
+}
 
 const fetchAnalytics = async () => {
     loading.value = true
@@ -300,12 +453,19 @@ const fetchAnalytics = async () => {
             params.platform = selectedPlatform.value
         }
 
-        const response = await axios.get('http://localhost:6709/api/analytics/total', { params })
-        analytics.value = response.data
+        const [analyticsResponse] = await Promise.all([
+            axios.get('http://localhost:6709/api/analytics/total', { params }),
+            fetchHourlyData()
+        ])
+        
+        analytics.value = analyticsResponse.data
 
-        if (response.data.error) {
-            error.value = response.data.error
+        if (analyticsResponse.data.error) {
+            error.value = analyticsResponse.data.error
         }
+        
+        console.log('Analytics data:', analytics.value)
+        console.log('Videos:', analytics.value?.videos)
     } catch (err) {
         console.error('Error fetching analytics:', err)
         error.value = 'Failed to load analytics. Please try again.'
