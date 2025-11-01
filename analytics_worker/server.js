@@ -9,7 +9,7 @@ class AnalyticsWorker {
   constructor() {
     this.workerId = process.env.WORKER_ID || `analytics-worker-${uuidv4()}`;
     this.workerName = process.env.WORKER_NAME || `Analytics-Worker-${os.hostname()}`;
-    this.backendUrl = process.env.BACKEND_URL || 'http://localhost:6709';
+    this.backendUrl = process.env.BACKEND_URL || 'http://localhost:3001';
     this.heartbeatInterval = parseInt(process.env.HEARTBEAT_INTERVAL || '30000');
     this.jobPollInterval = parseInt(process.env.JOB_POLL_INTERVAL || '10000');
     this.maxConcurrentTasks = parseInt(process.env.MAX_CONCURRENT_TASKS || '5');

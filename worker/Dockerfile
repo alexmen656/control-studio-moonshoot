@@ -9,7 +9,7 @@ RUN npm ci --only=production
 COPY . .
 
 ENV NODE_ENV=production
-ENV BACKEND_URL=http://backend:6709
+ENV BACKEND_URL=http://backend:3001
 ENV HEARTBEAT_INTERVAL=30000
 ENV MAX_CONCURRENT_TASKS=3
 

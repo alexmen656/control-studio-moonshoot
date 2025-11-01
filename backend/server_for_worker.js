@@ -271,6 +271,36 @@ app.get('/api/jobs/next/:workerId', requireWorkerCert, async (req, res) => {
   }
 });
 
+app.delete('/api/workers/:workerId', requireWorkerCert, async (req, res) => {
+  try {
+    const cert = req.socket.getPeerCertificate();
+    const workerCN = cert.subject.CN;
+    const { workerId } = req.params;
+
+    if (workerCN !== workerId) {
+      return res.status(403).json({ 
+        error: 'Access denied: Worker can only fetch their own jobs',
+        requestedWorker: workerId,
+        authenticatedWorker: workerCN
+      });
+    }
+
+    const result = await db.query(
+      'DELETE FROM workers WHERE worker_id = $1 RETURNING *',
+      [workerId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Worker not found' });
+    }
+
+    console.log(`Worker ${workerId} unregistered`);
+    res.json({ message: 'Worker unregistered successfully' });
+  } catch (error) {
+    console.error('Error unregistering worker:', error);
+    res.status(500).json({ error: 'Failed to unregister worker' });
+  }
+});
 
 https.createServer(options, app).listen(3001, () => {
   console.log('Worker server running on :3001');

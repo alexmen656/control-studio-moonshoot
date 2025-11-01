@@ -22,7 +22,7 @@ import { getAvailableRegions, getRegionById, isValidRegion, getDefaultRegion } f
 import { storeOAuthState, retrieveOAuthState } from './utils/oauth_states.js';
 
 const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)saveTOTPSecret
+const __dirname = path.dirname(__filename)
 const PROJECT_ROOT = path.join(__dirname, '..')
 
 dotenv.config({ path: path.join(PROJECT_ROOT, '.env') })
@@ -93,7 +93,8 @@ app.get('/', (req, res) => {
 // WORKER ROUTES
 // ============================================
 
-app.get('/api/workers', async (req, res) => {
+//not used by workers only by admin panel
+app.get('/api/workers', authMiddleware, async (req, res) => {
   try {
     await db.query(`
       UPDATE workers 
@@ -117,7 +118,7 @@ app.get('/api/workers', async (req, res) => {
   }
 });
 
-app.get('/api/workers/:workerId', async (req, res) => {
+app.get('/api/workers/:workerId', authMiddleware, async (req, res) => {
   try {
     const { workerId } = req.params;
 
@@ -134,27 +135,6 @@ app.get('/api/workers/:workerId', async (req, res) => {
   } catch (error) {
     console.error('Error fetching worker:', error);
     res.status(500).json({ error: 'Failed to fetch worker' });
-  }
-});
-
-app.delete('/api/workers/:workerId', async (req, res) => {
-  try {
-    const { workerId } = req.params;
-
-    const result = await db.query(
-      'DELETE FROM workers WHERE worker_id = $1 RETURNING *',
-      [workerId]
-    );
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Worker not found' });
-    }
-
-    console.log(`Worker ${workerId} unregistered`);
-    res.json({ message: 'Worker unregistered successfully' });
-  } catch (error) {
-    console.error('Error unregistering worker:', error);
-    res.status(500).json({ error: 'Failed to unregister worker' });
   }
 });
 
