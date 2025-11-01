@@ -2,6 +2,8 @@ import axios from 'axios';
 import os from 'os';
 import { v4 as uuidv4 } from 'uuid';
 import dotenv from 'dotenv';
+import https from 'https';
+import fs from 'fs';
 
 dotenv.config();
 
@@ -44,6 +46,14 @@ class UploadWorker {
       maxFileSize: 500 * 1024 * 1024,
       supportedFormats: ['mp4', 'avi', 'mov', 'wmv', 'flv', 'mkv', 'webm']
     };
+
+    this.httpsAgent = new https.Agent({
+      cert: fs.readFileSync(`certs/worker-${this.workerId}.crt`),
+      key: fs.readFileSync(`certs/worker-${this.workerId}.key`),
+      ca: fs.readFileSync('certs/ca.crt'),
+      minVersion: 'TLSv1.2',
+      maxVersion: 'TLSv1.3'
+    });
   }
 
   async register() {
@@ -56,7 +66,7 @@ class UploadWorker {
         hostname: os.hostname(),
         capabilities: this.capabilities,
         max_concurrent_tasks: this.maxConcurrentTasks
-      });
+      }, { httpsAgent: this.httpsAgent });
 
       this.isRegistered = true;
       console.log(`✅ Worker registered successfully!`);
@@ -145,7 +155,7 @@ class UploadWorker {
         cpu_usage: cpuUsage,
         memory_usage: memoryUsage.usagePercent,
         metadata: metadata
-      });
+      }, { httpsAgent: this.httpsAgent });
 
       console.log(`💓 Heartbeat sent [Jobs: ${this.currentLoad}/${this.maxConcurrentTasks} | CPU: ${cpuUsage}% | RAM: ${memoryUsage.usagePercent}%]`);
     } catch (error) {
@@ -187,7 +197,7 @@ class UploadWorker {
     }
 
     try {
-      const response = await axios.get(`${this.backendUrl}/api/jobs/next/${this.workerId}`);
+      const response = await axios.get(`${this.backendUrl}/api/jobs/next/${this.workerId}`, { httpsAgent: this.httpsAgent });
       
       if (response.data.job) {
         const job = response.data.job;
@@ -233,7 +243,7 @@ class UploadWorker {
         status,
         error_message: errorMessage,
         result_data: resultData
-      });
+      }, { httpsAgent: this.httpsAgent });
       
       console.log(`✓ Job ${jobId} status updated: ${status}`);
     } catch (error) {
@@ -244,9 +254,9 @@ class UploadWorker {
   async unregister() {
     try {
       console.log(`🔄 Unregistering worker ${this.workerId}...`);
-      
-      await axios.delete(`${this.backendUrl}/api/workers/${this.workerId}`);
-      
+
+      await axios.delete(`${this.backendUrl}/api/workers/${this.workerId}`, { httpsAgent: this.httpsAgent });
+
       this.isRegistered = false;
       console.log('✅ Worker unregistered successfully');
     } catch (error) {
