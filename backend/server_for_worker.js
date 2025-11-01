@@ -11,8 +11,8 @@ const options = {
   key: fs.readFileSync('vps.key'),
   cert: fs.readFileSync('vps.crt'),
   ca: fs.readFileSync('ca.crt'),
-  requestCert: false, //true,
-  rejectUnauthorized: false, //true,
+  requestCert: true, //true,
+  rejectUnauthorized: true, //true,
 
   //tls versions
   //minVersion: 'TLSv1.2',
@@ -29,10 +29,19 @@ const requireWorkerCert = (req, res, next) => {
   if (!req.socket.authorized) {
     return res.status(401).json({ error: 'Invalid worker certificate' });
   }
+
+    const cert = req.socket.getPeerCertificate();
+ /* console.log('Worker Certificate Details:');
+  console.log('  Subject:', cert.subject);
+  console.log('  Issuer:', cert.issuer);
+  console.log('  Valid From:', cert.valid_from);
+  console.log('  Valid To:', cert.valid_to);
+  console.log('  Common Name (CN):', cert.subject.CN);*/
+  
   next();
 };
 
-app.post('/api/workers/register', async (req, res) => {
+app.post('/api/workers/register', requireWorkerCert, async (req, res) => {
   try {
     console.log('I am through lolololol')
     const { worker_id, worker_name, hostname, capabilities, max_concurrent_tasks } = req.body;
@@ -83,7 +92,7 @@ app.post('/api/workers/register', async (req, res) => {
   }
 });
 
-app.post('/api/workers/heartbeat', async (req, res) => {
+app.post('/api/workers/heartbeat', requireWorkerCert, async (req, res) => {
   try {
     const { worker_id, current_load, cpu_usage, memory_usage, metadata } = req.body;
 
@@ -117,6 +126,151 @@ app.post('/api/workers/heartbeat', async (req, res) => {
     res.status(500).json({ error: 'Failed to process heartbeat' });
   }
 });
+
+app.get('/api/platform-token/:platform/:projectId', requireWorkerCert,async (req, res) => {
+  try {
+    const { platform, projectId } = req.params;
+
+    console.log(`Fetching token for platform: ${platform}, projectId: ${projectId}`);
+
+    if(platform == 'youtube') {
+    try {
+      const youtubeToken = await retrieveTokenByProjectID('youtube_token', projectId);
+      res.json(youtubeToken);
+    } catch (err) {
+      // Not connected
+      console.error('Error fetching YouTube token:', err);
+    }
+    } else if(platform == 'tiktok') {
+    try {
+      const tiktokToken = await retrieveTokenByProjectID('tiktok_token', projectId);
+      res.json(tiktokToken);
+    } catch (err) {
+      // Not connected
+      console.error('Error fetching TikTok token:', err);
+    }
+    } else if(platform == 'instagram') {
+    try {
+      const instagramAccount = await retrieveTokenByProjectID('instagram_business_account', projectId);
+      res.json(instagramAccount);
+      
+    } catch (err) {
+      // Not connected
+      console.error('Error fetching Instagram account:', err);
+    }
+    } else if(platform == 'facebook') {
+    try {
+      const facebookAccounts = await retrieveTokenByProjectID('facebook_accounts', projectId);
+      res.json(facebookAccounts);
+
+    } catch (err) {
+      // Not connected
+      console.error('Error fetching Facebook accounts:', err);
+    }
+    } else if(platform == 'x') {
+    try {
+      const xToken = await retrieveTokenByProjectID('x_token', projectId);
+      res.json(xToken);
+    } catch (err) {
+      // Not connected
+      console.error('Error fetching X token:', err);
+    }
+    } else if(platform == 'reddit') {
+    try {
+      const redditToken = await retrieveTokenByProjectID('reddit_token', projectId);
+       res.json(redditToken);
+    } catch (err) {
+      // Not connected
+      console.error('Error fetching Reddit token:', err);
+    }
+    }
+  } catch (error) {
+    console.error('Error fetching platform token:', error);
+    res.status(500).json({ error: 'Failed to fetch platform token' });
+  }
+});
+
+app.get('/api/jobs/worker/:workerId', requireWorkerCert, async (req, res) => {
+  try {
+    const cert = req.socket.getPeerCertificate();
+    const workerCN = cert.subject.CN;
+    const { workerId } = req.params;
+
+    if (workerCN !== workerId) {
+      return res.status(403).json({ 
+        error: 'Access denied: Worker can only access their own jobs',
+        requestedWorker: workerId,
+        authenticatedWorker: workerCN
+      });
+    }
+
+    const { status } = req.query;
+
+    let query = 'SELECT * FROM worker_jobs WHERE worker_id = $1';
+    const params = [workerId];
+
+    if (status) {
+      query += ' AND status = $2';
+      params.push(status);
+    }
+
+    query += ' ORDER BY priority DESC, created_at ASC';
+
+    const result = await db.query(query, params);
+
+    res.json({
+      jobs: result.rows,
+      total: result.rows.length
+    });
+  } catch (error) {
+    console.error('Error fetching worker jobs:', error);
+    res.status(500).json({ error: 'Failed to fetch jobs' });
+  }
+});
+
+app.get('/api/jobs/next/:workerId', requireWorkerCert, async (req, res) => {
+  try {
+    const cert = req.socket.getPeerCertificate();
+    const workerCN = cert.subject.CN;
+    const { workerId } = req.params;
+
+    if (workerCN !== workerId) {
+      return res.status(403).json({ 
+        error: 'Access denied: Worker can only fetch their own jobs',
+        requestedWorker: workerId,
+        authenticatedWorker: workerCN
+      });
+    }
+
+    const result = await db.query(
+      `SELECT * FROM worker_jobs 
+       WHERE worker_id = $1 
+         AND status = 'assigned'
+       ORDER BY priority DESC, created_at ASC
+       LIMIT 1`,
+      [workerId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.json({ job: null });
+    }
+
+    await db.query(
+      `UPDATE worker_jobs 
+       SET status = 'processing', started_at = CURRENT_TIMESTAMP
+       WHERE job_id = $1`,
+      [result.rows[0].job_id]
+    );
+
+    res.json({
+      job: result.rows[0]
+    });
+  } catch (error) {
+    console.error('Error fetching next job:', error);
+    res.status(500).json({ error: 'Failed to fetch next job' });
+  }
+});
+
 
 https.createServer(options, app).listen(3001, () => {
   console.log('Worker server running on :3001');
