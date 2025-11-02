@@ -61,7 +61,7 @@ class UploadWorker {
       console.log(`Registering worker ${this.workerId}...`);
       
       const response = await axios.post(`${this.backendUrl}/api/workers/register`, {
-        worker_id: this.workerId,
+        worker_id: `worker-${this.workerId}`,
         worker_name: this.workerName,
         hostname: os.hostname(),
         capabilities: this.capabilities,
@@ -70,7 +70,7 @@ class UploadWorker {
 
       this.isRegistered = true;
       console.log(`✅ Worker registered successfully!`);
-      console.log(`   ID: ${this.workerId}`);
+      console.log(`   ID: worker-${this.workerId}`);
       console.log(`   Name: ${this.workerName}`);
       console.log(`   Hostname: ${os.hostname()}`);
       console.log(`   Backend: ${this.backendUrl}`);
