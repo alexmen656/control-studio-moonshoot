@@ -3,6 +3,7 @@ import fs from 'fs';
 import express from 'express';
 import * as db from './utils/db.js'
 import tls from 'tls';
+import { startJobScheduler } from './utils/job_scheduler.js';
 
 const app = express();
 app.use(express.json());
@@ -242,7 +243,7 @@ app.get('/api/jobs/next/:workerId', requireWorkerCert, async (req, res) => {
       });
     }
 
-    const result = await db.query(
+    let result = await db.query(
       `SELECT * FROM worker_jobs 
        WHERE worker_id = $1 
          AND status = 'assigned'
@@ -250,6 +251,50 @@ app.get('/api/jobs/next/:workerId', requireWorkerCert, async (req, res) => {
        LIMIT 1`,
       [workerId]
     );
+
+    if (result.rows.length === 0) {
+      const workerInfo = await db.query(
+        'SELECT current_load, max_concurrent_tasks, capabilities FROM workers WHERE worker_id = $1',
+        [workerId]
+      );
+
+      if (workerInfo.rows.length === 0) {
+        return res.status(404).json({ error: 'Worker not found' });
+      }
+
+      const worker = workerInfo.rows[0];
+      
+      if (worker.current_load >= worker.max_concurrent_tasks) {
+        return res.json({ job: null, message: 'Worker at capacity' });
+      }
+
+      const capabilities = worker.capabilities || {};
+      const workerType = capabilities.type || 'upload';
+
+      const pendingJobQuery = `
+        SELECT * FROM worker_jobs 
+        WHERE status = 'pending'
+          AND worker_id IS NULL
+          AND (
+            (metadata->>'job_type' = $1) OR 
+            ($1 = 'upload' AND metadata->>'job_type' IS NULL)
+          )
+        ORDER BY priority DESC, created_at ASC
+        LIMIT 1
+        FOR UPDATE SKIP LOCKED
+      `;
+
+      result = await db.query(pendingJobQuery, [workerType]);
+
+      if (result.rows.length > 0) {
+        const job = result.rows[0];
+        
+        const { assignJobToWorker } = await import('./utils/worker_selector.js');
+        await assignJobToWorker(workerId, job.job_id);
+
+        console.log(`✓ Worker ${workerId} claimed pending job ${job.job_id}`);
+      }
+    }
 
     if (result.rows.length === 0) {
       return res.json({ job: null });
@@ -355,4 +400,6 @@ app.patch('/api/jobs/:jobId/status', requireWorkerCert, async (req, res) => {
 
 https.createServer(options, app).listen(3001, () => {
   console.log('Worker server running on :3001');
+  
+  startJobScheduler(30000);
 });

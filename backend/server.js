@@ -20,6 +20,7 @@ import { storeTokenByProjectID, retrieveTokenByProjectID, removeTokenByProjectID
 import { registerUser, loginUser, loginWithGoogle, authMiddleware, projectAccessMiddleware, getUserById } from './utils/auth.js'
 import { getAvailableRegions, getRegionById, isValidRegion, getDefaultRegion } from './utils/regions.js'
 import { storeOAuthState, retrieveOAuthState } from './utils/oauth_states.js';
+import { startJobScheduler } from './utils/job_scheduler.js';
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -163,8 +164,7 @@ app.post('/api/jobs', authMiddleware, projectAccessMiddleware, async (req, res) 
       const jobId = `job-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
       try {
-        const selectedWorker = await selectBestWorker(req.project.id, [platform], 'upload');
-
+        // Always create the job first
         await db.query(
           `INSERT INTO worker_jobs 
            (job_id, video_id, platform, status, priority, metadata)
@@ -184,16 +184,28 @@ app.post('/api/jobs', authMiddleware, projectAccessMiddleware, async (req, res) 
           ]
         );
 
-        await assignJobToWorker(selectedWorker.worker_id, jobId);
+        try {
+          const selectedWorker = await selectBestWorker(req.project.id, [platform], 'upload');
+          await assignJobToWorker(selectedWorker.worker_id, jobId);
 
-        jobs.push({
-          job_id: jobId,
-          platform,
-          worker: selectedWorker,
-          status: 'assigned'
-        });
+          jobs.push({
+            job_id: jobId,
+            platform,
+            worker: selectedWorker,
+            status: 'assigned'
+          });
 
-        console.log(`✓ Created upload job ${jobId} for ${platform} → Worker: ${selectedWorker.worker_name}`);
+          console.log(`✓ Created upload job ${jobId} for ${platform} → Worker: ${selectedWorker.worker_name}`);
+        } catch (workerError) {
+          console.log(`⚠ Created upload job ${jobId} for ${platform} → Queued (no worker available: ${workerError.message})`);
+          
+          jobs.push({
+            job_id: jobId,
+            platform,
+            status: 'pending',
+            message: 'Job queued - will be processed when worker becomes available'
+          });
+        }
       } catch (error) {
         console.error(`✗ Failed to create job for ${platform}:`, error.message);
         jobs.push({
@@ -243,8 +255,6 @@ app.post('/api/analytics-jobs', authMiddleware, projectAccessMiddleware, async (
       const jobId = `analytics-job-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
       try {
-        const selectedWorker = await selectBestWorker(projectId, [platform], 'analytics');
-
         await db.query(
           `INSERT INTO worker_jobs 
            (job_id, platform, status, priority, metadata)
@@ -263,17 +273,30 @@ app.post('/api/analytics-jobs', authMiddleware, projectAccessMiddleware, async (
           ]
         );
 
-        await assignJobToWorker(selectedWorker.worker_id, jobId);
+        try {
+          const selectedWorker = await selectBestWorker(projectId, [platform], 'analytics');
+          await assignJobToWorker(selectedWorker.worker_id, jobId);
 
-        jobs.push({
-          job_id: jobId,
-          platform,
-          task_type: task_type || 'channel_analytics',
-          worker: selectedWorker,
-          status: 'assigned'
-        });
+          jobs.push({
+            job_id: jobId,
+            platform,
+            task_type: task_type || 'channel_analytics',
+            worker: selectedWorker,
+            status: 'assigned'
+          });
 
-        console.log(`✓ Created analytics job ${jobId} for ${platform} → Worker: ${selectedWorker.worker_name}`);
+          console.log(`✓ Created analytics job ${jobId} for ${platform} → Worker: ${selectedWorker.worker_name}`);
+        } catch (workerError) {
+          console.log(`⚠ Created analytics job ${jobId} for ${platform} → Queued (no worker available: ${workerError.message})`);
+          
+          jobs.push({
+            job_id: jobId,
+            platform,
+            task_type: task_type || 'channel_analytics',
+            status: 'pending',
+            message: 'Job queued - will be processed when worker becomes available'
+          });
+        }
       } catch (error) {
         console.error(`✗ Failed to create analytics job for ${platform}:`, error.message);
         jobs.push({
@@ -2989,4 +3012,7 @@ app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`)
   console.log(`Uploads directory: ${uploadsDir}`)
   console.log(`Database: PostgreSQL`)
+  
+  // Start the job scheduler to assign pending jobs to available workers
+  startJobScheduler(30000); // Check every 30 seconds
 })
