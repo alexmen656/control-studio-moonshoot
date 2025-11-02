@@ -302,6 +302,57 @@ app.delete('/api/workers/:workerId', requireWorkerCert, async (req, res) => {
   }
 });
 
+app.patch('/api/jobs/:jobId/status', requireWorkerCert, async (req, res) => {
+  try {
+    const { jobId } = req.params;
+    const { status, error_message, result_data } = req.body;
+
+    if (!status) {
+      return res.status(400).json({ error: 'status is required' });
+    }
+
+    const jobResult = await db.query(
+      'SELECT worker_id FROM worker_jobs WHERE job_id = $1',
+      [jobId]
+    );
+
+    if (jobResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Job not found' });
+    }
+
+    const workerId = jobResult.rows[0].worker_id;
+
+    const updateQuery = error_message
+      ? `UPDATE worker_jobs 
+         SET status = $1, completed_at = CURRENT_TIMESTAMP, error_message = $2, metadata = metadata || $3
+         WHERE job_id = $4
+         RETURNING *`
+      : `UPDATE worker_jobs 
+         SET status = $1, completed_at = CURRENT_TIMESTAMP, metadata = metadata || $2
+         WHERE job_id = $3
+         RETURNING *`;
+
+    const params = error_message
+      ? [status, error_message, JSON.stringify({ result: result_data }), jobId]
+      : [status, JSON.stringify({ result: result_data }), jobId];
+
+    const result = await db.query(updateQuery, params);
+
+    if (['completed', 'failed'].includes(status)) {
+      const { releaseWorkerFromJob } = await import('./utils/worker_selector.js');
+      await releaseWorkerFromJob(workerId, jobId, status, error_message);
+    }
+
+    res.json({
+      message: 'Job status updated',
+      job: result.rows[0]
+    });
+  } catch (error) {
+    console.error('Error updating job status:', error);
+    res.status(500).json({ error: 'Failed to update job status' });
+  }
+});
+
 https.createServer(options, app).listen(3001, () => {
   console.log('Worker server running on :3001');
 });

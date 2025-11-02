@@ -150,7 +150,7 @@ class UploadWorker {
       };
 
       await axios.post(`${this.backendUrl}/api/workers/heartbeat`, {
-        worker_id: this.workerId,
+        worker_id: `worker-${this.workerId}`,
         current_load: this.currentLoad,
         cpu_usage: cpuUsage,
         memory_usage: memoryUsage.usagePercent,
