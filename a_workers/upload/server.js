@@ -197,7 +197,7 @@ class UploadWorker {
     }
 
     try {
-      const response = await axios.get(`${this.backendUrl}/api/jobs/next/${this.workerId}`, { httpsAgent: this.httpsAgent });
+      const response = await axios.get(`${this.backendUrl}/api/jobs/next/worker-${this.workerId}`, { httpsAgent: this.httpsAgent });
       
       if (response.data.job) {
         const job = response.data.job;
@@ -255,7 +255,7 @@ class UploadWorker {
     try {
       console.log(`🔄 Unregistering worker ${this.workerId}...`);
 
-      await axios.delete(`${this.backendUrl}/api/workers/${this.workerId}`, { httpsAgent: this.httpsAgent });
+      await axios.delete(`${this.backendUrl}/api/workers/worker-${this.workerId}`, { httpsAgent: this.httpsAgent });
 
       this.isRegistered = false;
       console.log('✅ Worker unregistered successfully');
