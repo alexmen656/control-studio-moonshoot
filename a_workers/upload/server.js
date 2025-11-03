@@ -8,6 +8,9 @@ import dotenv from 'dotenv';
 import https from 'https';
 import fs from 'fs';
 
+//platforms
+import { uploadToTikTok } from './platforms/tiktok.js';
+
 dotenv.config();
 
 class UploadWorker {
@@ -26,6 +29,8 @@ class UploadWorker {
     this.currentLoad = 0;
     this.activeJobs = new Map();
 
+    this.uploadToTikTok = uploadToTikTok.bind(this);
+    
     this.capabilities = {
       platforms: ['youtube', 'tiktok', 'instagram', 'facebook', 'x', 'reddit'],
       maxFileSize: 500 * 1024 * 1024,
@@ -375,24 +380,6 @@ class UploadWorker {
 
     if (success) {
       console.log(`✅ Successfully uploaded to Facebook`);
-
-      await this.updateJobStatus(job.job_id, 'completed', null, {
-        platform: job.platform,
-        uploaded_at: new Date().toISOString(),
-        video_id: job.video_id,
-        platform_response: 'Mock upload successful'
-      });
-    } else {
-      throw new Error('Simulated upload failure');
-    }
-  }
-
-  async uploadToTikTok(payload, metadata, job) {
-    console.log(payload, metadata);
-    const success = Math.random() > 0.1;
-
-    if (success) {
-      console.log(`✅ Successfully uploaded to TikTok`);
 
       await this.updateJobStatus(job.job_id, 'completed', null, {
         platform: job.platform,
