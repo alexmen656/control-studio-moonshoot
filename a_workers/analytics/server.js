@@ -374,7 +374,9 @@ class AnalyticsWorker {
     console.log(`   Fetching channel analytics for ${platform}...`);
     
     const tokenResponse = await axios.post(
-      `${this.backendUrl}/api/platform-token/${platform}/${projectId}`, { httpsAgent: this.httpsAgent }
+      `${this.backendUrl}/api/platform-token/${platform}/${projectId}`,
+      {},
+      { httpsAgent: this.httpsAgent }
     );
     
     if (!tokenResponse.data || !tokenResponse.data.access_token) {
@@ -391,7 +393,7 @@ class AnalyticsWorker {
     //const accessToken = tokenResponse.data.access_token;
     
     const accessToken = payload.sub.access_token;
-
+    //const accessToken = "lololoolooo";
     switch (platform) {
       case 'youtube':
         return await this.fetchYouTubeAnalytics(accessToken, job.metadata);
