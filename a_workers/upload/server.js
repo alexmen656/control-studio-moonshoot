@@ -16,6 +16,9 @@ import { uploadToFacebook } from './platforms/facebook.js';
 import { uploadToX } from './platforms/x.js';
 import { uploadToReddit } from './platforms/reddit.js';
 
+//utils
+import { getCPUUsage, getMemoryUsage } from './utils/systemMetrics.js';
+
 dotenv.config();
 
 class UploadWorker {
@@ -89,38 +92,7 @@ class UploadWorker {
     }
   }
 
-  getCPUUsage() {
-    const cpus = os.cpus();
-    let totalIdle = 0;
-    let totalTick = 0;
 
-    cpus.forEach(cpu => {
-      for (let type in cpu.times) {
-        totalTick += cpu.times[type];
-      }
-      totalIdle += cpu.times.idle;
-    });
-
-    const idle = totalIdle / cpus.length;
-    const total = totalTick / cpus.length;
-    const usage = 100 - ~~(100 * idle / total);
-
-    return usage;
-  }
-
-  getMemoryUsage() {
-    const totalMem = os.totalmem();
-    const freeMem = os.freemem();
-    const usedMem = totalMem - freeMem;
-    const memUsagePercent = (usedMem / totalMem) * 100;
-
-    return {
-      used: usedMem,
-      free: freeMem,
-      total: totalMem,
-      usagePercent: Math.round(memUsagePercent * 100) / 100
-    };
-  }
 
   async sendHeartbeat() {
     if (!this.isRegistered) {
@@ -129,8 +101,8 @@ class UploadWorker {
     }
 
     try {
-      const cpuUsage = this.getCPUUsage();
-      const memoryUsage = this.getMemoryUsage();
+      const cpuUsage = getCPUUsage();
+      const memoryUsage = getMemoryUsage();
 
       const metadata = {
         uptime: process.uptime(),
