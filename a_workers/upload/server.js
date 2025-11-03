@@ -10,6 +10,11 @@ import fs from 'fs';
 
 //platforms
 import { uploadToTikTok } from './platforms/tiktok.js';
+import { uploadToYouTube } from './platforms/youtube.js';
+import { uploadToInstagram } from './platforms/instagram.js';
+import { uploadToFacebook } from './platforms/facebook.js';
+import { uploadToX } from './platforms/x.js';
+import { uploadToReddit } from './platforms/reddit.js';
 
 dotenv.config();
 
@@ -30,7 +35,12 @@ class UploadWorker {
     this.activeJobs = new Map();
 
     this.uploadToTikTok = uploadToTikTok.bind(this);
-    
+    this.uploadToYouTube = uploadToYouTube.bind(this);
+    this.uploadToInstagram = uploadToInstagram.bind(this);
+    this.uploadToFacebook = uploadToFacebook.bind(this);
+    this.uploadToX = uploadToX.bind(this);
+    this.uploadToReddit = uploadToReddit.bind(this);
+
     this.capabilities = {
       platforms: ['youtube', 'tiktok', 'instagram', 'facebook', 'x', 'reddit'],
       maxFileSize: 500 * 1024 * 1024,
@@ -316,16 +326,8 @@ class UploadWorker {
       const uploadTime = 2000 + Math.random() * 3000;
       await new Promise(resolve => setTimeout(resolve, uploadTime));
 
-
-
-
       const platform = job.platform;
       const projectId = job.metadata.project_id;
-
-      //works
-      console.log(platform, projectId);
-
-
 
       const tokenResponse = await axios.post(
         `${this.backendUrl}/api/platform-token/${platform}/${projectId}`,
@@ -371,96 +373,6 @@ class UploadWorker {
       this.activeJobs.delete(job.job_id);
       this.currentLoad = Math.max(0, this.currentLoad - 1);
       console.log(`📊 Current load: ${this.currentLoad}/${this.maxConcurrentTasks}\n`);
-    }
-  }
-
-  async uploadToFacebook(payload, metadata, job) {
-    console.log(payload, metadata);
-    const success = Math.random() > 0.1;
-
-    if (success) {
-      console.log(`✅ Successfully uploaded to Facebook`);
-
-      await this.updateJobStatus(job.job_id, 'completed', null, {
-        platform: job.platform,
-        uploaded_at: new Date().toISOString(),
-        video_id: job.video_id,
-        platform_response: 'Mock upload successful'
-      });
-    } else {
-      throw new Error('Simulated upload failure');
-    }
-  }
-
-  async uploadToInstagram(payload, metadata, job) {
-    console.log(payload, metadata);
-    const success = Math.random() > 0.1;
-
-    if (success) {
-      console.log(`✅ Successfully uploaded to Instagram`);
-
-      await this.updateJobStatus(job.job_id, 'completed', null, {
-        platform: job.platform,
-        uploaded_at: new Date().toISOString(),
-        video_id: job.video_id,
-        platform_response: 'Mock upload successful'
-      });
-    } else {
-      throw new Error('Simulated upload failure');
-    }
-  }
-
-  async uploadToX(payload, metadata, job) {
-    console.log(payload, metadata);
-    const success = Math.random() > 0.1;
-
-    if (success) {
-      console.log(`✅ Successfully uploaded to X`);
-
-      await this.updateJobStatus(job.job_id, 'completed', null, {
-        platform: job.platform,
-        uploaded_at: new Date().toISOString(),
-        video_id: job.video_id,
-        platform_response: 'Mock upload successful'
-      });
-    } else {
-      throw new Error('Simulated upload failure');
-    }
-  }
-
-  async uploadToYouTube(payload, metadata, job) {
-    console.log(payload, metadata);
-    const success = Math.random() > 0.1;
-
-    if (success) {
-      console.log(`✅ Successfully uploaded to YouTube`);
-
-      await this.updateJobStatus(job.job_id, 'completed', null, {
-        platform: job.platform,
-        uploaded_at: new Date().toISOString(),
-        video_id: job.video_id,
-        platform_response: 'Mock upload successful'
-      });
-    } else {
-      throw new Error('Simulated upload failure');
-    }
-  }
-
-  async uploadToReddit(payload, metadata, job) {
-    console.log(payload, metadata);
-    const success = Math.random() > 0.1;
-
-    if (success) {
-      console.log(`✅ Successfully uploaded to Reddit`);
-
-      await this.updateJobStatus(job.job_id, 'completed', null, {
-        platform: job.platform,
-        uploaded_at: new Date().toISOString(),
-        video_id: job.video_id,
-        platform_response: 'Mock upload successful'
-      });
-    } else {
-      throw new Error('Simulated upload failure');
     }
   }
 }
