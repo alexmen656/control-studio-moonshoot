@@ -40,3 +40,32 @@ export function getMemoryUsage() {
     usagePercent: Math.round(memUsagePercent * 100) / 100
   };
 }
+
+/**
+ * Build system metadata object with CPU, memory, and platform information
+ * @returns {Object} Metadata object containing system information
+ */
+export function getSystemMetadata() {
+  const cpuUsage = getCPUUsage();
+  const memoryUsage = getMemoryUsage();
+
+  return {
+    uptime: process.uptime(),
+    memory: {
+      process_used: process.memoryUsage().heapUsed,
+      process_total: process.memoryUsage().heapTotal,
+      system_used: memoryUsage.used,
+      system_free: memoryUsage.free,
+      system_total: memoryUsage.total,
+      usage_percent: memoryUsage.usagePercent
+    },
+    cpu: {
+      cores: os.cpus().length,
+      usage_percent: cpuUsage,
+      model: os.cpus()[0].model
+    },
+    platform: os.platform(),
+    arch: os.arch(),
+    load_average: os.loadavg()
+  };
+}

@@ -17,7 +17,7 @@ import { uploadToX } from './platforms/x.js';
 import { uploadToReddit } from './platforms/reddit.js';
 
 //utils
-import { getCPUUsage, getMemoryUsage } from './utils/systemMetrics.js';
+import { getCPUUsage, getMemoryUsage, getSystemMetadata } from './utils/systemMetrics.js';
 
 dotenv.config();
 
@@ -92,8 +92,6 @@ class UploadWorker {
     }
   }
 
-
-
   async sendHeartbeat() {
     if (!this.isRegistered) {
       console.warn('⚠️ Worker not registered, skipping heartbeat');
@@ -103,26 +101,7 @@ class UploadWorker {
     try {
       const cpuUsage = getCPUUsage();
       const memoryUsage = getMemoryUsage();
-
-      const metadata = {
-        uptime: process.uptime(),
-        memory: {
-          process_used: process.memoryUsage().heapUsed,
-          process_total: process.memoryUsage().heapTotal,
-          system_used: memoryUsage.used,
-          system_free: memoryUsage.free,
-          system_total: memoryUsage.total,
-          usage_percent: memoryUsage.usagePercent
-        },
-        cpu: {
-          cores: os.cpus().length,
-          usage_percent: cpuUsage,
-          model: os.cpus()[0].model
-        },
-        platform: os.platform(),
-        arch: os.arch(),
-        load_average: os.loadavg()
-      };
+      const metadata = getSystemMetadata();
 
       await axios.post(`${this.backendUrl}/api/workers/heartbeat`, {
         worker_id: `worker-${this.workerId}`,
