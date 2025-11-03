@@ -32,3 +32,4 @@ coverage
 
 src/views/PlanView copy.vue
 docs/*
+a_workers/upload-worker-2/*

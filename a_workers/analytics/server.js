@@ -1,6 +1,9 @@
 import axios from 'axios';
 import os from 'os';
 import { v4 as uuidv4 } from 'uuid';
+import { compactDecrypt } from 'jose';
+import { jwtVerify } from 'jose';
+import { importPKCS8 } from 'jose';
 import dotenv from 'dotenv';
 import https from 'https';
 import fs from 'fs';
@@ -36,6 +39,11 @@ class AnalyticsWorker {
       minVersion: 'TLSv1.2',
       maxVersion: 'TLSv1.3'
     });
+
+    this.workerPrivateKeyPem = fs.readFileSync('keys/private.pem', 'utf8');
+    this.vpsPublicKeyPem = fs.readFileSync('keys/vps-public.pem', 'utf8');
+
+    //    this.workerPrivateKey = await importPKCS8(workerPrivateKeyPem, 'RSA-OAEP');
   }
 
   async register() {
@@ -365,16 +373,25 @@ class AnalyticsWorker {
     
     console.log(`   Fetching channel analytics for ${platform}...`);
     
-    const tokenResponse = await axios.get(
+    const tokenResponse = await axios.post(
       `${this.backendUrl}/api/platform-token/${platform}/${projectId}`, { httpsAgent: this.httpsAgent }
     );
     
     if (!tokenResponse.data || !tokenResponse.data.access_token) {
       throw new Error(`No access token found for ${platform}`);
     }
+
+    const workerPrivateKey = await importPKCS8(this.workerPrivateKeyPem, 'RSA-OAEP');    
+    const { plaintext } = await compactDecrypt(tokenResponse.data, workerPrivateKey);
+    const decrypted = new TextDecoder().decode(plaintext);
+    const vpsPublicKey = await importSPKI(this.vpsPublicKeyPem, 'ES256');
+    const { payload } = await jwtVerify(decrypted, vpsPublicKey);
+    const useable = JSON.stringify(payload, null, 2);
+    console.log('decrypted token payload:', useable);
+    //const accessToken = tokenResponse.data.access_token;
     
-    const accessToken = tokenResponse.data.access_token;
-    
+    const accessToken = payload.sub.access_token;
+
     switch (platform) {
       case 'youtube':
         return await this.fetchYouTubeAnalytics(accessToken, job.metadata);

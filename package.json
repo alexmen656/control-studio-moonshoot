@@ -30,6 +30,7 @@
     "https": "^1.0.0",
     "inquirer": "^12.10.0",
     "instagram-private-api": "^1.46.1",
+    "jose": "^6.1.0",
     "jsonwebtoken": "^9.0.2",
     "multer": "^2.0.2",
     "pg": "^8.16.3",

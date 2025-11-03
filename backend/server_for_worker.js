@@ -4,6 +4,55 @@ import express from 'express';
 import * as db from './utils/db.js'
 import tls from 'tls';
 import { startJobScheduler } from './utils/job_scheduler.js';
+import { SignJWT } from 'jose';
+import { CompactEncrypt } from 'jose';
+import { importPKCS8, importSPKI } from 'jose';
+import { createHash } from 'crypto';
+import { retrieveTokenByProjectID } from './utils/token_manager.js';
+
+const vpsPrivateKeyPem = fs.readFileSync('./keys/vps/vps-private.pem', 'utf8');
+const workerPublicKeyPem = fs.readFileSync('./keys/worker/worker-public.pem', 'utf8');
+
+const vpsPrivateKey = await importPKCS8(vpsPrivateKeyPem, 'ES256');
+const workerPublicKey = await importSPKI(workerPublicKeyPem, 'RSA-OAEP');
+
+function getCertificateThumbprint(cert) {
+  const hash = createHash('sha256').update(cert).digest();
+  return Buffer.from(hash).toString('base64url');
+}
+
+async function createSignedToken(workerId, certThumbprint) {
+  const payload = {
+    sub: workerId,
+    iss: 'http://localhost:3001',
+    iat: Math.floor(Date.now() / 1000),
+    exp: Math.floor(Date.now() / 1000) + 3600,
+    cnf: {
+      'x5t#S256': certThumbprint
+    }
+  };
+
+  const jwt = await new SignJWT(payload)
+    .setProtectedHeader({ alg: 'ES256' })
+    .sign(vpsPrivateKey);
+
+  return jwt;
+}
+
+async function createEncryptedToken(workerId, certThumbprint) {
+  const signedToken = await createSignedToken(workerId, certThumbprint);
+
+  const jweToken = await new CompactEncrypt(
+    new TextEncoder().encode(signedToken)
+  )
+    .setProtectedHeader({
+      alg: 'RSA-OAEP',
+      enc: 'A256GCM'
+    })
+    .encrypt(workerPublicKey);
+
+  return jweToken;
+}
 
 const app = express();
 app.use(express.json());
@@ -128,16 +177,28 @@ app.post('/api/workers/heartbeat', requireWorkerCert, async (req, res) => {
   }
 });
 
-app.get('/api/platform-token/:platform/:projectId', requireWorkerCert,async (req, res) => {
+app.post('/api/platform-token/:platform/:projectId', requireWorkerCert,async (req, res) => {//get
   try {
     const { platform, projectId } = req.params;
-
+   // const { workerId } = req.body;
+   const workerId = req.body.worker_id;
     console.log(`Fetching token for platform: ${platform}, projectId: ${projectId}`);
+
+    console.log('body', req.body); // <-- also undefined
+    //const workerId = req.body.worker_id; //<-- undefined for some reason 
+    const clientCert = req.socket.getPeerCertificate();
+
+    const certThumbprint = getCertificateThumbprint(
+        clientCert.raw || clientCert.cert
+    );
+
+    //res.json({ access_token: encryptedToken });
 
     if(platform == 'youtube') {
     try {
       const youtubeToken = await retrieveTokenByProjectID('youtube_token', projectId);
-      res.json(youtubeToken);
+      const encryptedToken = await createEncryptedToken(youtubeToken, certThumbprint);
+      res.json(encryptedToken);
     } catch (err) {
       // Not connected
       console.error('Error fetching YouTube token:', err);
@@ -145,7 +206,8 @@ app.get('/api/platform-token/:platform/:projectId', requireWorkerCert,async (req
     } else if(platform == 'tiktok') {
     try {
       const tiktokToken = await retrieveTokenByProjectID('tiktok_token', projectId);
-      res.json(tiktokToken);
+      const encryptedToken = await createEncryptedToken(tiktokToken, certThumbprint);
+      res.json(encryptedToken);
     } catch (err) {
       // Not connected
       console.error('Error fetching TikTok token:', err);
@@ -153,8 +215,9 @@ app.get('/api/platform-token/:platform/:projectId', requireWorkerCert,async (req
     } else if(platform == 'instagram') {
     try {
       const instagramAccount = await retrieveTokenByProjectID('instagram_business_account', projectId);
-      res.json(instagramAccount);
-      
+      const encryptedToken = await createEncryptedToken(instagramAccount, certThumbprint);
+      res.json(encryptedToken);
+
     } catch (err) {
       // Not connected
       console.error('Error fetching Instagram account:', err);
@@ -162,7 +225,8 @@ app.get('/api/platform-token/:platform/:projectId', requireWorkerCert,async (req
     } else if(platform == 'facebook') {
     try {
       const facebookAccounts = await retrieveTokenByProjectID('facebook_accounts', projectId);
-      res.json(facebookAccounts);
+      const encryptedToken = await createEncryptedToken(facebookAccounts, certThumbprint);
+      res.json(encryptedToken);
 
     } catch (err) {
       // Not connected
@@ -171,7 +235,8 @@ app.get('/api/platform-token/:platform/:projectId', requireWorkerCert,async (req
     } else if(platform == 'x') {
     try {
       const xToken = await retrieveTokenByProjectID('x_token', projectId);
-      res.json(xToken);
+      const encryptedToken = await createEncryptedToken(xToken, certThumbprint);
+      res.json(encryptedToken);
     } catch (err) {
       // Not connected
       console.error('Error fetching X token:', err);
@@ -179,7 +244,8 @@ app.get('/api/platform-token/:platform/:projectId', requireWorkerCert,async (req
     } else if(platform == 'reddit') {
     try {
       const redditToken = await retrieveTokenByProjectID('reddit_token', projectId);
-       res.json(redditToken);
+      const encryptedToken = await createEncryptedToken(redditToken, certThumbprint);
+      res.json(encryptedToken);
     } catch (err) {
       // Not connected
       console.error('Error fetching Reddit token:', err);
