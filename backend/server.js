@@ -2170,7 +2170,9 @@ app.get('/api/oauth2callback/reddit', async (req, res) => {
     console.error('Error during Reddit OAuth2 callback:', error);
     res.redirect(`${baseDomain}/accounts?error=reddit_auth_failed`);
   }
-});app.post('/api/publish', async (req, res) => {
+});
+
+app.post('/api/publish', async (req, res) => {
   const platformStatuses = {}
 
   try {
