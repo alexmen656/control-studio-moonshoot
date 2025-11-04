@@ -69,9 +69,9 @@ const options = {
   //minVersion: 'TLSv1.2',
   //maxVersion: 'TLSv1.3'
 
- // minVersion: tls.TLS1_2,
- // maxVersion: tls.TLS1_3
-   minVersion: 'TLSv1.2',
+  // minVersion: tls.TLS1_2,
+  // maxVersion: tls.TLS1_3
+  minVersion: 'TLSv1.2',
   maxVersion: 'TLSv1.3'
 };
 
@@ -81,14 +81,14 @@ const requireWorkerCert = (req, res, next) => {
     return res.status(401).json({ error: 'Invalid worker certificate' });
   }
 
-    const cert = req.socket.getPeerCertificate();
- /* console.log('Worker Certificate Details:');
-  console.log('  Subject:', cert.subject);
-  console.log('  Issuer:', cert.issuer);
-  console.log('  Valid From:', cert.valid_from);
-  console.log('  Valid To:', cert.valid_to);
-  console.log('  Common Name (CN):', cert.subject.CN);*/
-  
+  const cert = req.socket.getPeerCertificate();
+  /* console.log('Worker Certificate Details:');
+   console.log('  Subject:', cert.subject);
+   console.log('  Issuer:', cert.issuer);
+   console.log('  Valid From:', cert.valid_from);
+   console.log('  Valid To:', cert.valid_to);
+   console.log('  Common Name (CN):', cert.subject.CN);*/
+
   next();
 };
 
@@ -178,11 +178,11 @@ app.post('/api/workers/heartbeat', requireWorkerCert, async (req, res) => {
   }
 });
 
-app.post('/api/platform-token/:platform/:projectId', requireWorkerCert,async (req, res) => {//get
+app.post('/api/platform-token/:platform/:projectId', requireWorkerCert, async (req, res) => {//get
   try {
     const { platform, projectId } = req.params;
-   // const { workerId } = req.body;
-   const workerId = req.body.worker_id;
+    // const { workerId } = req.body;
+    const workerId = req.body.worker_id;
     console.log(`Fetching token for platform: ${platform}, projectId: ${projectId}`);
 
     console.log('body', req.body); // <-- also undefined
@@ -190,75 +190,80 @@ app.post('/api/platform-token/:platform/:projectId', requireWorkerCert,async (re
     const clientCert = req.socket.getPeerCertificate();
 
     const certThumbprint = getCertificateThumbprint(
-        clientCert.raw || clientCert.cert
+      clientCert.raw || clientCert.cert
     );
 
     //res.json({ access_token: encryptedToken });
 
-    if(platform == 'youtube') {
-    try {
-      const youtubeToken = await retrieveTokenByProjectID('youtube_token', projectId);
-      const encryptedToken = await createEncryptedToken(youtubeToken, certThumbprint);
-      res.json(encryptedToken);
-    } catch (err) {
-      // Not connected
-      console.error('Error fetching YouTube token:', err);
-    }
-    } else if(platform == 'tiktok') {
-    try {
-      const tiktokToken = await retrieveTokenByProjectID('tiktok_token', projectId);
-      const encryptedToken = await createEncryptedToken(tiktokToken, certThumbprint);
-      res.json(encryptedToken);
-    } catch (err) {
-      // Not connected
-      console.error('Error fetching TikTok token:', err);
-    }
-    } else if(platform == 'instagram') {
-    try {
-      const instagramAccount = await retrieveTokenByProjectID('instagram_business_account', projectId);
-      console.log('Instagram Account:', instagramAccount);
-      const facebook_accounts_for_instagram = await retrieveTokenByProjectID('facebook_accounts_for_instagram', projectId);
-
-      const token = {
-        instagramUserId: instagramAccount.id,//instagram_business_account
-        accessToken: facebook_accounts_for_instagram.data[0].access_token
+    if (platform == 'youtube') {
+      try {
+        const youtubeToken = await retrieveTokenByProjectID('youtube_token', projectId);
+        const encryptedToken = await createEncryptedToken(youtubeToken, certThumbprint);
+        res.json(encryptedToken);
+      } catch (err) {
+        // Not connected
+        console.error('Error fetching YouTube token:', err);
       }
-      
-      const encryptedToken = await createEncryptedToken(token, certThumbprint);
-      res.json(encryptedToken);
+    } else if (platform == 'tiktok') {
+      try {
+        const tiktokToken = await retrieveTokenByProjectID('tiktok_token', projectId);
+        const encryptedToken = await createEncryptedToken(tiktokToken, certThumbprint);
+        res.json(encryptedToken);
+      } catch (err) {
+        // Not connected
+        console.error('Error fetching TikTok token:', err);
+      }
+    } else if (platform == 'instagram') {
+      try {
+        const instagramAccount = await retrieveTokenByProjectID('instagram_business_account', projectId);
+        console.log('Instagram Account:', instagramAccount);
+        const facebook_accounts_for_instagram = await retrieveTokenByProjectID('facebook_accounts_for_instagram', projectId);
 
-    } catch (err) {
-      // Not connected
-      console.error('Error fetching Instagram account:', err);
-    }
-    } else if(platform == 'facebook') {
-    try {
-      const facebookAccounts = await retrieveTokenByProjectID('facebook_accounts', projectId);
-      const encryptedToken = await createEncryptedToken(facebookAccounts, certThumbprint);
-      res.json(encryptedToken);
+        const token = {
+          instagramUserId: instagramAccount.id,//instagram_business_account
+          accessToken: facebook_accounts_for_instagram.data[0].access_token
+        }
 
-    } catch (err) {
-      // Not connected
-      console.error('Error fetching Facebook accounts:', err);
-    }
-    } else if(platform == 'x') {
-    try {
-      const xToken = await retrieveTokenByProjectID('x_token', projectId);
-      const encryptedToken = await createEncryptedToken(xToken, certThumbprint);
-      res.json(encryptedToken);
-    } catch (err) {
-      // Not connected
-      console.error('Error fetching X token:', err);
-    }
-    } else if(platform == 'reddit') {
-    try {
-      const redditToken = await retrieveTokenByProjectID('reddit_token', projectId);
-      const encryptedToken = await createEncryptedToken(redditToken, certThumbprint);
-      res.json(encryptedToken);
-    } catch (err) {
-      // Not connected
-      console.error('Error fetching Reddit token:', err);
-    }
+        const encryptedToken = await createEncryptedToken(token, certThumbprint);
+        res.json(encryptedToken);
+
+      } catch (err) {
+        // Not connected
+        console.error('Error fetching Instagram account:', err);
+      }
+    } else if (platform == 'facebook') {
+      try {
+        const facebookAccounts = await retrieveTokenByProjectID('facebook_accounts', projectId);
+
+        const token = {
+          accessToken: facebookAccounts.data[0].access_token,
+          pageId: facebookAccounts.data[0].id
+        };
+
+        const encryptedToken = await createEncryptedToken(token, certThumbprint);
+        res.json(encryptedToken);
+      } catch (err) {
+        // Not connected
+        console.error('Error fetching Facebook accounts:', err);
+      }
+    } else if (platform == 'x') {
+      try {
+        const xToken = await retrieveTokenByProjectID('x_token', projectId);
+        const encryptedToken = await createEncryptedToken(xToken, certThumbprint);
+        res.json(encryptedToken);
+      } catch (err) {
+        // Not connected
+        console.error('Error fetching X token:', err);
+      }
+    } else if (platform == 'reddit') {
+      try {
+        const redditToken = await retrieveTokenByProjectID('reddit_token', projectId);
+        const encryptedToken = await createEncryptedToken(redditToken, certThumbprint);
+        res.json(encryptedToken);
+      } catch (err) {
+        // Not connected
+        console.error('Error fetching Reddit token:', err);
+      }
     }
   } catch (error) {
     console.error('Error fetching platform token:', error);
@@ -273,7 +278,7 @@ app.get('/api/jobs/worker/:workerId', requireWorkerCert, async (req, res) => {
     const { workerId } = req.params;
 
     if (workerCN !== workerId) {
-      return res.status(403).json({ 
+      return res.status(403).json({
         error: 'Access denied: Worker can only access their own jobs',
         requestedWorker: workerId,
         authenticatedWorker: workerCN
@@ -311,7 +316,7 @@ app.get('/api/jobs/next/:workerId', requireWorkerCert, async (req, res) => {
     const { workerId } = req.params;
 
     if (workerCN !== workerId) {
-      return res.status(403).json({ 
+      return res.status(403).json({
         error: 'Access denied: Worker can only fetch their own jobs',
         requestedWorker: workerId,
         authenticatedWorker: workerCN
@@ -338,7 +343,7 @@ app.get('/api/jobs/next/:workerId', requireWorkerCert, async (req, res) => {
       }
 
       const worker = workerInfo.rows[0];
-      
+
       if (worker.current_load >= worker.max_concurrent_tasks) {
         return res.json({ job: null, message: 'Worker at capacity' });
       }
@@ -363,7 +368,7 @@ app.get('/api/jobs/next/:workerId', requireWorkerCert, async (req, res) => {
 
       if (result.rows.length > 0) {
         const job = result.rows[0];
-        
+
         const { assignJobToWorker } = await import('./utils/worker_selector.js');
         await assignJobToWorker(workerId, job.job_id);
 
@@ -398,7 +403,7 @@ app.delete('/api/workers/:workerId', requireWorkerCert, async (req, res) => {
     const { workerId } = req.params;
 
     if (workerCN !== workerId) {
-      return res.status(403).json({ 
+      return res.status(403).json({
         error: 'Access denied: Worker can only fetch their own jobs',
         requestedWorker: workerId,
         authenticatedWorker: workerCN
@@ -475,6 +480,6 @@ app.patch('/api/jobs/:jobId/status', requireWorkerCert, async (req, res) => {
 
 https.createServer(options, app).listen(3001, () => {
   console.log('Worker server running on :3001');
-  
+
   startJobScheduler(30000);
 });
