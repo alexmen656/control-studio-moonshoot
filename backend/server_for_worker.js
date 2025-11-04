@@ -9,6 +9,7 @@ import { CompactEncrypt } from 'jose';
 import { importPKCS8, importSPKI } from 'jose';
 import { createHash } from 'crypto';
 import { retrieveTokenByProjectID } from './utils/token_manager.js';
+//import { forEachLeadingCommentRange } from 'typescript';
 
 const vpsPrivateKeyPem = fs.readFileSync('./keys/vps/vps-private.pem', 'utf8');
 const workerPublicKeyPem = fs.readFileSync('./keys/worker/worker-public.pem', 'utf8');
@@ -215,7 +216,15 @@ app.post('/api/platform-token/:platform/:projectId', requireWorkerCert,async (re
     } else if(platform == 'instagram') {
     try {
       const instagramAccount = await retrieveTokenByProjectID('instagram_business_account', projectId);
-      const encryptedToken = await createEncryptedToken(instagramAccount, certThumbprint);
+      console.log('Instagram Account:', instagramAccount);
+      const facebook_accounts_for_instagram = await retrieveTokenByProjectID('facebook_accounts_for_instagram', projectId);
+
+      const token = {
+        instagramUserId: instagramAccount.id,//instagram_business_account
+        accessToken: facebook_accounts_for_instagram.data[0].access_token
+      }
+      
+      const encryptedToken = await createEncryptedToken(token, certThumbprint);
       res.json(encryptedToken);
 
     } catch (err) {
