@@ -59,9 +59,9 @@ const app = express();
 app.use(express.json());
 
 const options = {
-  key: fs.readFileSync('vps.key'),
-  cert: fs.readFileSync('vps.crt'),
-  ca: fs.readFileSync('ca.crt'),
+  key: fs.readFileSync('certs/vps.key'),
+  cert: fs.readFileSync('certs/vps.crt'),
+  ca: fs.readFileSync('certs/ca.crt'),
   requestCert: true, //true,
   rejectUnauthorized: true, //true,
 
