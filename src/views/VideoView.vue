@@ -88,7 +88,8 @@ const publishVideo = async () => {
     if (!currentVideo.value) return
 
     try {
-        const response = await axios.post(`${API_URL}/publish`, {
+        const project_id = localStorage.getItem('currentProjectId') || ''
+        const response = await axios.post(`${API_URL}/publish?project_id=${project_id}`, {
             videoId: currentVideo.value.id,
             platform: currentVideo.value.platforms
         })

@@ -21,6 +21,7 @@ import { registerUser, loginUser, loginWithGoogle, authMiddleware, projectAccess
 import { getAvailableRegions, getRegionById, isValidRegion, getDefaultRegion } from './utils/regions.js'
 import { storeOAuthState, retrieveOAuthState } from './utils/oauth_states.js';
 import { startJobScheduler } from './utils/job_scheduler.js';
+import { createUploadJobs } from './utils/job_creator.js';
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -1747,7 +1748,7 @@ app.get('/api/connected-platforms', authMiddleware, projectAccessMiddleware, asy
 
 app.get('/api/oauth2callback/youtube', async (req, res) => {
   const { code, state } = req.query;
-  
+
   if (!code) {
     return res.status(400).send('Authorization code not provided');
   }
@@ -1765,7 +1766,7 @@ app.get('/api/oauth2callback/youtube', async (req, res) => {
 
     await storeTokenByProjectID('youtube_code', { code: code }, PROJECT_ID);
     await youTubeManager.getTokenFromCode(code, PROJECT_ID);
-    
+
     try {
       const youtubeToken = await retrieveTokenByProjectID('youtube_token', PROJECT_ID);
       if (youtubeToken && youtubeToken.access_token) {
@@ -1797,7 +1798,7 @@ app.get('/api/oauth2callback/youtube', async (req, res) => {
     console.error('Error during YouTube OAuth2 callback:', error);
     res.status(500).send('Error during YouTube authorization');
   }
-});app.get('/api/oauth2callback/tiktok', async (req, res) => {
+}); app.get('/api/oauth2callback/tiktok', async (req, res) => {
   const { code, state, error, error_description } = req.query;
 
   if (error) {
@@ -1815,9 +1816,9 @@ app.get('/api/oauth2callback/youtube', async (req, res) => {
     try {
       const stateData = await retrieveOAuthState(state);
       const PROJECT_ID = stateData.project_id;
-      
+
       await new Promise(resolve => setTimeout(resolve, 500));
-      
+
       const tiktokToken = await retrieveTokenByProjectID('tiktok_token', PROJECT_ID);
       console.log('🔍 TikTok token retrieved:', tiktokToken ? 'exists' : 'null', tiktokToken?.access_token ? 'has access_token' : 'no access_token');
 
@@ -1828,11 +1829,11 @@ app.get('/api/oauth2callback/youtube', async (req, res) => {
             'Content-Type': 'application/json'
           }
         });
-        
+
         const responseText = await userInfoResponse.text();
-       // console.log('🔍 TikTok API response status:', userInfoResponse.status);
+        // console.log('🔍 TikTok API response status:', userInfoResponse.status);
         //console.log('🔍 TikTok API response:', responseText);
-        
+
         if (userInfoResponse.ok) {
           const userData = JSON.parse(responseText);
           if (userData.data && userData.data.user) {
@@ -1965,7 +1966,7 @@ app.get('/api/oauth2callback/x', async (req, res) => {
 
   try {
     await xManager.exchangeCodeForToken(code, state);
-    
+
     try {
       const stateData = await retrieveOAuthState(state);
       const PROJECT_ID = stateData.project_id;
@@ -1993,7 +1994,7 @@ app.get('/api/oauth2callback/x', async (req, res) => {
     } catch (err) {
       console.error('Error fetching X user info:', err);
     }
-    
+
     console.log('X token stored successfully');
     res.redirect(`${baseDomain}/accounts?x=connected`);
   } catch (error) {
@@ -2017,9 +2018,9 @@ app.get('/api/oauth2callback/reddit', async (req, res) => {
   try {
     const tokenData = await redditManager.exchangeCodeForToken(code, state);
 
-        if (tokenData.redirect === 'to_local') {
-          res.redirect('http://localhost:6709/api/oauth2callback/reddit?code=' + code + '&state=' + state + '&error=' + (error || '') + '&error_description=' + (error_description || ''));
-        }
+    if (tokenData.redirect === 'to_local') {
+      res.redirect('http://localhost:6709/api/oauth2callback/reddit?code=' + code + '&state=' + state + '&error=' + (error || '') + '&error_description=' + (error_description || ''));
+    }
     try {
       const stateData = await retrieveOAuthState(state);
       const PROJECT_ID = stateData.project_id;
@@ -2045,7 +2046,7 @@ app.get('/api/oauth2callback/reddit', async (req, res) => {
     } catch (err) {
       console.error('Error fetching Reddit user info:', err);
     }
-    
+
     console.log('Reddit token stored successfully');
     res.redirect(`${baseDomain}/accounts?reddit=connected`);
   } catch (error) {
@@ -2059,7 +2060,7 @@ app.get('/api/analytics/hourly', async (req, res) => {
     const { platform, project_id, hours = 48 } = req.query;
     const PROJECT_ID = project_id || 2;
 
-  //simulate cause I need to build anoher worker to fetch hourly data from each platform
+    //simulate cause I need to build anoher worker to fetch hourly data from each platform
     let totalViews = 0;
     const platforms = platform ? [platform] : ['youtube', 'tiktok', 'instagram', 'facebook', 'x', 'reddit'];
 
@@ -2107,16 +2108,16 @@ app.get('/api/analytics/hourly', async (req, res) => {
     const hourlyData = [];
     const labels = [];
     const now = new Date();
-    
+
     for (let i = parseInt(hours) - 1; i >= 0; i--) {
       const hour = new Date(now.getTime() - i * 60 * 60 * 1000);
       const hourStr = hour.getHours().toString().padStart(2, '0') + ':00';
       labels.push(hourStr);
-      
-      
+
+
       const hourOfDay = hour.getHours();
       let multiplier = 1;
-      
+
       if (hourOfDay >= 12 && hourOfDay <= 20) {
         multiplier = 1.5 + Math.random() * 0.5;
       } else if (hourOfDay >= 6 && hourOfDay < 12) {
@@ -2124,7 +2125,7 @@ app.get('/api/analytics/hourly', async (req, res) => {
       } else {
         multiplier = 0.5 + Math.random() * 0.3;
       }
-      
+
       const viewsForHour = Math.floor((totalViews / parseInt(hours)) * multiplier);
       hourlyData.push(viewsForHour);
     }
@@ -2330,7 +2331,7 @@ app.get('/api/analytics/total', async (req, res) => {
                     comments: row[6] || 0
                   };
                   analyticsData.videos.push(videoData);
-                  
+
                   platStats.views += row[1] || 0;
                   platStats.likes += row[4] || 0;
                   platStats.comments += row[6] || 0;
@@ -2366,7 +2367,7 @@ app.get('/api/analytics/total', async (req, res) => {
                     shares: video.statistics?.share_count || 0
                   };
                   analyticsData.videos.push(videoData);
-                  
+
                   platStats.views += video.statistics?.view_count || 0;
                   platStats.likes += video.statistics?.like_count || 0;
                   platStats.comments += video.statistics?.comment_count || 0;
@@ -2404,7 +2405,7 @@ app.get('/api/analytics/total', async (req, res) => {
                     shares: media.shares || 0
                   };
                   analyticsData.videos.push(videoData);
-                  
+
                   platStats.views += media.video_views || media.reach || 0;
                   platStats.likes += media.likes || 0;
                   platStats.comments += media.comments || 0;
@@ -2442,7 +2443,7 @@ app.get('/api/analytics/total', async (req, res) => {
                     shares: video.shares || 0
                   };
                   analyticsData.videos.push(videoData);
-                  
+
                   platStats.views += video.views || 0;
                   platStats.likes += video.likes || 0;
                   platStats.comments += video.comments || 0;
@@ -2686,6 +2687,34 @@ app.get('/api/activity', authMiddleware, projectAccessMiddleware, async (req, re
   }
 });
 
+app.post('/api/publish', authMiddleware, projectAccessMiddleware, async (req, res) => {
+  //const platformStatuses = {}
+  
+  try {
+    if (!req.body.videoId) {
+      return res.status(400).send('videoId is required')
+    }
+
+    const video = await db.getVideoById(req.body.videoId)
+
+    if (!video) {
+      return res.status(404).send('Video not found')
+    }
+
+    if (!video.platforms || video.platforms.length === 0) {
+      return res.status(400).send('No platforms selected for publishing')
+    }
+
+    console.log(video);
+    console.log('Creating publish jobs for video ID:', video.id, 'on platforms:', video.platforms);
+    const jobs = await createUploadJobs(video.id, video.platforms, req.project.id, video.priority || 0);
+
+    return res.json({ message: 'Publish jobs created', jobs })
+  } catch (error) {
+    console.error('Error publishing video:', error)
+    return res.status(500).send('Error publishing video')
+  }
+});
 // video specific
 /*app.post('/api/analytics', async (req, res) => {
   try {
@@ -2727,6 +2756,6 @@ app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`)
   console.log(`Uploads directory: ${uploadsDir}`)
   console.log(`Database: PostgreSQL`)
-  
+
   startJobScheduler(30000);
 })
