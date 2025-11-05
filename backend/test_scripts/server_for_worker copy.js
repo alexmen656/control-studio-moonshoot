@@ -1,25 +1,17 @@
 import https from 'https';
 import fs from 'fs';
 import express from 'express';
-import * as db from './utils/db.js'
-import tls from 'tls';
+import * as db from '../utils/db.js'
 
 const app = express();
-app.use(express.json());
+
 
 const options = {
   key: fs.readFileSync('vps.key'),
   cert: fs.readFileSync('vps.crt'),
   ca: fs.readFileSync('ca.crt'),
-  requestCert: false, //true,
-  rejectUnauthorized: false, //true,
-
-  //tls versions
-  //minVersion: 'TLSv1.2',
-  //maxVersion: 'TLSv1.3'
-
-  minVersion: tls.TLS1_2,
-  maxVersion: tls.TLS1_3
+  requestCert: true,
+  rejectUnauthorized: true
 };
 
 //worker cert middleware
