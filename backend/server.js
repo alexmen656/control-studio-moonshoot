@@ -151,70 +151,8 @@ app.post('/api/jobs', authMiddleware, projectAccessMiddleware, async (req, res) 
       return res.status(400).json({ error: 'video_id and platforms are required' });
     }
 
-    const { selectBestWorker, assignJobToWorker } = await import('./utils/worker_selector.js');
-
-    const video = await db.getVideoById(video_id);
-    if (!video) {
-      return res.status(404).json({ error: 'Video not found' });
-    }
-
-    const jobs = [];
-
-    for (const platform of platforms) {
-      const jobId = `job-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-
-      try {
-        // Always create the job first
-        await db.query(
-          `INSERT INTO worker_jobs 
-           (job_id, video_id, platform, status, priority, metadata)
-           VALUES ($1, $2, $3, $4, $5, $6)`,
-          [
-            jobId,
-            video_id,
-            platform,
-            'pending',
-            priority || 0,
-            JSON.stringify({
-              job_type: 'upload',
-              video_title: video.title,
-              video_path: video.path,
-              project_id: req.project.id
-            })
-          ]
-        );
-
-        try {
-          const selectedWorker = await selectBestWorker(req.project.id, [platform], 'upload');
-          await assignJobToWorker(selectedWorker.worker_id, jobId);
-
-          jobs.push({
-            job_id: jobId,
-            platform,
-            worker: selectedWorker,
-            status: 'assigned'
-          });
-
-          console.log(`✓ Created upload job ${jobId} for ${platform} → Worker: ${selectedWorker.worker_name}`);
-        } catch (workerError) {
-          console.log(`⚠ Created upload job ${jobId} for ${platform} → Queued (no worker available: ${workerError.message})`);
-          
-          jobs.push({
-            job_id: jobId,
-            platform,
-            status: 'pending',
-            message: 'Job queued - will be processed when worker becomes available'
-          });
-        }
-      } catch (error) {
-        console.error(`✗ Failed to create job for ${platform}:`, error.message);
-        jobs.push({
-          platform,
-          error: error.message,
-          status: 'failed_to_create'
-        });
-      }
-    }
+    const { createUploadJobs } = await import('./utils/job_creator.js');
+    const jobs = await createUploadJobs(video_id, platforms, req.project.id, priority || 0);
 
     res.status(201).json({
       message: 'Jobs created',
@@ -242,70 +180,14 @@ app.post('/api/analytics-jobs', authMiddleware, projectAccessMiddleware, async (
       return res.status(400).json({ error: 'platforms are required' });
     }
 
-    const validTaskTypes = ['channel_analytics', 'video_analytics', 'hourly_analytics'];
-    if (task_type && !validTaskTypes.includes(task_type)) {
-      return res.status(400).json({ error: `task_type must be one of: ${validTaskTypes.join(', ')}` });
-    }
-
-    const { selectBestWorker, assignJobToWorker } = await import('./utils/worker_selector.js');
-
-    const jobs = [];
-
-    for (const platform of platforms) {
-      const jobId = `analytics-job-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-
-      try {
-        await db.query(
-          `INSERT INTO worker_jobs 
-           (job_id, platform, status, priority, metadata)
-           VALUES ($1, $2, $3, $4, $5)`,
-          [
-            jobId,
-            platform,
-            'pending',
-            priority || 0,
-            JSON.stringify({
-              job_type: 'analytics',
-              task_type: task_type || 'channel_analytics',
-              project_id: projectId,
-              ...metadata
-            })
-          ]
-        );
-
-        try {
-          const selectedWorker = await selectBestWorker(projectId, [platform], 'analytics');
-          await assignJobToWorker(selectedWorker.worker_id, jobId);
-
-          jobs.push({
-            job_id: jobId,
-            platform,
-            task_type: task_type || 'channel_analytics',
-            worker: selectedWorker,
-            status: 'assigned'
-          });
-
-          console.log(`✓ Created analytics job ${jobId} for ${platform} → Worker: ${selectedWorker.worker_name}`);
-        } catch (workerError) {
-          console.log(`⚠ Created analytics job ${jobId} for ${platform} → Queued (no worker available: ${workerError.message})`);
-          
-          jobs.push({
-            job_id: jobId,
-            platform,
-            task_type: task_type || 'channel_analytics',
-            status: 'pending',
-            message: 'Job queued - will be processed when worker becomes available'
-          });
-        }
-      } catch (error) {
-        console.error(`✗ Failed to create analytics job for ${platform}:`, error.message);
-        jobs.push({
-          platform,
-          error: error.message,
-          status: 'failed_to_create'
-        });
-      }
-    }
+    const { createAnalyticsJobs } = await import('./utils/job_creator.js');
+    const jobs = await createAnalyticsJobs(
+      platforms,
+      projectId,
+      task_type || 'channel_analytics',
+      priority || 0,
+      metadata || {}
+    );
 
     res.status(201).json({
       message: 'Analytics jobs created',
@@ -313,7 +195,7 @@ app.post('/api/analytics-jobs', authMiddleware, projectAccessMiddleware, async (
     });
   } catch (error) {
     console.error('Error creating analytics jobs:', error);
-    res.status(500).json({ error: 'Failed to create analytics jobs' });
+    res.status(500).json({ error: error.message || 'Failed to create analytics jobs' });
   }
 });
 
@@ -2172,175 +2054,6 @@ app.get('/api/oauth2callback/reddit', async (req, res) => {
   }
 });
 
-app.post('/api/publish', async (req, res) => {
-  const platformStatuses = {}
-
-  try {
-    if (!req.body.videoId) {
-      return res.status(400).send('videoId is required')
-    }
-
-    const video = await db.getVideoById(req.body.videoId)
-
-    if (!video) {
-      return res.status(404).send('Video not found')
-    }
-
-    if (!video.platforms || video.platforms.length === 0) {
-      return res.status(400).send('No platforms selected for publishing')
-    }
-
-    if (video.platforms.includes('youtube')) {
-      console.log('Publishing to YouTube:', video.title);
-      try {
-        await youTubeManager.uploadVideo(video)
-        platformStatuses.youtube = 'success'
-        console.log(`✓ YouTube: Published successfully at ${new Date().toLocaleString()}`)
-      } catch (error) {
-        platformStatuses.youtube = 'failed'
-        console.error('✗ YouTube: Failed -', error.message)
-      }
-    }
-
-    if (video.platforms.includes('tiktok')) {
-      console.log('Publishing to TikTok:', video.title);
-      try {
-        await tiktokManager.uploadVideo(video.path, video.title)
-        platformStatuses.tiktok = 'success'
-        console.log(`✓ TikTok: Published successfully at ${new Date().toLocaleString()}`)
-      } catch (error) {
-        platformStatuses.tiktok = 'failed'
-        console.error('✗ TikTok: Failed -', error.message)
-      }
-    }
-
-    if (video.platforms.includes('instagram')) {
-      console.log('Publishing to Instagram:', video.title)
-      const videoFile = video.path;
-      const options = {
-        caption: video.description,
-      }
-
-      try {
-        await instagramManager.uploadReel({ path: videoFile }, options)
-        platformStatuses.instagram = 'success'
-        console.log(`✓ Instagram: Published successfully at ${new Date().toLocaleString()}`)
-      } catch (error) {
-        platformStatuses.instagram = 'failed'
-        console.error('✗ Instagram: Failed -', error.message)
-      }
-    }
-
-    if (video.platforms.includes('facebook')) {
-      console.log('Publishing to Facebook:', video.title)
-      const videoFile = video.path;
-      const options = {
-        title: video.title,
-        description: video.description,
-      };
-
-      try {
-        await facebookManager.uploadVideo({ path: videoFile }, options)
-        platformStatuses.facebook = 'success'
-        console.log(`✓ Facebook: Published successfully at ${new Date().toLocaleString()}`)
-      } catch (error) {
-        platformStatuses.facebook = 'failed'
-        console.error('✗ Facebook: Failed -', error.message)
-      }
-    }
-
-    if (video.platforms.includes('x')) {
-      console.log('Publishing to X (Twitter):', video.title)
-      const videoFile = video.path;
-      const options = {
-        text: video.description || video.title,
-      };
-
-      try {
-        await xManager.uploadVideo({ path: videoFile }, options)
-        platformStatuses.x = 'success'
-        console.log(`✓ X: Published successfully at ${new Date().toLocaleString()}`)
-      } catch (error) {
-        platformStatuses.x = 'failed'
-        console.error('✗ X: Failed -', error.message)
-      }
-    }
-
-    if (video.platforms.includes('reddit')) {
-      console.log('Publishing to Reddit:', video.title)
-      const videoFile = video.path;
-      const options = {
-        title: video.title,
-        subreddit: video.subreddit || 'videos', // Default subreddit, should be configurable
-      };
-
-      try {
-        await redditManager.uploadVideo({ path: videoFile, originalname: video.title }, options)
-        platformStatuses.reddit = 'success'
-        console.log(`✓ Reddit: Published successfully at ${new Date().toLocaleString()}`)
-      } catch (error) {
-        platformStatuses.reddit = 'failed'
-        console.error('✗ Reddit: Failed -', error.message)
-      }
-    }
-
-    const currentDate = new Date().toISOString()
-
-    const publishStatusWithDates = {}
-    Object.entries(platformStatuses).forEach(([platform, status]) => {
-      if (status === 'success') {
-        publishStatusWithDates[platform] = currentDate
-      } else {
-        publishStatusWithDates[platform] = 'failed'
-      }
-    })
-
-    const allSuccess = Object.values(platformStatuses).every(status => status === 'success')
-    const anySuccess = Object.values(platformStatuses).some(status => status === 'success')
-
-    let newStatus = 'failed'
-    if (allSuccess) {
-      newStatus = 'published'
-    } else if (anySuccess) {
-      newStatus = 'partially-published'
-    }
-
-    await db.updateVideo(req.body.videoId, {
-      publishStatus: publishStatusWithDates,
-      status: newStatus,
-      publishedAt: anySuccess ? currentDate : null
-    })
-
-    const successPlatforms = Object.entries(platformStatuses)
-      .filter(([_, status]) => status === 'success')
-      .map(([platform, _]) => platform)
-
-    const failedPlatforms = Object.entries(platformStatuses)
-      .filter(([_, status]) => status === 'failed')
-      .map(([platform, _]) => platform)
-
-    let message = ''
-    if (successPlatforms.length > 0) {
-      message += `Successfully published to: ${successPlatforms.join(', ')}`
-    }
-    if (failedPlatforms.length > 0) {
-      if (message) message += '. '
-      message += `Failed to publish to: ${failedPlatforms.join(', ')}`
-    }
-
-    res.status(200).json({
-      message: message || 'Publishing completed',
-      platformStatuses: platformStatuses
-    })
-  } catch (error) {
-    console.error('Error publishing post:', error)
-    res.status(500).json({
-      error: 'Error publishing post',
-      platformStatuses: platformStatuses
-    })
-  }
-})
-
 app.get('/api/analytics/hourly', async (req, res) => {
   try {
     const { platform, project_id, hours = 48 } = req.query;
@@ -3015,6 +2728,5 @@ app.listen(PORT, () => {
   console.log(`Uploads directory: ${uploadsDir}`)
   console.log(`Database: PostgreSQL`)
   
-  // Start the job scheduler to assign pending jobs to available workers
-  startJobScheduler(30000); // Check every 30 seconds
+  startJobScheduler(30000);
 })
