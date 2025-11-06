@@ -4,7 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { authMiddleware, projectAccessMiddleware } from '../utils/auth.js';
-import db from '../utils/db.js';
+import * as db from '../utils/db.js'
 import { createUploadJobs } from '../utils/job_creator.js';
 
 const __filename = fileURLToPath(import.meta.url);

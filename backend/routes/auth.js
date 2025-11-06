@@ -3,7 +3,7 @@ import bcrypt from 'bcrypt';
 import { authMiddleware, registerUser, loginWithGoogle, getUserById, generateToken } from '../utils/auth.js';
 import { generateTOTPSecret, generateQRCode, saveTOTPSecret, get2FASettings, verifyTOTP, enable2FA, disable2FA, generateBackupCodes, hashBackupCodes, verifyBackupCode, removeBackupCode } from '../utils/twoFactor.js';
 import { generatePasskeyRegistrationOptions, verifyPasskeyRegistration, updatePasskeyName, generatePasskeyAuthenticationOptions, verifyPasskeyAuthentication, getUserPasskeys, deletePasskey } from '../utils/passkey.js';
-import db from '../utils/db.js';
+import * as db from '../utils/db.js'
 
 const router = express.Router();
 const challenges = new Map();
