@@ -38,7 +38,6 @@ export async function uploadToFacebook(token, job) {
     }
 }
 
-
 //copied over from backend/platforms/facebook.js
 async function uploadVideo(token, videoFile, options = {}) {
     console.log('Starting Facebook Video upload process...');

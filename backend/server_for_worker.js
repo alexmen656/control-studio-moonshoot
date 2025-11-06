@@ -322,7 +322,7 @@ app.get('/api/jobs/worker/:workerId', requireWorkerCert, async (req, res) => {
       }
     });
 
-    console.log("Responded with: ", result.rows)
+    console.log("Responded with - 1: ", result.rows)
     res.json({
       jobs: result.rows,
       total: result.rows.length
@@ -405,12 +405,14 @@ app.get('/api/jobs/next/:workerId', requireWorkerCert, async (req, res) => {
       return res.json({ job: null });
     }
 
-     result.rows.forEach(async (row) => {
+    if (result.rows.length > 0) {
+      const row = result.rows[0];
+
       if (row.video_id) {
-        const video = await db.getVideoById(row.video_id)
+        const video = await db.getVideoById(row.video_id);
 
         if (!video) {
-          return res.status(404).json({ error: 'Video not found' })
+          return res.status(404).json({ error: 'Video not found' });
         }
 
         if (video.project_id) {
@@ -426,9 +428,9 @@ app.get('/api/jobs/next/:workerId', requireWorkerCert, async (req, res) => {
 
         row.video = video;
       }
-    });
+    }
 
-    console.log("Responded with: ", result.rows)
+    console.log("Responded with - 2: ", result.rows)
 
     await db.query(
       `UPDATE worker_jobs 
