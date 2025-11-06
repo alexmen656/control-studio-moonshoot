@@ -318,6 +318,15 @@ app.get('/api/jobs/worker/:workerId', requireWorkerCert, async (req, res) => {
           }
         }
 
+        if (video.advancedOptions && row.platform) {
+          const platformOptions = video.advancedOptions[row.platform];
+          if (platformOptions) {
+            Object.assign(video, platformOptions);
+          }
+
+          delete video.advancedOptions;
+        }
+
         row.video = video;
       }
     });
@@ -424,6 +433,15 @@ app.get('/api/jobs/next/:workerId', requireWorkerCert, async (req, res) => {
           if (accessResult.rows.length === 0) {
             return res.status(404).json({ error: 'Job unavailable' });
           }
+        }
+
+        if (video.advancedOptions && row.platform) {
+          const platformOptions = video.advancedOptions[row.platform];
+          if (platformOptions) {
+            Object.assign(video, platformOptions);
+          }
+
+          delete video.advancedOptions;
         }
 
         row.video = video;

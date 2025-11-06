@@ -15,8 +15,24 @@ export async function uploadToInstagram(token, job) {
     };
 
     const options = {
-        caption: job.video.title || 'Uploaded via Reelmia.com',
+        caption: job.video.title || 'Uploaded via Reelmia.com'
     };
+
+    if (job.video?.locationId && job.video.locationId.trim() !== '') {
+        options.locationId = job.video.locationId;
+    }
+
+    if (job.video?.shareToFeed !== undefined && job.video.shareToFeed !== null) {
+        options.shareToFeed = job.video.shareToFeed;
+    }
+
+    if (job.video?.coverUrl && job.video.coverUrl.trim() !== '') {
+        options.coverUrl = job.video.coverUrl;
+    }
+
+    if (job.video?.audioName && job.video.audioName.trim() !== '') {
+        options.audioName = job.video.audioName;
+    }
 
     console.log('Uploading to Instagram with options:', options);
 
@@ -65,11 +81,25 @@ async function _createReelContainer(accessToken, instagramUserId, options) {
         access_token: accessToken
     };
 
-    if (options.caption) params.caption = options.caption;
-    if (options.locationId) params.location_id = options.locationId;
-    if (options.shareToFeed !== undefined) params.share_to_feed = options.shareToFeed;
-    if (options.coverUrl) params.cover_url = options.coverUrl;
-    if (options.audioName) params.audio_name = options.audioName;
+    if (options.caption) {
+        params.caption = options.caption;
+    }
+
+    if (options.locationId) {
+        params.location_id = options.locationId;
+    }
+
+    if (options.shareToFeed !== undefined) {
+        params.share_to_feed = options.shareToFeed;
+    }
+
+    if (options.coverUrl) {
+        params.cover_url = options.coverUrl;
+    }
+
+    if (options.audioName) {
+        params.audio_name = options.audioName;
+    }
 
     try {
         const response = await axios.post(url, null, { params });

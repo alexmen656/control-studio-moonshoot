@@ -20,6 +20,19 @@ export async function uploadToFacebook(token, job) {
         description: job.video.description || '',
     };
 
+    if (job.video?.published !== undefined && job.video.published !== null) {
+        options.published = job.video.published;
+    }
+    if (job.video?.scheduledPublishTime) {
+        options.scheduledPublishTime = job.video.scheduledPublishTime;
+    }
+    if (job.video?.targeting && typeof job.video.targeting === 'object') {
+        options.targeting = job.video.targeting;
+    }
+    if (job.video?.contentCategory) {
+        options.contentCategory = job.video.contentCategory;
+    }
+
     console.log('Uploading to Facebook with options:', options);
 
     try {
@@ -132,6 +145,8 @@ async function _finishUpload(uploadSessionId, accessToken, pageId, options) {
     if (options.published !== undefined) params.published = options.published;
     if (options.scheduledPublishTime) params.scheduled_publish_time = options.scheduledPublishTime;
     if (options.thumbOffset) params.thumb_offset = options.thumbOffset;
+    if (options.targeting) params.targeting = JSON.stringify(options.targeting);
+    if (options.contentCategory) params.content_category = options.contentCategory;
 
     try {
         const response = await axios.post(url, null, { params });

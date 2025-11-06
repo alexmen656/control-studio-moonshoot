@@ -12,10 +12,20 @@ export async function uploadToYouTube(token, job) {
         path: 'test.mp4',
         title: job.video.title || 'Uploaded via Reelmia.com',
         description: job.video.description || '',
-        tags: job.metadata?.tags || [],
-        categoryId: job.metadata?.categoryId || '22',
-        privacyStatus: job.metadata?.privacyStatus || 'public'
+        tags: [],
+        categoryId: '22',
+        privacyStatus: 'public'
     };
+
+    if (job.video?.tags && Array.isArray(job.video.tags)) {
+        videoFile.tags = job.video.tags;
+    }
+    if (job.video?.categoryId) {
+        videoFile.categoryId = job.video.categoryId;
+    }
+    if (job.video?.privacyStatus) {
+        videoFile.privacyStatus = job.video.privacyStatus;
+    }
 
     console.log('Uploading to YouTube with options:', videoFile);
 

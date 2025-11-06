@@ -9,12 +9,35 @@ export async function uploadToTikTok(token, job) {
     const videoPath = 'test.mp4';
     const title = job.video.title || 'Uploaded via Reelmia.com';
     const description = job.video.description || '';
-    const privacyLevel = job.metadata?.privacyLevel || 'SELF_ONLY';
+    
+    const options = {
+        privacyLevel: 'SELF_ONLY',
+        disableDuet: false,
+        disableComment: false,
+        disableStitch: false,
+        videoCoverTimestampMs: 1000
+    };
 
-    console.log('Uploading to TikTok with:', { title, privacyLevel });
+    if (job.video?.privacyLevel) {
+        options.privacyLevel = job.video.privacyLevel;
+    }
+    if (job.video?.disableDuet !== undefined && job.video.disableDuet !== null) {
+        options.disableDuet = job.video.disableDuet;
+    }
+    if (job.video?.disableComment !== undefined && job.video.disableComment !== null) {
+        options.disableComment = job.video.disableComment;
+    }
+    if (job.video?.disableStitch !== undefined && job.video.disableStitch !== null) {
+        options.disableStitch = job.video.disableStitch;
+    }
+    if (job.video?.videoCoverTimestampMs) {
+        options.videoCoverTimestampMs = job.video.videoCoverTimestampMs;
+    }
+
+    console.log('Uploading to TikTok with options:', options);
 
     try {
-        await uploadVideo(accessToken, videoPath, title, description, privacyLevel, this, job);
+        await uploadVideo(accessToken, videoPath, title, description, options, this, job);
 
         console.log(`✅ Successfully uploaded to TikTok`);
 
@@ -30,7 +53,7 @@ export async function uploadToTikTok(token, job) {
     }
 }
 
-async function uploadVideo(accessToken, videoPath, title, description, privacyLevel = 'SELF_ONLY') {
+async function uploadVideo(accessToken, videoPath, title, description, options = {}) {
     try {
         let chunkSize = 128 * 1024 * 1024; //128MB
         const fileStat = await fs.stat(videoPath);
@@ -51,11 +74,11 @@ async function uploadVideo(accessToken, videoPath, title, description, privacyLe
             body: JSON.stringify({
                 post_info: {
                     title: title,
-                    privacy_level: privacyLevel,
-                    disable_duet: false,
-                    disable_comment: true,
-                    disable_stitch: false,
-                    video_cover_timestamp_ms: 1000
+                    privacy_level: options.privacyLevel || 'SELF_ONLY',
+                    disable_duet: options.disableDuet !== undefined ? options.disableDuet : false,
+                    disable_comment: options.disableComment !== undefined ? options.disableComment : true,
+                    disable_stitch: options.disableStitch !== undefined ? options.disableStitch : false,
+                    video_cover_timestamp_ms: options.videoCoverTimestampMs || 1000
                 },
                 source_info: {
                     source: 'FILE_UPLOAD',

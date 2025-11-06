@@ -15,10 +15,26 @@ export async function uploadToReddit(token, job) {
 
     const options = {
         title: job.video.title || 'Uploaded via Reelmia.com',
-        subreddit: job.metadata?.subreddit || 'test',
-        nsfw: job.metadata?.nsfw || false,
-        spoiler: job.metadata?.spoiler || false
+        subreddit: 'test',
+        nsfw: false,
+        spoiler: false
     };
+
+    if (job.video?.subreddit && job.video.subreddit.trim() !== '') {
+        options.subreddit = job.video.subreddit;
+    }
+    if (job.video?.nsfw !== undefined && job.video.nsfw !== null) {
+        options.nsfw = job.video.nsfw;
+    }
+    if (job.video?.spoiler !== undefined && job.video.spoiler !== null) {
+        options.spoiler = job.video.spoiler;
+    }
+    if (job.video?.flairId && job.video.flairId.trim() !== '') {
+        options.flairId = job.video.flairId;
+    }
+    if (job.video?.flairText && job.video.flairText.trim() !== '') {
+        options.flairText = job.video.flairText;
+    }
 
     console.log('Uploading to Reddit with options:', options);
 
@@ -145,18 +161,27 @@ async function waitForVideoProcessing(mediaId, accessToken, userAgent, API_BASE_
 async function createVideoPost(mediaAsset, options, accessToken, userAgent, API_BASE_URL) {
     console.log('Creating Reddit post with video...');
 
+    const postData = {
+        sr: options.subreddit,
+        kind: 'videogif',
+        title: options.title || 'Video Post',
+        video_poster_url: mediaAsset.websocketUrl,
+        url: mediaAsset.websocketUrl,
+        nsfw: options.nsfw || false,
+        spoiler: options.spoiler || false,
+        resubmit: true
+    };
+
+    if (options.flairId) {
+        postData.flair_id = options.flairId;
+    }
+    if (options.flairText) {
+        postData.flair_text = options.flairText;
+    }
+
     const response = await axios.post(
         `${API_BASE_URL}/api/submit`,
-        {
-            sr: options.subreddit,
-            kind: 'videogif',
-            title: options.title || 'Video Post',
-            video_poster_url: mediaAsset.websocketUrl,
-            url: mediaAsset.websocketUrl,
-            nsfw: options.nsfw || false,
-            spoiler: options.spoiler || false,
-            resubmit: true
-        },
+        postData,
         {
             headers: {
                 'Authorization': `Bearer ${accessToken}`,

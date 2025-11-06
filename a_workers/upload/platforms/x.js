@@ -17,6 +17,16 @@ export async function uploadToX(token, job) {
         caption: job.video.description || ''
     };
 
+    if (job.video?.replySettings) {
+        options.replySettings = job.video.replySettings;
+    }
+    if (job.video?.quoteTweetId && job.video.quoteTweetId.trim() !== '') {
+        options.quoteTweetId = job.video.quoteTweetId;
+    }
+    if (job.video?.forSuperFollowersOnly !== undefined && job.video.forSuperFollowersOnly !== null) {
+        options.forSuperFollowersOnly = job.video.forSuperFollowersOnly;
+    }
+
     console.log('Uploading to X with options:', options);
 
     try {
@@ -200,6 +210,16 @@ async function createTweetWithMedia(mediaId, options, accessToken, API_BASE_URL)
             media_ids: [mediaId]
         }
     };
+
+    if (options.replySettings) {
+        tweetData.reply_settings = options.replySettings;
+    }
+    if (options.quoteTweetId) {
+        tweetData.quote_tweet_id = options.quoteTweetId;
+    }
+    if (options.forSuperFollowersOnly !== undefined) {
+        tweetData.for_super_followers_only = options.forSuperFollowersOnly;
+    }
 
     const response = await axios.post(
         `${API_BASE_URL}/2/tweets`,
