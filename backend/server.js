@@ -5,6 +5,7 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
+import multer from 'multer';
 import { startJobScheduler } from './utils/job_scheduler.js';
 import * as db from './utils/db.js'
 // routes
@@ -33,12 +34,92 @@ if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadsDir)
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
+    cb(null, uniqueSuffix + path.extname(file.originalname))
+  }
+})
+
+const fileFilter = (req, file, cb) => {
+  const allowedTypes = /mp4|avi|mov|wmv|flv|mkv|webm/
+  const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase())
+  const mimetype = allowedTypes.test(file.mimetype)
+
+  if (extname && mimetype) {
+    cb(null, true)
+  } else {
+    cb(new Error('Only video files are allowed!'), false)
+  }
+}
+
+const upload = multer({
+  storage: storage,
+  fileFilter: fileFilter,
+  limits: { fileSize: 500 * 1024 * 1024 }
+})
+
 app.use(cors());
 app.use(bodyParser.json());
 app.use('/uploads', express.static(uploadsDir));
 
+const getVideoStats = (filePath) => {
+  const stats = fs.statSync(filePath)
+  const fileSizeInBytes = stats.size
+  const fileSizeInMB = (fileSizeInBytes / (1024 * 1024)).toFixed(2)
+  return {
+    size: `${fileSizeInMB} MB`,
+    sizeBytes: fileSizeInBytes
+  }
+}
+
 app.get('/', (req, res) => {
   res.send('Control Studio API - Social Media Manager');
+});
+
+app.post('/api/upload', authMiddleware, projectAccessMiddleware, upload.single('video'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No video file uploaded' })
+    }
+
+    console.log('Upload - req.project:', req.project)
+    console.log('Upload - req.query.project_id:', req.query.project_id)
+    console.log('Upload - req.body.project_id:', req.body.project_id)
+
+    const stats = getVideoStats(req.file.path)
+
+    const newVideo = {
+      id: Date.now().toString(),
+      title: req.body.title || req.file.originalname.replace(/\.[^/.]+$/, ''),
+      filename: req.file.filename,
+      originalName: req.file.originalname,
+      thumbnail: req.body.thumbnail || 'https://via.placeholder.com/400x225',
+      duration: '0:00',
+      size: stats.size,
+      sizeBytes: stats.sizeBytes,
+      uploadDate: new Date().toISOString(),
+      status: 'awaiting-details',
+      progress: 100,
+      platforms: req.body.platforms ? JSON.parse(req.body.platforms) : [],
+      views: 0,
+      path: req.file.path,
+      project_id: req.project.id
+    }
+
+    const video = await db.createVideo(newVideo)
+
+    res.status(201).json({
+      message: 'Video uploaded successfully',
+      video: video
+    })
+  } catch (error) {
+    console.error('Error uploading video:', error)
+    res.status(500).json({ error: 'Error uploading video' })
+  }
 });
 
 app.get('/api/used-storage', authMiddleware, projectAccessMiddleware, async (req, res) => {
@@ -212,7 +293,7 @@ app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
   console.log(`Uploads directory: ${uploadsDir}`);
   console.log(`Database: PostgreSQL`);
-  
+
   // job scheduler
   startJobScheduler(30000);
 });
