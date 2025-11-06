@@ -1,9 +1,10 @@
+import { updateJobStatus } from "../utils/updateJobStatus.js";
 import fs from 'fs/promises';
 import fetch from 'node-fetch';
 
 export async function uploadToTikTok(token, job) {
     console.log('Starting TikTok video upload...');
-    
+
     const accessToken = token.sub.access_token;
     const videoPath = 'test.mp4';
     const title = job.video.title || 'Uploaded via Reelmia.com';
@@ -14,15 +15,15 @@ export async function uploadToTikTok(token, job) {
 
     try {
         await uploadVideo(accessToken, videoPath, title, description, privacyLevel, this, job);
-        
+
         console.log(`✅ Successfully uploaded to TikTok`);
-        
-        /*await this.updateJobStatus(job.job_id, 'completed', null, {
+
+        await updateJobStatus(job.job_id, 'completed', null, {
             platform: job.platform,
             uploaded_at: new Date().toISOString(),
             video_id: job.video_id,
             platform_response: 'Upload successful'
-        });*/
+        });
     } catch (error) {
         console.error('❌ TikTok upload failed:', error.message);
         throw error;

@@ -1,6 +1,6 @@
-import axios from "axios";
-import { generateKeySync } from "crypto";
+import { updateJobStatus } from "../utils/updateJobStatus.js";
 import fs from "fs/promises";
+import axios from "axios";
 
 export async function uploadToInstagram(token, job) {
     console.log('Starting Instagram video upload...');
@@ -25,12 +25,12 @@ export async function uploadToInstagram(token, job) {
         
         console.log(`✅ Successfully uploaded to Instagram`);
         
-       /* await this.updateJobStatus(job.job_id, 'completed', null, {
+        await updateJobStatus(job.job_id, 'completed', null, {
             platform: job.platform,
             uploaded_at: new Date().toISOString(),
             video_id: job.video_id,
             platform_response: 'Upload successful'
-        });*/
+        });
     } catch (error) {
         console.error('❌ Instagram upload failed:', error.message);
         throw error;

@@ -1,12 +1,13 @@
+import { updateJobStatus } from "../utils/updateJobStatus.js";
 import axios from 'axios';
 import fs from 'fs/promises';
 import FormData from 'form-data';
 
 export async function uploadToX(token, job) {
     console.log('Starting X (Twitter) video upload...');
-    
+
     const accessToken = token.sub.access_token;
-    
+
     const videoFile = {
         path: 'test.mp4'
     };
@@ -20,15 +21,15 @@ export async function uploadToX(token, job) {
 
     try {
         await uploadVideo(accessToken, videoFile, options);
-        
+
         console.log(`✅ Successfully uploaded to X`);
-        
-        /*await this.updateJobStatus(job.job_id, 'completed', null, {
+
+        await updateJobStatus(job.job_id, 'completed', null, {
             platform: job.platform,
             uploaded_at: new Date().toISOString(),
             video_id: job.video_id,
             platform_response: 'Upload successful'
-        });*/
+        });
     } catch (error) {
         console.error('❌ X upload failed:', error.message);
         throw error;

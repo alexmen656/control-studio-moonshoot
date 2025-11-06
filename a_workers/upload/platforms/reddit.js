@@ -1,12 +1,13 @@
+import { updateJobStatus } from "../utils/updateJobStatus.js";
 import axios from 'axios';
 import fs from 'fs/promises';
 import FormData from 'form-data';
 
 export async function uploadToReddit(token, job) {
     console.log('Starting Reddit video upload...');
-    
+
     const accessToken = token.sub.access_token;
-    
+
     const videoFile = {
         path: 'test.mp4',
         originalname: 'video.mp4'
@@ -23,15 +24,15 @@ export async function uploadToReddit(token, job) {
 
     try {
         await uploadVideo(accessToken, videoFile, options);
-        
+
         console.log(`✅ Successfully uploaded to Reddit`);
-        
-       /* await this.updateJobStatus(job.job_id, 'completed', null, {
+
+        await updateJobStatus(job.job_id, 'completed', null, {
             platform: job.platform,
             uploaded_at: new Date().toISOString(),
             video_id: job.video_id,
             platform_response: 'Upload successful'
-        });*/
+        });
     } catch (error) {
         console.error('❌ Reddit upload failed:', error.message);
         throw error;

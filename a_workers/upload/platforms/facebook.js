@@ -1,3 +1,4 @@
+import { updateJobStatus } from "../utils/updateJobStatus.js";
 import axios from "axios";
 import fs from "fs/promises";
 import FormData from 'form-data';
@@ -24,13 +25,13 @@ export async function uploadToFacebook(token, job) {
     try {
         await uploadVideo(facebookToken, videoFile, options);
         console.log(`✅ Successfully uploaded to Facebook`);
-        
-       /* await this.updateJobStatus(job.job_id, 'completed', null, {
+
+       await updateJobStatus(job.job_id, 'completed', null, {
             platform: job.platform,
             uploaded_at: new Date().toISOString(),
             video_id: job.video_id,
             platform_response: 'Upload successful'
-        });*/
+        });
     } catch (error) {
         console.error('❌ Facebook upload failed:', error.message);
         throw error;
