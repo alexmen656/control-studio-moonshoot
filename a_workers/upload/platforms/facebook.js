@@ -3,36 +3,38 @@ import fs from "fs/promises";
 import FormData from 'form-data';
 
 export async function uploadToFacebook(token, job) {
-    console.log(token);
-    // const success = Math.random() > 0.1;
-
-    const token = {
+    console.log('Starting Facebook video upload...');
+    
+    const facebookToken = {
         accessToken: token.sub.accessToken,
         pageId: token.sub.pageId
-    }
+    };
 
     const videoFile = {
         path: 'test.mp4'
-    }
+    };
 
     const options = {
-        caption: job.video.title || 'Uploaded via Reelmia.com',
+        title: job.video.title || 'Uploaded via Reelmia.com',
+        description: job.video.description || '',
+    };
+
+    console.log('Uploading to Facebook with options:', options);
+
+    try {
+        await uploadVideo(facebookToken, videoFile, options);
+        console.log(`✅ Successfully uploaded to Facebook`);
+        
+       /* await this.updateJobStatus(job.job_id, 'completed', null, {
+            platform: job.platform,
+            uploaded_at: new Date().toISOString(),
+            video_id: job.video_id,
+            platform_response: 'Upload successful'
+        });*/
+    } catch (error) {
+        console.error('❌ Facebook upload failed:', error.message);
+        throw error;
     }
-
-    uploadVideo(token, videoFile, options);
-
-    /*  if (success) {
-         console.log(`✅ Successfully uploaded to Facebook`);
- 
-         await this.updateJobStatus(job.job_id, 'completed', null, {
-             platform: job.platform,
-             uploaded_at: new Date().toISOString(),
-             video_id: job.video_id,
-             platform_response: 'Mock upload successful'
-         });
-     } else {
-         throw new Error('Simulated upload failure');
-     }*/
 }
 
 

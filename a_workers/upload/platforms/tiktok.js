@@ -2,29 +2,31 @@ import fs from 'fs/promises';
 import fetch from 'node-fetch';
 
 export async function uploadToTikTok(token, job) {
-    //console.log(token, metadata, job);
-    //const success = Math.random() > 0.1;
-
-    //static values for now
+    console.log('Starting TikTok video upload...');
+    
     const accessToken = token.sub.access_token;
+    const videoPath = 'test.mp4';
+    const title = job.video.title || 'Uploaded via Reelmia.com';
+    const description = job.video.description || '';
+    const privacyLevel = job.metadata?.privacyLevel || 'SELF_ONLY';
 
-    //token is here, maybe its to old/expired?
-    //yes that was the case, upload works now!!!!
-    console.log(accessToken);
-    uploadVideo(accessToken, 'test.mp4', job.video.title, job.video.description, 'SELF_ONLY');
+    console.log('Uploading to TikTok with:', { title, privacyLevel });
 
-    /*if (success) {
+    try {
+        await uploadVideo(accessToken, videoPath, title, description, privacyLevel, this, job);
+        
         console.log(`✅ Successfully uploaded to TikTok`);
-
-        await this.updateJobStatus(job.job_id, 'completed', null, {
+        
+        /*await this.updateJobStatus(job.job_id, 'completed', null, {
             platform: job.platform,
             uploaded_at: new Date().toISOString(),
             video_id: job.video_id,
-            platform_response: 'Mock upload successful'
-        });
-    } else {
-        throw new Error('Simulated upload failure');
-    }*/
+            platform_response: 'Upload successful'
+        });*/
+    } catch (error) {
+        console.error('❌ TikTok upload failed:', error.message);
+        throw error;
+    }
 }
 
 //copied over from backend/platforms/tiktok.js

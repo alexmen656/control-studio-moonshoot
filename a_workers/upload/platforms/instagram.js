@@ -3,37 +3,38 @@ import { generateKeySync } from "crypto";
 import fs from "fs/promises";
 
 export async function uploadToInstagram(token, job) {
-    console.log(token);
-    //const success = Math.random() > 0.1;
-
-    const token = {
+    console.log('Starting Instagram video upload...');
+    
+    const instagramToken = {
         accessToken: token.sub.accessToken,
         instagramUserId: token.sub.instagramUserId
-    }
+    };
 
     const videoFile = {
         path: 'test.mp4'
-    }
+    };
 
     const options = {
         caption: job.video.title || 'Uploaded via Reelmia.com',
-    }
+    };
 
     console.log('Uploading to Instagram with options:', options);
 
-    uploadReel(token, videoFile, options)
-    /*if (success) {
+    try {
+        await uploadReel(instagramToken, videoFile, options);
+        
         console.log(`✅ Successfully uploaded to Instagram`);
-
-        await this.updateJobStatus(job.job_id, 'completed', null, {
+        
+       /* await this.updateJobStatus(job.job_id, 'completed', null, {
             platform: job.platform,
             uploaded_at: new Date().toISOString(),
             video_id: job.video_id,
-            platform_response: 'Mock upload successful'
-        });
-    } else {
-        throw new Error('Simulated upload failure');
-    }*/
+            platform_response: 'Upload successful'
+        });*/
+    } catch (error) {
+        console.error('❌ Instagram upload failed:', error.message);
+        throw error;
+    }
 }
 
 //copied over from backend/platforms/instagram.js
