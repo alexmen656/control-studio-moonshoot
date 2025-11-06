@@ -4,7 +4,7 @@ import axios from "axios";
 
 export async function uploadToInstagram(token, job) {
     console.log('Starting Instagram video upload...');
-    
+
     const instagramToken = {
         accessToken: token.sub.accessToken,
         instagramUserId: token.sub.instagramUserId
@@ -22,9 +22,8 @@ export async function uploadToInstagram(token, job) {
 
     try {
         await uploadReel(instagramToken, videoFile, options);
-        
         console.log(`✅ Successfully uploaded to Instagram`);
-        
+
         await updateJobStatus(job.job_id, 'completed', null, {
             platform: job.platform,
             uploaded_at: new Date().toISOString(),
@@ -37,20 +36,12 @@ export async function uploadToInstagram(token, job) {
     }
 }
 
-//copied over from backend/platforms/instagram.js
 async function uploadReel(token, videoFile, options = {}) {
     console.log('Starting Instagram Reel upload process...');
 
     try {
-        /*  const instagramAccountData = await retrieveTokenByProjectID('instagram_business_account', this.projectId);
-          const facebookAccountsData = await retrieveTokenByProjectID('facebook_accounts_for_instagram', this.projectId);
-          const instagramUserId = instagramAccountData.instagram_business_account.id;
-          const accessToken = facebookAccountsData.data[0].access_token;*/
-
         const instagramUserId = token.instagramUserId;
         const accessToken = token.accessToken;
-
-        console.log('Using Instagram Business Account ID:', instagramUserId);
 
         const containerId = await _createReelContainer(accessToken, instagramUserId, options);
         await _uploadVideoToContainer(videoFile, containerId, accessToken);
@@ -118,7 +109,6 @@ async function _uploadVideoToContainer(videoFile, containerId, accessToken) {
 
 async function _waitForContainerReady(containerId, accessToken, maxAttempts = 10) {
     const apiVersion = 'v21.0';
-
     const url = `https://graph.facebook.com/${apiVersion}/${containerId}`;
 
     for (let i = 0; i < maxAttempts; i++) {
@@ -154,7 +144,6 @@ async function _waitForContainerReady(containerId, accessToken, maxAttempts = 10
 
 async function _publishContainer(containerId, accessToken, instagramUserId) {
     const apiVersion = 'v21.0';
-
     const url = `https://graph.facebook.com/${apiVersion}/${instagramUserId}/media_publish`;
 
     try {

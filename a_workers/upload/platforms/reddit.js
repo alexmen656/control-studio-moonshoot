@@ -39,7 +39,6 @@ export async function uploadToReddit(token, job) {
     }
 }
 
-// Copied over from backend/platforms/Reddit.js
 async function uploadVideo(accessToken, videoFile, options) {
     console.log('Starting Reddit video upload process...');
 

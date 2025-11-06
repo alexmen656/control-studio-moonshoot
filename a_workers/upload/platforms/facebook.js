@@ -5,7 +5,7 @@ import FormData from 'form-data';
 
 export async function uploadToFacebook(token, job) {
     console.log('Starting Facebook video upload...');
-    
+
     const facebookToken = {
         accessToken: token.sub.accessToken,
         pageId: token.sub.pageId
@@ -26,7 +26,7 @@ export async function uploadToFacebook(token, job) {
         await uploadVideo(facebookToken, videoFile, options);
         console.log(`✅ Successfully uploaded to Facebook`);
 
-       await updateJobStatus(job.job_id, 'completed', null, {
+        await updateJobStatus(job.job_id, 'completed', null, {
             platform: job.platform,
             uploaded_at: new Date().toISOString(),
             video_id: job.video_id,
@@ -38,16 +38,11 @@ export async function uploadToFacebook(token, job) {
     }
 }
 
-//copied over from backend/platforms/facebook.js
 async function uploadVideo(token, videoFile, options = {}) {
     console.log('Starting Facebook Video upload process...');
 
     try {
         const { accessToken, pageId } = token;
-
-        console.log('Using Facebook Page ID:', pageId);
-        console.log('Video file:', videoFile);
-
         const { uploadSessionId, startOffset } = await _initializeUpload(videoFile, accessToken, pageId, options);
         await _uploadVideoChunks(videoFile, uploadSessionId, startOffset, accessToken, pageId);
         const publishedVideo = await _finishUpload(uploadSessionId, accessToken, pageId, options);

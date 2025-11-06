@@ -30,11 +30,8 @@ export async function uploadToTikTok(token, job) {
     }
 }
 
-//copied over from backend/platforms/tiktok.js
 async function uploadVideo(accessToken, videoPath, title, description, privacyLevel = 'SELF_ONLY') {
     try {
-        //const accessToken = await this._getAccessToken();
-
         let chunkSize = 128 * 1024 * 1024; //128MB
         const fileStat = await fs.stat(videoPath);
         let fileSize = fileStat.size;
@@ -86,8 +83,6 @@ async function uploadVideo(accessToken, videoPath, title, description, privacyLe
             const start = i * chunkSize;
             const end = Math.min(start + chunkSize, fileSize);
             const chunk = videoBuffer.slice(start, end);
-
-            console.log(`Uploading chunk ${i + 1}/${totalChunks}: bytes ${start}-${end - 1}/${fileSize}`);
 
             const uploadResponse = await fetch(uploadUrl, {
                 method: 'PUT',

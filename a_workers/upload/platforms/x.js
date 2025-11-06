@@ -36,7 +36,6 @@ export async function uploadToX(token, job) {
     }
 }
 
-// Copied over from backend/platforms/X.js
 async function uploadVideo(accessToken, videoFile, options) {
     console.log('Starting X (Twitter) video upload process...');
 

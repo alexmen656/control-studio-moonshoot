@@ -36,7 +36,6 @@ export async function uploadToYouTube(token, job) {
     }
 }
 
-// Copied over from backend/platforms/Youtube.js
 async function uploadVideo(accessToken, refreshToken, videoFile) {
     console.log('Starting upload process...');
 
