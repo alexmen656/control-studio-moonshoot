@@ -2,13 +2,13 @@ import axios from "axios";
 import { generateKeySync } from "crypto";
 import fs from "fs/promises";
 
-export async function uploadToInstagram(payload, metadata, job) {
-    console.log(payload, metadata);
+export async function uploadToInstagram(token, job) {
+    console.log(token);
     //const success = Math.random() > 0.1;
 
     const token = {
-        accessToken: payload.sub.accessToken,
-        instagramUserId: payload.sub.instagramUserId
+        accessToken: token.sub.accessToken,
+        instagramUserId: token.sub.instagramUserId
     }
 
     const videoFile = {

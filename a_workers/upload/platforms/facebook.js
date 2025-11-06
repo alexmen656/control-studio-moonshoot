@@ -2,13 +2,13 @@ import axios from "axios";
 import fs from "fs/promises";
 import FormData from 'form-data';
 
-export async function uploadToFacebook(payload, metadata, job) {
-    console.log(payload, metadata);
+export async function uploadToFacebook(token, job) {
+    console.log(token);
     // const success = Math.random() > 0.1;
 
     const token = {
-        accessToken: payload.sub.accessToken,
-        pageId: payload.sub.pageId
+        accessToken: token.sub.accessToken,
+        pageId: token.sub.pageId
     }
 
     const videoFile = {
@@ -16,7 +16,7 @@ export async function uploadToFacebook(payload, metadata, job) {
     }
 
     const options = {
-        caption: 'Test Instagram Reel upload via API',
+        caption: job.video.title || 'Uploaded via Reelmia.com',
     }
 
     uploadVideo(token, videoFile, options);

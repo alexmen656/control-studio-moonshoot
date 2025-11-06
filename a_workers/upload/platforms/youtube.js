@@ -1,5 +1,5 @@
-export async function uploadToYouTube(payload, metadata, job) {
-    console.log(payload, metadata);
+export async function uploadToYouTube(token, job) {
+    console.log(token);
     const success = Math.random() > 0.1;
 
     if (success) {

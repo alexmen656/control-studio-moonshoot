@@ -1,5 +1,5 @@
-export async function uploadToX(payload, metadata, job) {
-    console.log(payload, metadata);
+export async function uploadToX(token, job) {
+    console.log(token);
     const success = Math.random() > 0.1;
 
     if (success) {

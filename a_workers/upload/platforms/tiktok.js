@@ -1,17 +1,17 @@
 import fs from 'fs/promises';
 import fetch from 'node-fetch';
 
-export async function uploadToTikTok(payload, metadata, job) {
-    //console.log(payload, metadata, job);
+export async function uploadToTikTok(token, job) {
+    //console.log(token, metadata, job);
     //const success = Math.random() > 0.1;
 
     //static values for now
-    const accessToken = payload.sub.access_token;
+    const accessToken = token.sub.access_token;
 
     //token is here, maybe its to old/expired?
     //yes that was the case, upload works now!!!!
     console.log(accessToken);
-    uploadVideo(accessToken, 'test.mp4', 'Test Video', 'Test Video Description', 'SELF_ONLY');
+    uploadVideo(accessToken, 'test.mp4', job.video.title, job.video.description, 'SELF_ONLY');
 
     /*if (success) {
         console.log(`✅ Successfully uploaded to TikTok`);

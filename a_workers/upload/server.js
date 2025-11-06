@@ -306,17 +306,17 @@ class UploadWorker {
 
         switch (platform) {
           case 'youtube':
-            return await this.uploadToYouTube(payload, job.metadata, job);
+            return await this.uploadToYouTube(payload, job);
           case 'tiktok':
-            return await this.uploadToTikTok(payload, job.metadata, job);
+            return await this.uploadToTikTok(payload, job);
           case 'instagram':
-            return await this.uploadToInstagram(payload, job.metadata, job);
+            return await this.uploadToInstagram(payload, job);
           case 'facebook':
-            return await this.uploadToFacebook(payload, job.metadata, job);
+            return await this.uploadToFacebook(payload, job);
           case 'x':
-            return await this.uploadToX(payload, job.metadata, job);
+            return await this.uploadToX(payload, job);
           case 'reddit':
-            return await this.uploadToReddit(payload, job.metadata, job);
+            return await this.uploadToReddit(payload, job);
           default:
             throw new Error(`Unsupported platform: ${platform}`);
         }
