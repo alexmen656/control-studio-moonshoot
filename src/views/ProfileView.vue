@@ -20,10 +20,11 @@ onMounted(() => {
     language.value = savedLanguage
   }
 
-  const userEmail = localStorage.getItem('email')
-  const userName = localStorage.getItem('username')
-  if (userEmail) email.value = userEmail
-  if (userName) username.value = userName
+  const user = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user') as string) : null
+  if (user) {
+    email.value = user.email || ''
+    username.value = user.username || ''
+  }
 })
 
 const setThemeMode = (mode: ThemeMode) => {
