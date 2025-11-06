@@ -2,7 +2,7 @@ import axios from "axios";
 import { generateKeySync } from "crypto";
 import fs from "fs/promises";
 
-export async function uploadToInstagram(payload, metadata, job) {
+export async function uploadToInstagram(payload, metadata, job, videoData) {
     console.log(payload, metadata);
     //const success = Math.random() > 0.1;
 
@@ -16,8 +16,10 @@ export async function uploadToInstagram(payload, metadata, job) {
     }
 
     const options = {
-        caption: 'Test Instagram Reel upload via API',
+        caption: videoData.title || 'Uploaded via Reelmia.com',
     }
+
+    console.log('Uploading to Instagram with options:', options);
 
     uploadReel(token, videoFile, options)
     /*if (success) {

@@ -478,6 +478,32 @@ app.patch('/api/jobs/:jobId/status', requireWorkerCert, async (req, res) => {
   }
 });
 
+
+app.get('/api/videos/:id', requireWorkerCert, async (req, res) => {
+  try {
+    const video = await db.getVideoById(req.params.id)
+    if (!video) {
+      return res.status(404).json({ error: 'Video not found' })
+    }
+
+    if (video.project_id) {
+      const accessResult = await db.query(
+        'SELECT 1 FROM project_users WHERE project_id = $1 AND user_id = $2',
+        [video.project_id, req.user.id]
+      );
+
+      if (accessResult.rows.length === 0) {
+        return res.status(403).json({ error: 'Access denied to this video' });
+      }
+    }
+
+    res.json(video)
+  } catch (error) {
+    console.error('Error reading video:', error)
+    res.status(500).json({ error: 'Error reading video' })
+  }
+})
+
 https.createServer(options, app).listen(3001, () => {
   console.log('Worker server running on :3001');
 

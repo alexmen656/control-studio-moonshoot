@@ -293,13 +293,20 @@ class UploadWorker {
       const { payload } = await jwtVerify(decrypted, vpsPublicKey);
 
       if (payload) {
+        console.log(job.video_id);
+        const getData = await axios.get(`${this.backendUrl}/api/videos/${job.video_id}`, {
+          httpsAgent: this.httpsAgent,
+        });
+
+        const videoData = getData.data;
+
         switch (platform) {
           case 'youtube':
             return await this.uploadToYouTube(payload, job.metadata, job);
           case 'tiktok':
             return await this.uploadToTikTok(payload, job.metadata, job);
           case 'instagram':
-            return await this.uploadToInstagram(payload, job.metadata, job);
+            return await this.uploadToInstagram(payload, job.metadata, job, videoData);
           case 'facebook':
             return await this.uploadToFacebook(payload, job.metadata, job);
           case 'x':
