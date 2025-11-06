@@ -299,10 +299,35 @@ app.get('/api/jobs/worker/:workerId', requireWorkerCert, async (req, res) => {
 
     const result = await db.query(query, params);
 
+    result.rows.forEach(async (row) => {
+      if (row.video_id) {
+        const video = await db.getVideoById(row.video_id)
+
+        if (!video) {
+          return res.status(404).json({ error: 'Video not found' })
+        }
+
+        if (video.project_id) {
+          const accessResult = await db.query(
+            'SELECT 1 FROM project_users WHERE project_id = $1 AND user_id = $2',
+            [video.project_id, req.user.id]
+          );
+
+          if (accessResult.rows.length === 0) {
+            return res.status(404).json({ error: 'Job unavailable' });
+          }
+        }
+
+        row.video = video;
+      }
+    });
+
+    console.log("Responded with: ", result.rows)
     res.json({
       jobs: result.rows,
       total: result.rows.length
     });
+
   } catch (error) {
     console.error('Error fetching worker jobs:', error);
     res.status(500).json({ error: 'Failed to fetch jobs' });
@@ -379,6 +404,31 @@ app.get('/api/jobs/next/:workerId', requireWorkerCert, async (req, res) => {
     if (result.rows.length === 0) {
       return res.json({ job: null });
     }
+
+     result.rows.forEach(async (row) => {
+      if (row.video_id) {
+        const video = await db.getVideoById(row.video_id)
+
+        if (!video) {
+          return res.status(404).json({ error: 'Video not found' })
+        }
+
+        if (video.project_id) {
+          const accessResult = await db.query(
+            'SELECT 1 FROM project_users WHERE project_id = $1 AND user_id = $2',
+            [video.project_id, req.user.id]
+          );
+
+          if (accessResult.rows.length === 0) {
+            return res.status(404).json({ error: 'Job unavailable' });
+          }
+        }
+
+        row.video = video;
+      }
+    });
+
+    console.log("Responded with: ", result.rows)
 
     await db.query(
       `UPDATE worker_jobs 
@@ -479,7 +529,7 @@ app.patch('/api/jobs/:jobId/status', requireWorkerCert, async (req, res) => {
 });
 
 
-app.get('/api/videos/:id', requireWorkerCert, async (req, res) => {
+/*app.get('/api/videos/:id', requireWorkerCert, async (req, res) => {
   try {
     const video = await db.getVideoById(req.params.id)
     if (!video) {
@@ -502,7 +552,7 @@ app.get('/api/videos/:id', requireWorkerCert, async (req, res) => {
     console.error('Error reading video:', error)
     res.status(500).json({ error: 'Error reading video' })
   }
-})
+})*/
 
 https.createServer(options, app).listen(3001, () => {
   console.log('Worker server running on :3001');

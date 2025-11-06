@@ -294,11 +294,15 @@ class UploadWorker {
 
       if (payload) {
         console.log(job.video_id);
-        const getData = await axios.get(`${this.backendUrl}/api/videos/${job.video_id}`, {
+        console.log("Raw job:", job);
+
+        // Include video directly in job object
+        
+       /* const getData = await axios.get(`${this.backendUrl}/api/videos/${job.video_id}`, {
           httpsAgent: this.httpsAgent,
         });
 
-        const videoData = getData.data;
+        const videoData = getData.data;*/
 
         switch (platform) {
           case 'youtube':
@@ -306,7 +310,7 @@ class UploadWorker {
           case 'tiktok':
             return await this.uploadToTikTok(payload, job.metadata, job);
           case 'instagram':
-            return await this.uploadToInstagram(payload, job.metadata, job, videoData);
+            return await this.uploadToInstagram(payload, job.metadata, job);
           case 'facebook':
             return await this.uploadToFacebook(payload, job.metadata, job);
           case 'x':

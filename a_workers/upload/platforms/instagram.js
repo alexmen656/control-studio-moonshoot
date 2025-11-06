@@ -2,7 +2,7 @@ import axios from "axios";
 import { generateKeySync } from "crypto";
 import fs from "fs/promises";
 
-export async function uploadToInstagram(payload, metadata, job, videoData) {
+export async function uploadToInstagram(payload, metadata, job) {
     console.log(payload, metadata);
     //const success = Math.random() > 0.1;
 
@@ -16,7 +16,7 @@ export async function uploadToInstagram(payload, metadata, job, videoData) {
     }
 
     const options = {
-        caption: videoData.title || 'Uploaded via Reelmia.com',
+        caption: job.video.title || 'Uploaded via Reelmia.com',
     }
 
     console.log('Uploading to Instagram with options:', options);
