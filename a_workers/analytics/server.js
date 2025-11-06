@@ -8,6 +8,14 @@ import dotenv from 'dotenv';
 import https from 'https';
 import fs from 'fs';
 
+// Platform analytics imports
+import { fetchYouTubeAnalytics } from './platforms/youtube.js';
+import { fetchTikTokAnalytics } from './platforms/tiktok.js';
+import { fetchInstagramAnalytics } from './platforms/instagram.js';
+import { fetchFacebookAnalytics } from './platforms/facebook.js';
+import { fetchXAnalytics } from './platforms/x.js';
+import { fetchRedditAnalytics } from './platforms/reddit.js';
+
 dotenv.config();
 
 class AnalyticsWorker {
@@ -387,34 +395,17 @@ class AnalyticsWorker {
     if (payload) {
       switch (platform) {
         case 'youtube':
-          //const youtubeAccessToken = payload.sub.access_token;
-          //return await this.fetchYouTubeAnalytics(youtubeAccessToken, job.metadata);
-          return await this.fetchYouTubeAnalytics(payload, job.metadata);
+          return await fetchYouTubeAnalytics(payload, job.metadata);
         case 'tiktok':
-          //const tiktokAccessToken = payload.sub.access_token;
-          //return await this.fetchTikTokAnalytics(tiktokAccessToken, job.metadata);
-          return await this.fetchTikTokAnalytics(payload, job.metadata);
-
+          return await fetchTikTokAnalytics(payload, job.metadata);
         case 'instagram':
-          //const instagramAccessToken = payload.sub.access_token;
-          //return await this.fetchInstagramAnalytics(instagramAccessToken, job.metadata);
-          return await this.fetchInstagramAnalytics(payload, job.metadata);
-
+          return await fetchInstagramAnalytics(payload, job.metadata);
         case 'facebook':
-          //const facebookAccessToken = payload.sub.data.access_token;
-          //return await this.fetchFacebookAnalytics(facebookAccessToken, job.metadata);
-          return await this.fetchFacebookAnalytics(payload, job.metadata);
-
+          return await fetchFacebookAnalytics(payload, job.metadata);
         case 'x':
-          //const xAccessToken = payload.sub.access_token;
-          //return await this.fetchXAnalytics(xAccessToken, job.metadata);
-          return await this.fetchXAnalytics(payload, job.metadata);
-
+          return await fetchXAnalytics(payload, job.metadata);
         case 'reddit':
-          //const redditAccessToken = payload.sub.access_token;
-          //return await this.fetchRedditAnalytics(redditAccessToken, job.metadata);
-          return await this.fetchRedditAnalytics(payload, job.metadata);
-
+          return await fetchRedditAnalytics(payload, job.metadata);
         default:
           throw new Error(`Unsupported platform: ${platform}`);
       }
@@ -470,103 +461,7 @@ class AnalyticsWorker {
     };
   }
 
-  async fetchYouTubeAnalytics(payload, metadata) {
 
-    //extract all needed info to get analytics from payload
-    // TODO: Implement actual YouTube Analytics API calls
-    console.log('   Calling YouTube Analytics API...');
-    await new Promise(resolve => setTimeout(resolve, 2000));
-
-    return {
-      platform: 'youtube',
-      subscribers: Math.floor(Math.random() * 100000),
-      total_views: Math.floor(Math.random() * 1000000),
-      total_videos: Math.floor(Math.random() * 500),
-      average_view_duration: Math.floor(Math.random() * 300),
-      engagement_rate: (Math.random() * 10).toFixed(2)
-    };
-  }
-
-  async fetchTikTokAnalytics(payload, metadata) {
-        //extract all needed info to get analytics from payload
-
-    // simulate
-    console.log('   Calling TikTok Analytics API...');
-    await new Promise(resolve => setTimeout(resolve, 2000));
-
-    return {
-      platform: 'tiktok',
-      followers: Math.floor(Math.random() * 50000),
-      total_views: Math.floor(Math.random() * 500000),
-      total_videos: Math.floor(Math.random() * 200),
-      average_watch_time: Math.floor(Math.random() * 30),
-      engagement_rate: (Math.random() * 15).toFixed(2)
-    };
-  }
-
-  async fetchInstagramAnalytics(payload, metadata) {
-        //extract all needed info to get analytics from payload
-
-    //simulate
-    console.log('   Calling Instagram Analytics API...');
-    await new Promise(resolve => setTimeout(resolve, 2000));
-
-    return {
-      platform: 'instagram',
-      followers: Math.floor(Math.random() * 75000),
-      total_posts: Math.floor(Math.random() * 300),
-      total_reach: Math.floor(Math.random() * 200000),
-      engagement_rate: (Math.random() * 8).toFixed(2)
-    };
-  }
-
-  async fetchFacebookAnalytics(payload, metadata) {
-        //extract all needed info to get analytics from payload
-
-    // simulate
-    console.log('   Calling Facebook Analytics API...');
-    await new Promise(resolve => setTimeout(resolve, 2000));
-
-    return {
-      platform: 'facebook',
-      page_likes: Math.floor(Math.random() * 100000),
-      total_reach: Math.floor(Math.random() * 500000),
-      total_posts: Math.floor(Math.random() * 400),
-      engagement_rate: (Math.random() * 5).toFixed(2)
-    };
-  }
-
-  async fetchXAnalytics(payload, metadata) {
-        //extract all needed info to get analytics from payload
-
-    // simulate
-    console.log('   Calling X Analytics API...');
-    await new Promise(resolve => setTimeout(resolve, 2000));
-
-    return {
-      platform: 'x',
-      followers: Math.floor(Math.random() * 80000),
-      total_tweets: Math.floor(Math.random() * 1000),
-      total_impressions: Math.floor(Math.random() * 300000),
-      engagement_rate: (Math.random() * 3).toFixed(2)
-    };
-  }
-
-  async fetchRedditAnalytics(payload, metadata) {
-        //extract all needed info to get analytics from payload
-
-    // simulate
-    console.log('   Calling Reddit Analytics API...');
-    await new Promise(resolve => setTimeout(resolve, 2000));
-
-    return {
-      platform: 'reddit',
-      karma: Math.floor(Math.random() * 50000),
-      total_posts: Math.floor(Math.random() * 200),
-      total_comments: Math.floor(Math.random() * 500),
-      average_score: (Math.random() * 100).toFixed(2)
-    };
-  }
 }
 
 const worker = new AnalyticsWorker();
