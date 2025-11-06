@@ -1,24 +1,15 @@
 import axios from 'axios';
 import os from 'os';
 import { v4 as uuidv4 } from 'uuid';
-import { compactDecrypt } from 'jose';
-import { jwtVerify } from 'jose';
-import { importPKCS8, importSPKI } from 'jose';
 import dotenv from 'dotenv';
 import https from 'https';
 import fs from 'fs';
 
-// Platform analytics imports
-import { fetchYouTubeAnalytics } from './platforms/youtube.js';
-import { fetchTikTokAnalytics } from './platforms/tiktok.js';
-import { fetchInstagramAnalytics } from './platforms/instagram.js';
-import { fetchFacebookAnalytics } from './platforms/facebook.js';
-import { fetchXAnalytics } from './platforms/x.js';
-import { fetchRedditAnalytics } from './platforms/reddit.js';
-
 // Utilities
 import { getCPUUsage, getMemoryUsage, createSystemMetadata } from './utils/systemMetrics.js';
-
+import { fetchVideoAnalytics } from './videoAnalytics.js';
+import { fetchHourlyAnalytics } from './hourlyAnalytics.js';
+import { fetchChannelAnalytics } from './channelAnalytics.js';
 dotenv.config();
 
 class AnalyticsWorker {
@@ -59,9 +50,6 @@ class AnalyticsWorker {
     try {
       console.log(`Registering worker ${this.workerId}...`);
 
-      //just for debug
-      //console.log(this.httpsAgent)
-
       const response = await axios.post(`${this.backendUrl}/api/workers/register`, {
         worker_id: `worker-${this.workerId}`,
         worker_name: this.workerName,
@@ -87,8 +75,6 @@ class AnalyticsWorker {
       throw error;
     }
   }
-
-
 
   async sendHeartbeat() {
     if (!this.isRegistered) {
@@ -123,7 +109,6 @@ class AnalyticsWorker {
 
   startHeartbeat() {
     console.log(`Starting heartbeat (interval: ${this.heartbeatInterval}ms)`);
-
     this.sendHeartbeat();
 
     this.heartbeatTimer = setInterval(() => {
@@ -173,7 +158,6 @@ class AnalyticsWorker {
 
   startJobPolling() {
     console.log(`📋 Starting job polling (interval: ${this.jobPollInterval}ms)`);
-
     this.pollForJobs();
 
     this.jobPollTimer = setInterval(() => {
@@ -206,7 +190,6 @@ class AnalyticsWorker {
   async unregister() {
     try {
       console.log(`🔄 Unregistering worker ${this.workerId}...`);
-
       await axios.delete(`${this.backendUrl}/api/workers/worker-${this.workerId}`, { httpsAgent: this.httpsAgent });
 
       this.isRegistered = false;
@@ -273,20 +256,19 @@ class AnalyticsWorker {
 
     try {
       const taskType = job.metadata?.task_type || 'channel_analytics';
-
       console.log(`   Starting analytics fetch from ${job.platform}...`);
 
       let analyticsData = null;
 
       switch (taskType) {
         case 'channel_analytics':
-          analyticsData = await this.fetchChannelAnalytics(job);
+          analyticsData = await fetchChannelAnalytics(job);
           break;
         case 'video_analytics':
-          analyticsData = await this.fetchVideoAnalytics(job);
+          analyticsData = await fetchVideoAnalytics(job);
           break;
         case 'hourly_analytics':
-          analyticsData = await this.fetchHourlyAnalytics(job);
+          analyticsData = await fetchHourlyAnalytics(job);
           break;
         default:
           throw new Error(`Unknown task type: ${taskType}`);
@@ -321,100 +303,6 @@ class AnalyticsWorker {
       console.log(`📊 Current load: ${this.currentLoad}/${this.maxConcurrentTasks}\n`);
     }
   }
-
-  async fetchChannelAnalytics(job) {
-    const platform = job.platform;
-    const projectId = job.metadata.project_id;
-
-    const tokenResponse = await axios.post(
-      `${this.backendUrl}/api/platform-token/${platform}/${projectId}`,
-      {},
-      { httpsAgent: this.httpsAgent }
-    );
-
-    const workerPrivateKey = await importPKCS8(this.workerPrivateKeyPem, 'RSA-OAEP');
-    const { plaintext } = await compactDecrypt(tokenResponse.data, workerPrivateKey);
-    const decrypted = new TextDecoder().decode(plaintext);
-    const vpsPublicKey = await importSPKI(this.vpsPublicKeyPem, 'ES256');
-    const { payload } = await jwtVerify(decrypted, vpsPublicKey);
-    //const useable = JSON.stringify(payload, null, 2);
-    //console.log('decrypted token payload:', useable);
-    //const accessToken = tokenResponse.data.access_token;
-
-    /*if (!tokenResponse.data || !tokenResponse.data.access_token) {
-  throw new Error(`No access token found for ${platform}`);
-  } */
-
-    if (payload) {
-      switch (platform) {
-        case 'youtube':
-          return await fetchYouTubeAnalytics(payload, job.metadata);
-        case 'tiktok':
-          return await fetchTikTokAnalytics(payload, job.metadata);
-        case 'instagram':
-          return await fetchInstagramAnalytics(payload, job.metadata);
-        case 'facebook':
-          return await fetchFacebookAnalytics(payload, job.metadata);
-        case 'x':
-          return await fetchXAnalytics(payload, job.metadata);
-        case 'reddit':
-          return await fetchRedditAnalytics(payload, job.metadata);
-        default:
-          throw new Error(`Unsupported platform: ${platform}`);
-      }
-    }
-  }
-
-  async fetchVideoAnalytics(job) {
-    const platform = job.platform;
-    const videoId = job.metadata?.video_id;
-
-    if (!videoId) {
-      throw new Error('No video_id provided for video analytics');
-    }
-
-    console.log(`   Fetching video analytics for ${platform} video ${videoId}...`);
-
-    // For now, simulate with delay
-    await new Promise(resolve => setTimeout(resolve, 2000));
-
-    return {
-      video_id: videoId,
-      platform: platform,
-      views: Math.floor(Math.random() * 10000),
-      likes: Math.floor(Math.random() * 1000),
-      comments: Math.floor(Math.random() * 500),
-      shares: Math.floor(Math.random() * 200),
-      fetched_at: new Date().toISOString()
-    };
-  }
-
-  async fetchHourlyAnalytics(job) {
-    console.log(`   Fetching hourly analytics for ${job.platform}...`);
-
-    // Simulate hourly analytics fetch
-    await new Promise(resolve => setTimeout(resolve, 1500));
-
-    const hours = job.metadata?.hours || 24;
-    const hourlyData = [];
-
-    for (let i = 0; i < hours; i++) {
-      hourlyData.push({
-        hour: new Date(Date.now() - i * 3600000).toISOString(),
-        views: Math.floor(Math.random() * 1000),
-        likes: Math.floor(Math.random() * 100),
-        comments: Math.floor(Math.random() * 50)
-      });
-    }
-
-    return {
-      platform: job.platform,
-      hourly_data: hourlyData,
-      fetched_at: new Date().toISOString()
-    };
-  }
-
-
 }
 
 const worker = new AnalyticsWorker();
