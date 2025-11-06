@@ -19,7 +19,8 @@ CREATE TABLE IF NOT EXISTS videos (
     scheduled_date TIMESTAMP,
     published_at TIMESTAMP,
     updated_at TIMESTAMP,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    advanced_options JSONB DEFAULT '{}'::jsonb
 );
 
 -- Video platforms table (many-to-many relationship)
@@ -56,6 +57,7 @@ CREATE TABLE IF NOT EXISTS publish_status (
 CREATE INDEX IF NOT EXISTS idx_videos_status ON videos(status);
 CREATE INDEX IF NOT EXISTS idx_videos_upload_date ON videos(upload_date);
 CREATE INDEX IF NOT EXISTS idx_videos_scheduled_date ON videos(scheduled_date);
+CREATE INDEX IF NOT EXISTS idx_videos_advanced_options ON videos USING GIN (advanced_options);
 CREATE INDEX IF NOT EXISTS idx_video_platforms_video_id ON video_platforms(video_id);
 CREATE INDEX IF NOT EXISTS idx_video_tags_video_id ON video_tags(video_id);
 CREATE INDEX IF NOT EXISTS idx_publish_status_video_id ON publish_status(video_id);

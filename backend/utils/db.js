@@ -157,6 +157,12 @@ export const updateVideo = async (id, updates) => {
             }
         });
 
+        if (updates.advancedOptions) {
+            fields.push(`advanced_options = $${paramCount}`);
+            values.push(JSON.stringify(updates.advancedOptions));
+            paramCount++;
+        }
+
         if (fields.length > 0) {
             fields.push(`updated_at = CURRENT_TIMESTAMP`);
             values.push(id);

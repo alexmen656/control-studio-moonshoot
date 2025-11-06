@@ -30,4 +30,3 @@ export async function updateJobStatus(jobId, status, errorMessage = null, result
         console.error(`Failed to update job status:`, error.message);
     }
 }
-

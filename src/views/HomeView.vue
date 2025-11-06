@@ -26,6 +26,43 @@ interface Video {
   description?: string
   tags?: string[]
   scheduledDate?: Date | string
+  advancedOptions?: {
+    instagram?: {
+      locationId?: string
+      shareToFeed?: boolean
+      coverUrl?: string
+      audioName?: string
+    }
+    tiktok?: {
+      privacyLevel?: string
+      disableDuet?: boolean
+      disableComment?: boolean
+      disableStitch?: boolean
+      videoCoverTimestampMs?: number
+    }
+    youtube?: {
+      categoryId?: string
+      privacyStatus?: string
+      madeForKids?: boolean
+      embeddable?: boolean
+      publicStatsViewable?: boolean
+    }
+    facebook?: {
+      published?: boolean
+      scheduledPublishTime?: string
+      targetingCountries?: string
+    }
+    x?: {
+      forSuperFollowersOnly?: boolean
+      replySettings?: string
+    }
+    reddit?: {
+      subreddit?: string
+      nsfw?: boolean
+      spoiler?: boolean
+      sendReplies?: boolean
+    }
+  }
 }
 
 const videos = ref<Video[]>([])
@@ -44,8 +81,46 @@ const videoDetailsForm = ref({
   title: '',
   description: '',
   tags: '',
-  platforms: [] as Array<'instagram' | 'tiktok' | 'youtube' | 'facebook' | 'x' | 'reddit'>
+  platforms: [] as Array<'instagram' | 'tiktok' | 'youtube' | 'facebook' | 'x' | 'reddit'>,
+  advancedOptions: {
+    instagram: {
+      locationId: '',
+      shareToFeed: true,
+      coverUrl: '',
+      audioName: ''
+    },
+    tiktok: {
+      privacyLevel: 'PUBLIC_TO_EVERYONE',
+      disableDuet: false,
+      disableComment: false,
+      disableStitch: false,
+      videoCoverTimestampMs: 1000
+    },
+    youtube: {
+      categoryId: '22',
+      privacyStatus: 'public',
+      madeForKids: false,
+      embeddable: true,
+      publicStatsViewable: true
+    },
+    facebook: {
+      published: true,
+      scheduledPublishTime: '',
+      targetingCountries: ''
+    },
+    x: {
+      forSuperFollowersOnly: false,
+      replySettings: 'everyone'
+    },
+    reddit: {
+      subreddit: '',
+      nsfw: false,
+      spoiler: false,
+      sendReplies: true
+    }
+  }
 })
+const showAdvancedOptions = ref(false)
 
 const loadVideos = async () => {
   const PROJECT_ID = localStorage.getItem('currentProjectId') ? `project_id=${localStorage.getItem('currentProjectId')}` : ''
@@ -315,12 +390,63 @@ const formatViews = (views?: number) => {
 
 const openDetailsModal = (video: Video) => {
   selectedVideoForDetails.value = video
+
+  const defaultAdvancedOptions = {
+    instagram: {
+      locationId: '',
+      shareToFeed: true,
+      coverUrl: '',
+      audioName: ''
+    },
+    tiktok: {
+      privacyLevel: 'PUBLIC_TO_EVERYONE',
+      disableDuet: false,
+      disableComment: false,
+      disableStitch: false,
+      videoCoverTimestampMs: 1000
+    },
+    youtube: {
+      categoryId: '22',
+      privacyStatus: 'public',
+      madeForKids: false,
+      embeddable: true,
+      publicStatsViewable: true
+    },
+    facebook: {
+      published: true,
+      scheduledPublishTime: '',
+      targetingCountries: ''
+    },
+    x: {
+      forSuperFollowersOnly: false,
+      replySettings: 'everyone'
+    },
+    reddit: {
+      subreddit: '',
+      nsfw: false,
+      spoiler: false,
+      sendReplies: true
+    }
+  }
+
+  const savedAdvancedOptions = (video as any).advancedOptions || {}
+  const mergedAdvancedOptions = {
+    instagram: { ...defaultAdvancedOptions.instagram, ...savedAdvancedOptions.instagram },
+    tiktok: { ...defaultAdvancedOptions.tiktok, ...savedAdvancedOptions.tiktok },
+    youtube: { ...defaultAdvancedOptions.youtube, ...savedAdvancedOptions.youtube },
+    facebook: { ...defaultAdvancedOptions.facebook, ...savedAdvancedOptions.facebook },
+    x: { ...defaultAdvancedOptions.x, ...savedAdvancedOptions.x },
+    reddit: { ...defaultAdvancedOptions.reddit, ...savedAdvancedOptions.reddit }
+  }
+
   videoDetailsForm.value = {
     title: video.title || '',
     description: video.description || '',
     tags: video.tags?.join(', ') || '',
-    platforms: video.platforms || []
+    platforms: video.platforms || [],
+    advancedOptions: mergedAdvancedOptions
   }
+  showAdvancedOptions.value = false
   showDetailsModal.value = true
 }
 
@@ -331,8 +457,46 @@ const closeDetailsModal = () => {
     title: '',
     description: '',
     tags: '',
-    platforms: []
+    platforms: [],
+    advancedOptions: {
+      instagram: {
+        locationId: '',
+        shareToFeed: true,
+        coverUrl: '',
+        audioName: ''
+      },
+      tiktok: {
+        privacyLevel: 'PUBLIC_TO_EVERYONE',
+        disableDuet: false,
+        disableComment: false,
+        disableStitch: false,
+        videoCoverTimestampMs: 1000
+      },
+      youtube: {
+        categoryId: '22',
+        privacyStatus: 'public',
+        madeForKids: false,
+        embeddable: true,
+        publicStatsViewable: true
+      },
+      facebook: {
+        published: true,
+        scheduledPublishTime: '',
+        targetingCountries: ''
+      },
+      x: {
+        forSuperFollowersOnly: false,
+        replySettings: 'everyone'
+      },
+      reddit: {
+        subreddit: '',
+        nsfw: false,
+        spoiler: false,
+        sendReplies: true
+      }
+    }
   }
+  showAdvancedOptions.value = false
 }
 
 const togglePlatform = (platform: 'instagram' | 'tiktok' | 'youtube' | 'facebook' | 'x' | 'reddit') => {
@@ -377,6 +541,7 @@ const saveVideoDetails = async () => {
       description: videoDetailsForm.value.description,
       tags: videoDetailsForm.value.tags.split(',').map(t => t.trim()).filter(t => t),
       platforms: videoDetailsForm.value.platforms,
+      advancedOptions: videoDetailsForm.value.advancedOptions,
       status: 'ready'
     })
 
@@ -795,6 +960,251 @@ const saveVideoDetails = async () => {
               class="text-xs text-red-500 dark:text-red-400 mt-2">
               Please select at least one platform
             </p>
+          </div>
+          <div v-if="videoDetailsForm.platforms.length > 0" class="border-t border-gray-200 dark:border-gray-700 pt-6">
+            <button @click="showAdvancedOptions = !showAdvancedOptions" type="button"
+              class="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+              <div class="flex items-center gap-3">
+                <svg class="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor"
+                  viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                </svg>
+                <span class="font-medium text-gray-900 dark:text-gray-100">Advanced Options</span>
+              </div>
+              <svg :class="['w-5 h-5 text-gray-500 transition-transform', showAdvancedOptions ? 'rotate-180' : '']"
+                fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd"
+                  d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                  clip-rule="evenodd" />
+              </svg>
+            </button>
+            <div v-if="showAdvancedOptions" class="mt-4 space-y-6">
+              <div v-if="videoDetailsForm.platforms.includes('instagram')"
+                class="p-4 border border-gray-200 dark:border-gray-600 rounded-lg">
+                <div class="flex items-center gap-2 mb-4">
+                  <div class="text-gray-600 dark:text-gray-400 w-5 h-5" v-html="getPlatformIcon('instagram')"></div>
+                  <h4 class="font-semibold text-gray-900 dark:text-gray-100">Instagram Options</h4>
+                </div>
+                <div class="space-y-4">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Location ID</label>
+                    <input v-model="videoDetailsForm.advancedOptions.instagram.locationId" type="text"
+                      class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                      placeholder="e.g., 213385402" />
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Instagram location ID for tagging</p>
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Audio Name</label>
+                    <input v-model="videoDetailsForm.advancedOptions.instagram.audioName" type="text"
+                      class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                      placeholder="Audio track name" />
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Cover URL</label>
+                    <input v-model="videoDetailsForm.advancedOptions.instagram.coverUrl" type="url"
+                      class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                      placeholder="https://example.com/cover.jpg" />
+                  </div>
+                  <div class="flex items-center">
+                    <input v-model="videoDetailsForm.advancedOptions.instagram.shareToFeed" type="checkbox"
+                      id="instagram-share-feed"
+                      class="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500" />
+                    <label for="instagram-share-feed" class="ml-2 text-sm text-gray-700 dark:text-gray-300">Share to
+                      Feed</label>
+                  </div>
+                </div>
+              </div>
+              <div v-if="videoDetailsForm.platforms.includes('tiktok')"
+                class="p-4 border border-gray-200 dark:border-gray-600 rounded-lg">
+                <div class="flex items-center gap-2 mb-4">
+                  <div class="text-gray-600 dark:text-gray-400 w-5 h-5" v-html="getPlatformIcon('tiktok')"></div>
+                  <h4 class="font-semibold text-gray-900 dark:text-gray-100">TikTok Options</h4>
+                </div>
+                <div class="space-y-4">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Privacy Level</label>
+                    <select v-model="videoDetailsForm.advancedOptions.tiktok.privacyLevel"
+                      class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+                      <option value="PUBLIC_TO_EVERYONE">Public</option>
+                      <option value="MUTUAL_FOLLOW_FRIENDS">Friends</option>
+                      <option value="SELF_ONLY">Private</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Cover Timestamp
+                      (ms)</label>
+                    <input v-model.number="videoDetailsForm.advancedOptions.tiktok.videoCoverTimestampMs" type="number"
+                      class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                      placeholder="1000" />
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Timestamp for video cover thumbnail</p>
+                  </div>
+                  <div class="space-y-2">
+                    <div class="flex items-center">
+                      <input v-model="videoDetailsForm.advancedOptions.tiktok.disableDuet" type="checkbox"
+                        id="tiktok-disable-duet"
+                        class="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500" />
+                      <label for="tiktok-disable-duet" class="ml-2 text-sm text-gray-700 dark:text-gray-300">Disable
+                        Duet</label>
+                    </div>
+                    <div class="flex items-center">
+                      <input v-model="videoDetailsForm.advancedOptions.tiktok.disableComment" type="checkbox"
+                        id="tiktok-disable-comment"
+                        class="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500" />
+                      <label for="tiktok-disable-comment" class="ml-2 text-sm text-gray-700 dark:text-gray-300">Disable
+                        Comments</label>
+                    </div>
+                    <div class="flex items-center">
+                      <input v-model="videoDetailsForm.advancedOptions.tiktok.disableStitch" type="checkbox"
+                        id="tiktok-disable-stitch"
+                        class="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500" />
+                      <label for="tiktok-disable-stitch" class="ml-2 text-sm text-gray-700 dark:text-gray-300">Disable
+                        Stitch</label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div v-if="videoDetailsForm.platforms.includes('youtube')"
+                class="p-4 border border-gray-200 dark:border-gray-600 rounded-lg">
+                <div class="flex items-center gap-2 mb-4">
+                  <div class="text-gray-600 dark:text-gray-400 w-5 h-5" v-html="getPlatformIcon('youtube')"></div>
+                  <h4 class="font-semibold text-gray-900 dark:text-gray-100">YouTube Options</h4>
+                </div>
+                <div class="space-y-4">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Privacy
+                      Status</label>
+                    <select v-model="videoDetailsForm.advancedOptions.youtube.privacyStatus"
+                      class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+                      <option value="public">Public</option>
+                      <option value="unlisted">Unlisted</option>
+                      <option value="private">Private</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Category ID</label>
+                    <input v-model="videoDetailsForm.advancedOptions.youtube.categoryId" type="text"
+                      class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                      placeholder="22" />
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">YouTube category (22 = People & Blogs)</p>
+                  </div>
+                  <div class="space-y-2">
+                    <div class="flex items-center">
+                      <input v-model="videoDetailsForm.advancedOptions.youtube.madeForKids" type="checkbox"
+                        id="youtube-made-for-kids"
+                        class="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500" />
+                      <label for="youtube-made-for-kids" class="ml-2 text-sm text-gray-700 dark:text-gray-300">Made for
+                        Kids</label>
+                    </div>
+                    <div class="flex items-center">
+                      <input v-model="videoDetailsForm.advancedOptions.youtube.embeddable" type="checkbox"
+                        id="youtube-embeddable"
+                        class="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500" />
+                      <label for="youtube-embeddable" class="ml-2 text-sm text-gray-700 dark:text-gray-300">Allow
+                        Embedding</label>
+                    </div>
+                    <div class="flex items-center">
+                      <input v-model="videoDetailsForm.advancedOptions.youtube.publicStatsViewable" type="checkbox"
+                        id="youtube-public-stats"
+                        class="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500" />
+                      <label for="youtube-public-stats" class="ml-2 text-sm text-gray-700 dark:text-gray-300">Public
+                        Stats Viewable</label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div v-if="videoDetailsForm.platforms.includes('facebook')"
+                class="p-4 border border-gray-200 dark:border-gray-600 rounded-lg">
+                <div class="flex items-center gap-2 mb-4">
+                  <div class="text-gray-600 dark:text-gray-400 w-5 h-5" v-html="getPlatformIcon('facebook')"></div>
+                  <h4 class="font-semibold text-gray-900 dark:text-gray-100">Facebook Options</h4>
+                </div>
+                <div class="space-y-4">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Scheduled Publish
+                      Time</label>
+                    <input v-model="videoDetailsForm.advancedOptions.facebook.scheduledPublishTime"
+                      type="datetime-local"
+                      class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Leave empty to publish immediately</p>
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Targeting
+                      Countries</label>
+                    <input v-model="videoDetailsForm.advancedOptions.facebook.targetingCountries" type="text"
+                      class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                      placeholder="US,DE,FR" />
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Comma-separated country codes</p>
+                  </div>
+                  <div class="flex items-center">
+                    <input v-model="videoDetailsForm.advancedOptions.facebook.published" type="checkbox"
+                      id="facebook-published" class="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500" />
+                    <label for="facebook-published" class="ml-2 text-sm text-gray-700 dark:text-gray-300">Publish
+                      Immediately</label>
+                  </div>
+                </div>
+              </div>
+              <div v-if="videoDetailsForm.platforms.includes('x')"
+                class="p-4 border border-gray-200 dark:border-gray-600 rounded-lg">
+                <div class="flex items-center gap-2 mb-4">
+                  <div class="text-gray-600 dark:text-gray-400 w-5 h-5" v-html="getPlatformIcon('x')"></div>
+                  <h4 class="font-semibold text-gray-900 dark:text-gray-100">X (Twitter) Options</h4>
+                </div>
+                <div class="space-y-4">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Reply
+                      Settings</label>
+                    <select v-model="videoDetailsForm.advancedOptions.x.replySettings"
+                      class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+                      <option value="everyone">Everyone</option>
+                      <option value="following">People you follow</option>
+                      <option value="mentioned">Only mentioned users</option>
+                    </select>
+                  </div>
+                  <div class="flex items-center">
+                    <input v-model="videoDetailsForm.advancedOptions.x.forSuperFollowersOnly" type="checkbox"
+                      id="x-super-followers" class="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500" />
+                    <label for="x-super-followers" class="ml-2 text-sm text-gray-700 dark:text-gray-300">For Super
+                      Followers Only</label>
+                  </div>
+                </div>
+              </div>
+              <div v-if="videoDetailsForm.platforms.includes('reddit')"
+                class="p-4 border border-gray-200 dark:border-gray-600 rounded-lg">
+                <div class="flex items-center gap-2 mb-4">
+                  <div class="text-gray-600 dark:text-gray-400 w-5 h-5" v-html="getPlatformIcon('reddit')"></div>
+                  <h4 class="font-semibold text-gray-900 dark:text-gray-100">Reddit Options</h4>
+                </div>
+                <div class="space-y-4">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Subreddit *</label>
+                    <input v-model="videoDetailsForm.advancedOptions.reddit.subreddit" type="text" required
+                      class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                      placeholder="e.g., videos" />
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Subreddit name (without r/)</p>
+                  </div>
+                  <div class="space-y-2">
+                    <div class="flex items-center">
+                      <input v-model="videoDetailsForm.advancedOptions.reddit.nsfw" type="checkbox" id="reddit-nsfw"
+                        class="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500" />
+                      <label for="reddit-nsfw" class="ml-2 text-sm text-gray-700 dark:text-gray-300">NSFW (18+)</label>
+                    </div>
+                    <div class="flex items-center">
+                      <input v-model="videoDetailsForm.advancedOptions.reddit.spoiler" type="checkbox"
+                        id="reddit-spoiler" class="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500" />
+                      <label for="reddit-spoiler" class="ml-2 text-sm text-gray-700 dark:text-gray-300">Spoiler</label>
+                    </div>
+                    <div class="flex items-center">
+                      <input v-model="videoDetailsForm.advancedOptions.reddit.sendReplies" type="checkbox"
+                        id="reddit-send-replies"
+                        class="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500" />
+                      <label for="reddit-send-replies" class="ml-2 text-sm text-gray-700 dark:text-gray-300">Send Reply
+                        Notifications</label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
         <div
