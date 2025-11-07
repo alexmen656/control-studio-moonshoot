@@ -5,7 +5,8 @@ tiktokAPI copy.js
 update-durations.js
 credentials.json
 migrate-from-json.js
-test-db.js
+test-db.js 
+# I LOVE AMP!!!!!!!!!!!!!!!
 
 # Ignore test certs (only test certs for localhost but still)
 *.key
