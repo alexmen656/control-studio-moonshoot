@@ -83,9 +83,9 @@ class AnalyticsWorker {
     }
 
     try {
-      const cpuUsage = getCPUUsage();
+      const cpuUsage = await getCPUUsage();
       const memoryUsage = getMemoryUsage();
-      const metadata = createSystemMetadata();
+      const metadata = await createSystemMetadata();
 
       await axios.post(`${this.backendUrl}/api/workers/heartbeat`, {
         worker_id: `worker-${this.workerId}`,

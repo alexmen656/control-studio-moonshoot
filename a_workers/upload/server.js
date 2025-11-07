@@ -99,9 +99,9 @@ class UploadWorker {
     }
 
     try {
-      const cpuUsage = getCPUUsage();
+      const cpuUsage = await getCPUUsage();
       const memoryUsage = getMemoryUsage();
-      const metadata = getSystemMetadata();
+      const metadata = await getSystemMetadata();
 
       await axios.post(`${this.backendUrl}/api/workers/heartbeat`, {
         worker_id: `worker-${this.workerId}`,
