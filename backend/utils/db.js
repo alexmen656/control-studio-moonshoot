@@ -10,7 +10,7 @@ const PROJECT_ROOT = path.join(__dirname, '..');
 dotenv.config({ path: path.join(PROJECT_ROOT, '.env') });
 
 const pool = new Pool({
-    connectionString: process.env.PROGRESS_STRING,
+    connectionString: process.env.DATABASE_URL,
 });
 
 pool.on('error', (err) => {
