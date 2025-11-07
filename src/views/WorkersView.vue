@@ -1,7 +1,7 @@
 <template>
   <div class="workers-view">
     <div class="header">
-      <h1>🔧 Worker Management</h1>
+      <h1>Worker Management</h1>
       <div class="stats">
         <div class="stat-card">
           <span class="stat-label">Total Workers</span>
@@ -25,9 +25,9 @@
     <!-- Workers Section -->
     <section class="workers-section">
       <div class="section-header">
-        <h2>👷 Workers</h2>
+        <h2>Workers</h2>
         <button @click="refreshWorkers" class="btn-refresh" :disabled="loading">
-          <span v-if="!loading">🔄 Refresh</span>
+          <span v-if="!loading">Refresh</span>
           <span v-else>⏳ Loading...</span>
         </button>
       </div>
@@ -109,7 +109,7 @@
     <!-- Jobs Section -->
     <section class="jobs-section">
       <div class="section-header">
-        <h2>📋 Jobs</h2>
+        <h2>Jobs</h2>
         <div class="job-controls">
           <select v-model="jobFilter" class="filter-select">
             <option value="all">All Jobs</option>
@@ -119,11 +119,14 @@
             <option value="completed">Completed</option>
             <option value="failed">Failed</option>
           </select>
-          <button @click="showCreateJobModal = true" class="btn-create">
-            ➕ Create Job
+          <button @click="openCreateJobModal('upload')" class="btn-create">
+            Create Upload Job
+          </button>
+          <button @click="openCreateJobModal('analytics')" class="btn-create analytics">
+            Create Analytics Job
           </button>
           <button @click="refreshJobs" class="btn-refresh" :disabled="loading">
-            🔄 Refresh
+            Refresh
           </button>
         </div>
       </div>
@@ -183,15 +186,16 @@
     <div v-if="showCreateJobModal" class="modal-overlay" @click="showCreateJobModal = false">
       <div class="modal-content" @click.stop>
         <div class="modal-header">
-          <h2>Create Upload Job</h2>
+          <h2>{{ jobModalType === 'upload' ? 'Create Upload Job' : 'Create Analytics Job' }}</h2>
           <button @click="showCreateJobModal = false" class="btn-close">✕</button>
         </div>
 
-        <form @submit.prevent="createJob" class="job-form">
+        <!-- Upload Job Form -->
+        <form v-if="jobModalType === 'upload'" @submit.prevent="createUploadJob" class="job-form">
           <div class="form-group">
             <label>Video ID *</label>
             <input 
-              v-model.number="newJob.video_id" 
+              v-model.number="newUploadJob.video_id" 
               type="number" 
               required 
               placeholder="Enter video ID"
@@ -205,7 +209,7 @@
                 <input 
                   type="checkbox" 
                   :value="platform" 
-                  v-model="newJob.platforms"
+                  v-model="newUploadJob.platforms"
                 />
                 <span>{{ platform }}</span>
               </label>
@@ -214,7 +218,7 @@
 
           <div class="form-group">
             <label>Priority</label>
-            <select v-model.number="newJob.priority">
+            <select v-model.number="newUploadJob.priority">
               <option :value="0">Normal (0)</option>
               <option :value="1">High (1)</option>
               <option :value="2">Urgent (2)</option>
@@ -226,7 +230,7 @@
               Cancel
             </button>
             <button type="submit" class="btn-submit" :disabled="submitting">
-              {{ submitting ? 'Creating...' : 'Create Job' }}
+              {{ submitting ? 'Creating...' : 'Create Upload Job' }}
             </button>
           </div>
 
@@ -234,7 +238,58 @@
             {{ createError }}
           </div>
           <div v-if="createSuccess" class="success-message">
-            Jobs created successfully!
+            Upload jobs created successfully!
+          </div>
+        </form>
+
+        <!-- Analytics Job Form -->
+        <form v-if="jobModalType === 'analytics'" @submit.prevent="createAnalyticsJob" class="job-form">
+          <div class="form-group">
+            <label>Task Type *</label>
+            <select v-model="newAnalyticsJob.task_type" required>
+              <option value="channel_analytics">Channel Analytics</option>
+              <option value="video_analytics">Video Analytics</option>
+              <option value="hourly_analytics">Hourly Analytics</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Platforms *</label>
+            <div class="platform-checkboxes">
+              <label v-for="platform in availablePlatforms" :key="platform" class="checkbox-label">
+                <input 
+                  type="checkbox" 
+                  :value="platform" 
+                  v-model="newAnalyticsJob.platforms"
+                />
+                <span>{{ platform }}</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Priority</label>
+            <select v-model.number="newAnalyticsJob.priority">
+              <option :value="0">Normal (0)</option>
+              <option :value="1">High (1)</option>
+              <option :value="2">Urgent (2)</option>
+            </select>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" @click="showCreateJobModal = false" class="btn-cancel">
+              Cancel
+            </button>
+            <button type="submit" class="btn-submit" :disabled="submitting">
+              {{ submitting ? 'Creating...' : 'Create Analytics Job' }}
+            </button>
+          </div>
+
+          <div v-if="createError" class="error-message">
+            {{ createError }}
+          </div>
+          <div v-if="createSuccess" class="success-message">
+            Analytics jobs created successfully!
           </div>
         </form>
       </div>
@@ -287,17 +342,36 @@ interface NewJob {
   priority: number
 }
 
+interface NewAnalyticsJob {
+  task_type: string
+  platforms: string[]
+  priority: number
+}
+
 const workers = ref<Worker[]>([])
 const jobs = ref<Job[]>([])
 const loading = ref(false)
 const jobFilter = ref('all')
 const showCreateJobModal = ref(false)
+const jobModalType = ref<'upload' | 'analytics'>('upload')
 const submitting = ref(false)
 const createError = ref('')
 const createSuccess = ref(false)
 
 const newJob = ref<NewJob>({
   video_id: null,
+  platforms: [],
+  priority: 0
+})
+
+const newUploadJob = ref<NewJob>({
+  video_id: null,
+  platforms: [],
+  priority: 0
+})
+
+const newAnalyticsJob = ref<NewAnalyticsJob>({
+  task_type: 'channel_analytics',
   platforms: [],
   priority: 0
 })
@@ -384,6 +458,95 @@ async function createJob() {
   } catch (error: any) {
     createError.value = error.response?.data?.error || 'Failed to create job'
     console.error('Error creating job:', error)
+  } finally {
+    submitting.value = false
+  }
+}
+
+function openCreateJobModal(type: 'upload' | 'analytics') {
+  jobModalType.value = type
+  createError.value = ''
+  createSuccess.value = false
+  
+  // Reset forms
+  newUploadJob.value = {
+    video_id: null,
+    platforms: [],
+    priority: 0
+  }
+  
+  newAnalyticsJob.value = {
+    task_type: 'channel_analytics',
+    platforms: [],
+    priority: 0
+  }
+  
+  showCreateJobModal.value = true
+}
+
+async function createUploadJob() {
+  if (newUploadJob.value.platforms.length === 0) {
+    createError.value = 'Please select at least one platform'
+    return
+  }
+
+  try {
+    submitting.value = true
+    createError.value = ''
+    createSuccess.value = false
+
+    const project_id = localStorage.getItem('currentProjectId') || 2
+    await axios.post(`/jobs?project_id=${project_id}`, newUploadJob.value)
+
+    createSuccess.value = true
+    
+    setTimeout(() => {
+      refreshJobs()
+      showCreateJobModal.value = false
+      createSuccess.value = false
+    }, 1500)
+
+  } catch (error: any) {
+    createError.value = error.response?.data?.error || 'Failed to create upload job'
+    console.error('Error creating upload job:', error)
+  } finally {
+    submitting.value = false
+  }
+}
+
+async function createAnalyticsJob() {
+  if (newAnalyticsJob.value.platforms.length === 0) {
+    createError.value = 'Please select at least one platform'
+    return
+  }
+
+  try {
+    submitting.value = true
+    createError.value = ''
+    createSuccess.value = false
+
+    const project_id = localStorage.getItem('currentProjectId') || 2
+    
+    const payload = {
+      platforms: newAnalyticsJob.value.platforms,
+      task_type: newAnalyticsJob.value.task_type,
+      priority: newAnalyticsJob.value.priority
+    }
+    
+    console.log('Creating analytics job:', payload)
+    await axios.post(`/jobs/analytics?project_id=${project_id}`, payload)
+
+    createSuccess.value = true
+    
+    setTimeout(() => {
+      refreshJobs()
+      showCreateJobModal.value = false
+      createSuccess.value = false
+    }, 1500)
+
+  } catch (error: any) {
+    createError.value = error.response?.data?.error || 'Failed to create analytics job'
+    console.error('Error creating analytics job:', error)
   } finally {
     submitting.value = false
   }
@@ -767,6 +930,15 @@ onUnmounted(() => {
 
 .btn-create:hover {
   background: #2563eb;
+}
+
+.btn-create.analytics {
+  background: #8b5cf6;
+  border-color: #8b5cf6;
+}
+
+.btn-create.analytics:hover {
+  background: #7c3aed;
 }
 
 .empty-state {
