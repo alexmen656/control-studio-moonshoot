@@ -1,6 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import LandingPage from '../views/LandingPage.vue'
+import { useAuthStore } from '../stores/auth'
+import apiClient from '../api/client'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -98,7 +100,7 @@ const router = createRouter({
       path: '/workers',
       name: 'workers',
       component: () => import('../views/WorkersView.vue'),
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, requiresAdmin: true },
     },
     {
       path: '/profile',
@@ -109,17 +111,36 @@ const router = createRouter({
   ],
 })
 
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   const token = localStorage.getItem('auth_token')
   const isAuthenticated = !!token
 
   if (to.meta.requiresAuth && !isAuthenticated) {
     next({ name: 'login' })
-  } else if (to.meta.requiresGuest && isAuthenticated) {
-    next({ name: 'home' })
-  } else {
-    next()
+    return
   }
+  
+  if (to.meta.requiresGuest && isAuthenticated) {
+    next({ name: 'home' })
+    return
+  }
+  
+  if (to.meta.requiresAdmin && isAuthenticated) {
+    try {
+      const response = await apiClient.get('/auth/check-admin')
+      if (!response.data.isAdmin) {
+        console.warn('Access denied: Admin privileges required')
+        next({ name: 'dashboard' })
+        return
+      }
+    } catch (error) {
+      console.error('Admin check failed:', error)
+      next({ name: 'dashboard' })
+      return
+    }
+  }
+  
+  next()
 })
 
 export default router

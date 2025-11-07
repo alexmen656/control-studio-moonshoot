@@ -144,7 +144,7 @@
                 </svg>
                 <span class="text-sm font-medium">Project Settings</span>
             </router-link>
-            <router-link to="/workers"
+            <router-link to="/workers" v-if="isAdmin"
                 class="flex items-center space-x-3 px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-full transition-colors"
                 active-class="bg-red-100 dark:bg-red-900/30 text-primary-900 dark:text-primary-200 hover:bg-primary-100 dark:hover:bg-red-900/40">
                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -232,6 +232,7 @@
     </div>
 </template>
 <script lang="ts">
+import { useAuthStore } from '@/stores/auth'
 
 interface Project {
     id: number;
@@ -245,6 +246,10 @@ interface Project {
 
 export default {
     name: 'AppSidebar',
+    setup() {
+        const authStore = useAuthStore()
+        return { authStore }
+    },
     data() {
         return {
             storageUsed: 0,
@@ -261,6 +266,11 @@ export default {
             projects: [] as Project[],
             currentProject: null as Project | null
         };
+    },
+    computed: {
+        isAdmin() {
+            return this.authStore.isAdmin;
+        }
     },
     created() {
         this.fetchUsedStorage();

@@ -67,7 +67,7 @@
                             class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
                             <div class="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
                                 <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ user.username }}</p>
-                                <p class="text-xs text-gray-500 dark:text-gray-400">user</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">{{ user.role || 'user' }}</p>
                             </div>
                             <router-link to="/profile" @click="userMenuOpen = false"
                                 class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center space-x-2 block">
@@ -188,7 +188,7 @@ const searchQuery = ref('')
 const isSearchFocused = ref(false)
 const searchResults = ref<any[]>([])
 
-const user = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user') as string) : { username: 'Guest', email: 'guest@example.com' }
+const user = computed(() => authStore.user || { username: 'Guest', email: 'guest@example.com', role: 'user' })
 
 const performSearch = () => {
     if (searchQuery.value.length > 0) {
