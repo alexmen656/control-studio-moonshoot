@@ -1,0 +1,16 @@
+uploads/*
+tiktokAPI copy 2.js
+tiktokAPI copy 3.js
+tiktokAPI copy.js
+update-durations.js
+credentials.json
+migrate-from-json.js
+test-db.js 
+# I LOVE AMP!!!!!!!!!!!!!!!
+
+# Ignore test certs (only test certs for localhost but still)
+*.key
+*.crt
+*.csr
+
+keys/*

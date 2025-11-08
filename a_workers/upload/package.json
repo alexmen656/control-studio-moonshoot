@@ -1,0 +1,26 @@
+{
+  "name": "control-studio-worker",
+  "version": "1.0.0",
+  "description": "Upload worker for Control Studio",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "keywords": ["worker", "upload", "social-media"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.6.2",
+    "dotenv": "^16.3.1",
+    "uuid": "^9.0.1",
+    "jose": "^5.0.0",
+    "form-data": "^4.0.0",
+    "node-fetch": "^3.3.2",
+    "googleapis": "^128.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+}
