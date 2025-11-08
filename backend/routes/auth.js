@@ -41,7 +41,7 @@ router.post('/login', async (req, res) => {
     }
 
     const userResult = await db.query(
-      'SELECT id, email, username, password_hash, full_name, created_at, totp_enabled, totp_secret, backup_codes FROM users WHERE email = $1 OR username = $1',
+      'SELECT id, email, username, password_hash, full_name, created_at, totp_enabled, totp_secret, backup_codes, role FROM users WHERE email = $1 OR username = $1',
       [identifier]
     );
 
@@ -93,6 +93,7 @@ router.post('/login', async (req, res) => {
         email: user.email,
         username: user.username,
         fullName: user.full_name,
+        role: user.role || 'user',
         createdAt: user.created_at
       },
       token
@@ -133,6 +134,16 @@ router.get('/me', authMiddleware, async (req, res) => {
   } catch (error) {
     console.error('Get user error:', error);
     res.status(500).json({ error: 'Failed to get user' });
+  }
+});
+
+router.get('/check-admin', authMiddleware, async (req, res) => {
+  try {
+    const isAdmin = req.user.role === 'admin';
+    res.json({ isAdmin, role: req.user.role });
+  } catch (error) {
+    console.error('Check admin error:', error);
+    res.status(500).json({ error: 'Failed to check admin status' });
   }
 });
 

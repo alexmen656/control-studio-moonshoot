@@ -1,22 +1,26 @@
 import os from 'os';
 
-export function getCPUUsage() {
+function cpuTimes() {
   const cpus = os.cpus();
-  let totalIdle = 0;
-  let totalTick = 0;
-
+  let idle = 0, total = 0;
   cpus.forEach(cpu => {
-    for (let type in cpu.times) {
-      totalTick += cpu.times[type];
+    for (const type in cpu.times) {
+      total += cpu.times[type];
     }
-    totalIdle += cpu.times.idle;
+    idle += cpu.times.idle;
   });
+  return { idle, total };
+}
 
-  const idle = totalIdle / cpus.length;
-  const total = totalTick / cpus.length;
-  const usage = 100 - ~~(100 * idle / total);
+export async function getCPUUsage() {
+  const start = cpuTimes();
+  await new Promise(r => setTimeout(r, 200));
 
-  return usage;
+  const end = cpuTimes();
+
+  const idle = end.idle - start.idle;
+  const total = end.total - start.total;
+  return Math.round((1 - idle / total) * 100);
 }
 
 export function getMemoryUsage() {
@@ -33,8 +37,8 @@ export function getMemoryUsage() {
   };
 }
 
-export function createSystemMetadata() {
-  const cpuUsage = getCPUUsage();
+export async function createSystemMetadata() {
+  const cpuUsage = await getCPUUsage();
   const memoryUsage = getMemoryUsage();
 
   return {

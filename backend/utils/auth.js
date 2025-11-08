@@ -18,7 +18,8 @@ export const generateToken = (user) => {
         {
             id: user.id,
             email: user.email,
-            username: user.username
+            username: user.username,
+            role: user.role || 'user'
         },
         JWT_SECRET,
         { expiresIn: '7d' }
@@ -47,7 +48,7 @@ export const registerUser = async (email, username, password, fullName = null) =
         const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
 
         const result = await query(
-            'INSERT INTO users (email, username, password_hash, full_name) VALUES ($1, $2, $3, $4) RETURNING id, email, username, full_name, created_at',
+            'INSERT INTO users (email, username, password_hash, full_name) VALUES ($1, $2, $3, $4) RETURNING id, email, username, full_name, role, created_at',
             [email, username, passwordHash, fullName]
         );
 
@@ -60,6 +61,7 @@ export const registerUser = async (email, username, password, fullName = null) =
                 email: user.email,
                 username: user.username,
                 fullName: user.full_name,
+                role: user.role || 'user',
                 createdAt: user.created_at
             },
             token
@@ -72,7 +74,7 @@ export const registerUser = async (email, username, password, fullName = null) =
 export const loginUser = async (identifier, password) => {
     try {
         const result = await query(
-            'SELECT id, email, username, password_hash, full_name, created_at FROM users WHERE email = $1 OR username = $1',
+            'SELECT id, email, username, password_hash, full_name, role, created_at FROM users WHERE email = $1 OR username = $1',
             [identifier]
         );
 
@@ -100,6 +102,7 @@ export const loginUser = async (identifier, password) => {
                 email: user.email,
                 username: user.username,
                 fullName: user.full_name,
+                role: user.role || 'user',
                 createdAt: user.created_at
             },
             token
@@ -112,7 +115,7 @@ export const loginUser = async (identifier, password) => {
 export const loginWithGoogle = async (email, fullName, googleId) => {
     try {
         let result = await query(
-            'SELECT id, email, username, full_name, created_at FROM users WHERE google_id = $1 OR email = $2',
+            'SELECT id, email, username, full_name, role, created_at FROM users WHERE google_id = $1 OR email = $2',
             [googleId, email]
         );
 
@@ -129,7 +132,7 @@ export const loginWithGoogle = async (email, fullName, googleId) => {
         } else {
             const username = email.split('@')[0] + '_' + Date.now().toString().slice(-4);
             result = await query(
-                'INSERT INTO users (email, username, full_name, google_id) VALUES ($1, $2, $3, $4) RETURNING id, email, username, full_name, created_at',
+                'INSERT INTO users (email, username, full_name, google_id) VALUES ($1, $2, $3, $4) RETURNING id, email, username, full_name, role, created_at',
                 [email, username, fullName, googleId]
             );
             user = result.rows[0];
@@ -148,6 +151,7 @@ export const loginWithGoogle = async (email, fullName, googleId) => {
                 email: user.email,
                 username: user.username,
                 fullName: user.full_name,
+                role: user.role || 'user',
                 createdAt: user.created_at
             },
             token
@@ -178,7 +182,7 @@ export const authMiddleware = async (req, res, next) => {
         }
 
         const userResult = await query(
-            'SELECT id, email, username, full_name FROM users WHERE id = $1',
+            'SELECT id, email, username, full_name, role FROM users WHERE id = $1',
             [decoded.id]
         );
 
@@ -189,7 +193,8 @@ export const authMiddleware = async (req, res, next) => {
         req.user = {
             id: decoded.id,
             email: decoded.email,
-            username: decoded.username
+            username: decoded.username,
+            role: userResult.rows[0].role || 'user'
         };
         next();
     } catch (error) {
@@ -240,7 +245,7 @@ export const projectAccessMiddleware = async (req, res, next) => {
 export const getUserById = async (userId) => {
     try {
         const result = await query(
-            'SELECT id, email, username, full_name, created_at, last_login FROM users WHERE id = $1',
+            'SELECT id, email, username, full_name, role, created_at, last_login FROM users WHERE id = $1',
             [userId]
         );
 
@@ -254,10 +259,28 @@ export const getUserById = async (userId) => {
             email: user.email,
             username: user.username,
             fullName: user.full_name,
+            role: user.role || 'user',
             createdAt: user.created_at,
             lastLogin: user.last_login
         };
     } catch (error) {
         throw error;
+    }
+};
+
+export const adminMiddleware = async (req, res, next) => {
+    try {
+        if (!req.user) {
+            return res.status(401).json({ error: 'Authentication required' });
+        }
+
+        if (req.user.role !== 'admin') {
+            return res.status(403).json({ error: 'Access denied: Admin privileges required' });
+        }
+
+        next();
+    } catch (error) {
+        console.error('Admin middleware error:', error);
+        return res.status(500).json({ error: 'Authorization failed' });
     }
 };

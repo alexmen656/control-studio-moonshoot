@@ -18,6 +18,7 @@ import platformsRoutes from './routes/platforms.js';
 import analyticsRoutes from './routes/analytics.js';
 import regionsRoutes from './routes/regions.js';
 import usersRoutes from './routes/users.js';
+import adminUsersRoutes from './routes/admin-users.js';
 import { authMiddleware, projectAccessMiddleware } from './utils/auth.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -288,6 +289,7 @@ app.use('/api', platformsRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/regions', regionsRoutes);
 app.use('/api/users', usersRoutes);
+app.use('/api/admin/users', adminUsersRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);

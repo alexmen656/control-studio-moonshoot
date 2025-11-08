@@ -1,14 +1,14 @@
 import express from 'express';
-import { authMiddleware, projectAccessMiddleware } from '../utils/auth.js';
+import { authMiddleware, projectAccessMiddleware, adminMiddleware } from '../utils/auth.js';
 import * as db from '../utils/db.js'
 
 const router = express.Router();
 
 // ============================================
-// UPLOAD JOB ROUTES
+// UPLOAD JOB ROUTES (ADMIN ONLY)
 // ============================================
 
-router.post('/', authMiddleware, projectAccessMiddleware, async (req, res) => {
+router.post('/', authMiddleware, adminMiddleware, projectAccessMiddleware, async (req, res) => {
   try {
     const { video_id, platforms, priority } = req.body;
 
@@ -29,7 +29,7 @@ router.post('/', authMiddleware, projectAccessMiddleware, async (req, res) => {
   }
 });
 
-router.get('/', authMiddleware, async (req, res) => {
+router.get('/', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const { status, project_id } = req.query;
 
@@ -74,10 +74,10 @@ router.get('/', authMiddleware, async (req, res) => {
 });
 
 // ============================================
-// ANALYTICS JOB ROUTES
+// ANALYTICS JOB ROUTES (ADMIN ONLY)
 // ============================================
 
-router.post('/analytics', authMiddleware, projectAccessMiddleware, async (req, res) => {
+router.post('/analytics', authMiddleware, adminMiddleware, projectAccessMiddleware, async (req, res) => {
   try {
     const { platforms, task_type, priority, metadata } = req.body;
     const projectId = req.project.id;
@@ -108,7 +108,7 @@ router.post('/analytics', authMiddleware, projectAccessMiddleware, async (req, r
   }
 });
 
-router.get('/analytics', authMiddleware, projectAccessMiddleware, async (req, res) => {
+router.get('/analytics', authMiddleware, adminMiddleware, projectAccessMiddleware, async (req, res) => {
   try {
     const { status, platform } = req.query;
     const projectId = req.project.id;

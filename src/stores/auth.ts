@@ -7,6 +7,7 @@ interface User {
   email: string
   username: string
   fullName?: string
+  role?: string
   createdAt: string
 }
 
@@ -16,14 +17,32 @@ export const useAuthStore = defineStore('auth', () => {
   const isLoading = ref(false)
   const error = ref<string | null>(null)
   const isAuthenticated = computed(() => !!token.value)
+  const isAdmin = ref(false)
 
-  const initAuth = () => {
+  const initAuth = async () => {
     const storedToken = localStorage.getItem('auth_token')
     const storedUser = localStorage.getItem('user')
 
     if (storedToken && storedUser) {
       token.value = storedToken
       user.value = JSON.parse(storedUser)
+      
+      await checkAdminFromBackend()
+    }
+  }
+  
+  const checkAdminFromBackend = async () => {
+    try {
+      const response = await apiClient.get('/auth/check-admin')
+      isAdmin.value = response.data.isAdmin
+      
+      if (user.value) {
+        user.value.role = response.data.role
+        localStorage.setItem('user', JSON.stringify(user.value))
+      }
+    } catch (error) {
+      console.error('Admin check failed:', error)
+      isAdmin.value = false
     }
   }
 
@@ -84,6 +103,8 @@ export const useAuthStore = defineStore('auth', () => {
 
       localStorage.setItem('auth_token', response.data.token)
       localStorage.setItem('user', JSON.stringify(response.data.user))
+      
+      await checkAdminFromBackend()
 
       return { success: true }
     } catch (err: any) {
@@ -127,6 +148,9 @@ export const useAuthStore = defineStore('auth', () => {
       const response = await apiClient.get('/auth/me')
       user.value = response.data
       localStorage.setItem('user', JSON.stringify(response.data))
+      
+      await checkAdminFromBackend()
+      
       return true
     } catch (err: any) {
       console.error('Get user error:', err)
@@ -138,6 +162,7 @@ export const useAuthStore = defineStore('auth', () => {
   const logout = () => {
     user.value = null
     token.value = null
+    isAdmin.value = false
     localStorage.removeItem('auth_token')
     localStorage.removeItem('user')
   }
@@ -276,6 +301,7 @@ export const useAuthStore = defineStore('auth', () => {
     isLoading,
     error,
     isAuthenticated,
+    isAdmin,
     register,
     login,
     loginWithGoogle,

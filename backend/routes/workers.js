@@ -1,11 +1,11 @@
 import express from 'express';
-import { authMiddleware } from '../utils/auth.js';
+import { authMiddleware, adminMiddleware } from '../utils/auth.js';
 import * as db from '../utils/db.js'
 
 const router = express.Router();
 
 //not used by workers only by admin panel
-router.get('/', authMiddleware, async (req, res) => {
+router.get('/', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     await db.query(`
       UPDATE workers 
@@ -29,7 +29,7 @@ router.get('/', authMiddleware, async (req, res) => {
   }
 });
 
-router.get('/:workerId', authMiddleware, async (req, res) => {
+router.get('/:workerId', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const { workerId } = req.params;
 

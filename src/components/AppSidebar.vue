@@ -144,13 +144,26 @@
                 </svg>
                 <span class="text-sm font-medium">Project Settings</span>
             </router-link>
-            <router-link to="/workers"
+            <div class="border-t border-gray-200 dark:border-gray-700 my-2" v-if="isAdmin"></div>
+            <div class="px-4 pt-2" v-if="isAdmin">
+                <span class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Admin Tools</span>
+            </div>
+            <router-link to="/workers" v-if="isAdmin"
                 class="flex items-center space-x-3 px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-full transition-colors"
                 active-class="bg-red-100 dark:bg-red-900/30 text-primary-900 dark:text-primary-200 hover:bg-primary-100 dark:hover:bg-red-900/40">
                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M10 2a1 1 0 011 1v1.323l3.954 1.582 1.599-.8a1 1 0 01.894 1.79l-1.233.616 1.738 5.42a1 1 0 01-.285 1.05A3.989 3.989 0 0115 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.738-5.42-1.233-.617a1 1 0 01.894-1.788l1.599.799L11 4.323V3a1 1 0 011-1zm-5 8.274l-.818 2.552c-.25.78.008 1.626.69 2.193A3.989 3.989 0 007 15a3.989 3.989 0 002.128-.981c.682-.567.94-1.413.69-2.193l-.818-2.552a1 1 0 00-1.9 0z"/>
+                    <path
+                        d="M10 2a1 1 0 011 1v1.323l3.954 1.582 1.599-.8a1 1 0 01.894 1.79l-1.233.616 1.738 5.42a1 1 0 01-.285 1.05A3.989 3.989 0 0115 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.738-5.42-1.233-.617a1 1 0 01.894-1.788l1.599.799L11 4.323V3a1 1 0 011-1zm-5 8.274l-.818 2.552c-.25.78.008 1.626.69 2.193A3.989 3.989 0 007 15a3.989 3.989 0 002.128-.981c.682-.567.94-1.413.69-2.193l-.818-2.552a1 1 0 00-1.9 0z" />
                 </svg>
                 <span class="text-sm font-medium">Workers</span>
+            </router-link>
+            <router-link to="/admin/users" v-if="isAdmin"
+                class="flex items-center space-x-3 px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-full transition-colors"
+                active-class="bg-red-100 dark:bg-red-900/30 text-primary-900 dark:text-primary-200 hover:bg-primary-100 dark:hover:bg-red-900/40">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
+                </svg>
+                <span class="text-sm font-medium">User Management</span>
             </router-link>
             <div class="border-t border-gray-200 dark:border-gray-700 my-2"></div>
             <div class="px-4 pt-2">
@@ -232,6 +245,7 @@
     </div>
 </template>
 <script lang="ts">
+import { useAuthStore } from '@/stores/auth'
 
 interface Project {
     id: number;
@@ -245,6 +259,10 @@ interface Project {
 
 export default {
     name: 'AppSidebar',
+    setup() {
+        const authStore = useAuthStore()
+        return { authStore }
+    },
     data() {
         return {
             storageUsed: 0,
@@ -261,6 +279,11 @@ export default {
             projects: [] as Project[],
             currentProject: null as Project | null
         };
+    },
+    computed: {
+        isAdmin() {
+            return this.authStore.isAdmin;
+        }
     },
     created() {
         this.fetchUsedStorage();
