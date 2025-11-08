@@ -71,12 +71,14 @@ const scrollToSection = (sectionId: string) => {
 
 const showModal = ref(false)
 const platformName = ref('')
+const email = ref('')
 const message = ref('')
 
 const submitForm = () => {
     alert(`Thank you for requesting ${platformName.value}. We'll let you know when we add it!!`)
     showModal.value = false
     platformName.value = ''
+    email.value = ''
     message.value = ''
 }
 </script>
