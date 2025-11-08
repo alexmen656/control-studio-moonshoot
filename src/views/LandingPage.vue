@@ -8,10 +8,10 @@ const features = [
     {
         icon: 'share-nodes',
         title: 'Multi-Platform Publishing',
-        description: 'Publish your videos simultaneously on TikTok, Instagram, YouTube, Facebook, and X.'
+        description: 'Publish your videos simultaneously on TikTok, Instagram, YouTube, Facebook, X, and Reddit.'
     },
     {
-        icon: 'calendar-clock',
+        icon: 'calendar',
         title: 'Smart Scheduling',
         description: 'Plan your content strategy in advance and let your posts publish automatically at the perfect time.'
     },
@@ -52,21 +52,6 @@ const otherProducts = [
         name: 'Control Center',
         description: 'Central administration platform for all your digital solutions',
         url: 'https://control-center.eu'
-    },
-    {
-        name: 'Control Cloud',
-        description: 'Cloud-based infrastructure for maximum scalability',
-        url: 'https://cloud.control-center.eu'
-    },
-    {
-        name: 'Control Analytics',
-        description: 'Comprehensive analytics and reporting tools',
-        url: 'https://analytics.control-center.eu'
-    },
-    {
-        name: 'Control Security',
-        description: 'Enterprise-grade security solutions',
-        url: 'https://security.control-center.eu'
     }
 ]
 
@@ -82,6 +67,17 @@ const scrollToFeatures = () => {
 
 const scrollToSection = (sectionId: string) => {
     document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' })
+}
+
+const showModal = ref(false)
+const platformName = ref('')
+const message = ref('')
+
+const submitForm = () => {
+    alert(`Thank you for requesting ${platformName.value}. We'll let you know when we add it!!`)
+    showModal.value = false
+    platformName.value = ''
+    message.value = ''
 }
 </script>
 
@@ -136,8 +132,8 @@ const scrollToSection = (sectionId: string) => {
                 </div>
                 <div class="hero-visual">
                     <div class="platforms-intro">
-                        <h3 class="platforms-title">Supported Platforms</h3>
-                        <p class="platforms-description">Publish to all major social media platforms</p>
+                        <h3 class="platforms-title">Supported platforms</h3>
+                        <p class="platforms-description">Publish to all your social media platforms. Don't see yours? <button @click="showModal = true" class="link">Let us know.</button></p>
                     </div>
                     <div class="platform-scrolling-wrapper">
                     <div class="logo-list">
@@ -188,12 +184,30 @@ const scrollToSection = (sectionId: string) => {
                 </div>
             </div>
         </section>
+
+        <!-- Modal for requesting platform -->
+        <div v-if="showModal" class="modal-overlay" @click="showModal = false">
+            <div class="modal-content" @click.stop>
+                <h3>Request a platform</h3>
+                <p>Let us know what platform you want us to support.</p>
+                <form @submit.prevent="submitForm">
+                    <input v-model="platformName" type="text" placeholder="Platform name." required>
+                    <input v-model="email" type="text" placeholder="Email - so that we can get back to you." required>
+                    <textarea v-model="message" placeholder="Any additional details (optional)"></textarea>
+                    <div class="modal-actions">
+                        <button type="button" @click="showModal = false" class="btn-cancel">Cancel</button>
+                        <button type="submit" class="btn-submit">Submit Request</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
         <footer class="footer">
             <div class="container">
                 <div class="footer-grid">
                     <div class="footer-main">
                         <h3 class="footer-brand">Control Studio</h3>
-                        <p class="footer-tagline">Professionelles Social Media Management</p>
+                        <p class="footer-tagline">All SM platforms, one dashboard.</p>
                         <div class="trust-badges">
                             <div class="trust-badge">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -216,7 +230,7 @@ const scrollToSection = (sectionId: string) => {
                                     <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
                                     <circle cx="12" cy="10" r="3" />
                                 </svg>
-                                <span>Made & Hosted in Austria</span>
+                                <span>Made & hosted in Austria</span>
                             </div>
                         </div>
                     </div>
@@ -227,15 +241,6 @@ const scrollToSection = (sectionId: string) => {
                             <li><button @click="scrollToSection('features')" class="footer-link">Features</button></li>
                             <li><button @click="router.push('/login')" class="footer-link">Login</button></li>
                             <li><button @click="router.push('/signup')" class="footer-link">Sign Up</button></li>
-                        </ul>
-                    </div>
-
-                    <div class="footer-section">
-                        <h4 class="footer-heading">Other Products</h4>
-                        <ul class="footer-links">
-                            <li v-for="product in otherProducts" :key="product.name">
-                                <a :href="product.url" target="_blank" class="footer-link">{{ product.name }}</a>
-                            </li>
                         </ul>
                     </div>
 
@@ -514,14 +519,14 @@ const scrollToSection = (sectionId: string) => {
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+    background: linear-gradient(135deg, #7c3aed 0%, #7c3aaf 100%);
     color: white;
-    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+    box-shadow: 0 4px 12px rgba(159, 38, 220, 0.3);
 }
 
 .btn-primary:hover {
     transform: translateY(-1px);
-    box-shadow: 0 8px 20px rgba(220, 38, 38, 0.4);
+    box-shadow: 0 9px 20px rgba(159, 38, 220, 0.3);
 }
 
 .btn-secondary {
@@ -716,7 +721,7 @@ const scrollToSection = (sectionId: string) => {
     margin-bottom: 1.25rem;
     width: 80px;
     height: 80px;
-    background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+    background: linear-gradient(135deg, #7c3aed 0%, #7c3aaf 100%);
     border-radius: 16px;
     display: flex;
     align-items: center;
@@ -847,8 +852,8 @@ const scrollToSection = (sectionId: string) => {
 }
 
 .trust-badge.highlight {
-    background: linear-gradient(135deg, rgba(124, 58, 237, 0.15) 0%, rgba(139, 92, 246, 0.15) 100%);
-    color: #c4b5fd;
+    background: linear-gradient(135deg, rgba(93, 0, 255, 0.15) 0%, rgba(139, 92, 246, 0.15) 100%);
+    color: #8b7ad1ff;
     font-weight: 600;
     border: 1px solid rgba(124, 58, 237, 0.3);
 }
@@ -948,6 +953,103 @@ const scrollToSection = (sectionId: string) => {
     align-items: center;
     color: #64748b;
     font-size: 0.875rem;
+}
+
+/* Modal Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    border-radius: 12px;
+    justify-content: center;
+    z-index: 10000;
+}
+
+.modal-content {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    max-width: 400px;
+    width: 90%;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.modal-content h3 {
+    margin-bottom: 0.5rem;
+    color: #0f172a;
+}
+
+.modal-content p {
+    margin-bottom: 1.5rem;
+    color: #64748b;
+}
+
+.modal-content input,
+.modal-content textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #d1d5db;
+    color: #0f172a;
+    background: white;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+}
+
+.modal-content input::placeholder,
+.modal-content textarea::placeholder {
+    color: #64748b;
+}
+
+.modal-content textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+}
+
+.btn-submit {
+    background: #7c3aed;
+    color: white;
+    border: none;
+    padding: 0.5rem 0.5em;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-cancel {
+    background: rgba(255, 56, 56, 1);
+    color: white;
+    border: none;
+    padding: 0.5rem 0.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.link {
+    background: none;
+    border: none;
+    padding: 0;
+    font: inherit;
+    color: #7c3aed;
+    text-decoration: underline;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.link:hover {
+    color: #6d28d9;
 }
 
 /* Responsive */
