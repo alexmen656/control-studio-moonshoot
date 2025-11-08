@@ -8,32 +8,32 @@ const features = [
     {
         icon: 'share-nodes',
         title: 'Multi-Platform Publishing',
-        description: 'Veröffentliche deine Videos gleichzeitig auf TikTok, Instagram, YouTube, Facebook und X.'
+        description: 'Publish your videos simultaneously on TikTok, Instagram, YouTube, Facebook, X, and Reddit.'
     },
     {
-        icon: 'calendar-clock',
+        icon: 'calendar',
         title: 'Smart Scheduling',
-        description: 'Plane deine Content-Strategie im Voraus und lasse deine Posts automatisch zum perfekten Zeitpunkt veröffentlichen.'
+        description: 'Plan your content strategy in advance and let your posts publish automatically at the perfect time.'
     },
     {
         icon: 'chart-line',
         title: 'Performance Tracking',
-        description: 'Verfolge die Performance deiner Videos über alle Plattformen hinweg in einem übersichtlichen Dashboard.'
+        description: 'Track your video performance across all platforms in one clear dashboard.'
     },
     {
         icon: 'layer-group',
         title: 'Batch Uploads',
-        description: 'Spare Zeit mit Batch-Uploads und verwalte mehrere Videos gleichzeitig.'
+        description: 'Save time with batch uploads and manage multiple videos at once.'
     },
     {
         icon: 'folder-open',
         title: 'Content Library',
-        description: 'Organisiere und durchsuche deine gesamte Video-Bibliothek an einem zentralen Ort.'
+        description: 'Organize and search your entire video library in one central location.'
     },
     {
         icon: 'wand-magic-sparkles',
         title: 'Workflow Automation',
-        description: 'Automatisiere wiederkehrende Aufgaben und fokussiere dich auf kreative Inhalte.'
+        description: 'Automate recurring tasks and focus on creative content.'
     }
 ]
 
@@ -46,66 +46,19 @@ const platforms = [
     { name: 'Reddit', icon: 'reddit', color: '#FF4500' }
 ]
 
-const newsItems = [
-    {
-        category: 'Legislativa',
-        categoryColor: '#64748b',
-        date: '15. marec 2024',
-        readTime: '5 min',
-        title: 'Neue Anforderungen für die Transparenz im Jahr 2024',
-        description: 'Aktuelle Änderungen in der Gesetzgebung und deren Auswirkungen auf die Verwaltung von Selbstverwaltungen',
-        author: 'Ing. Ján Novák',
-        image: 'L'
-    },
-    {
-        category: 'Technologie',
-        categoryColor: '#6366f1',
-        date: '08. marec 2024',
-        readTime: '8 min',
-        title: 'Digitalisierung städtischer Ämter - kompletter Leitfaden',
-        description: 'Schritte zu einer erfolgreichen digitalen Transformation der öffentlichen Verwaltung',
-        author: 'Ing. Ján Novák',
-        image: 'T'
-    },
-    {
-        category: 'Best practices',
-        categoryColor: '#8b5cf6',
-        date: '01. marec 2024',
-        readTime: '6 min',
-        title: 'Häufigste Fehler bei der Implementierung von E-Government',
-        description: 'Praktische Ratschläge zur Vermeidung von Problemen bei der Einführung digitaler Lösungen',
-        author: 'Ing. Ján Novák',
-        image: 'BP'
-    }
-]
 
 const otherProducts = [
     {
         name: 'Control Center',
-        description: 'Zentrale Verwaltungsplattform für alle Ihre digitalen Lösungen',
+        description: 'Central administration platform for all your digital solutions',
         url: 'https://control-center.eu'
-    },
-    {
-        name: 'Control Cloud',
-        description: 'Cloud-basierte Infrastruktur für maximale Skalierbarkeit',
-        url: 'https://cloud.control-center.eu'
-    },
-    {
-        name: 'Control Analytics',
-        description: 'Umfassende Analyse- und Reporting-Tools',
-        url: 'https://analytics.control-center.eu'
-    },
-    {
-        name: 'Control Security',
-        description: 'Enterprise-Grade Sicherheitslösungen',
-        url: 'https://security.control-center.eu'
     }
 ]
 
 const stats = [
-    { value: '6+', label: 'Plattformen' },
+    { value: '6+', label: 'Platforms' },
     { value: '∞', label: 'Videos' },
-    { value: '100%', label: 'Kontrolle' }
+    { value: '100%', label: 'Control' }
 ]
 
 const scrollToFeatures = () => {
@@ -115,6 +68,19 @@ const scrollToFeatures = () => {
 const scrollToSection = (sectionId: string) => {
     document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' })
 }
+
+const showModal = ref(false)
+const platformName = ref('')
+const email = ref('')
+const message = ref('')
+
+const submitForm = () => {
+    alert(`Thank you for requesting ${platformName.value}. We'll let you know when we add it!!`)
+    showModal.value = false
+    platformName.value = ''
+    email.value = ''
+    message.value = ''
+}
 </script>
 
 <template>
@@ -122,17 +88,16 @@ const scrollToSection = (sectionId: string) => {
         <header class="header">
             <div class="container">
                 <nav class="nav">
-                    <div class="nav-brand">
-                        <div class="logo-icon">CS</div>
-                        <span class="brand-name">Control Studio</span>
+                 <div class="nav-brand">
+                     <div class="logo-icon">CS</div>
+                    <span class="brand-name">Control Studio</span>
                     </div>
                     <div class="nav-menu">
-                        <button @click="scrollToSection('product')" class="nav-link">Produkt</button>
-                        <button @click="scrollToSection('features')" class="nav-link">Features</button>
-                        <button @click="scrollToSection('news')" class="nav-link">News</button>
-                        <button @click="router.push('/login')" class="nav-link">Login</button>
-                        <button @click="router.push('/signup')" class="btn btn-demo">Kostenlos starten</button>
-                    </div>
+                    <button @click="scrollToSection('product')" class="nav-link">Product</button>
+                         <button @click="scrollToSection('features')" class="nav-link">Features</button>
+                         <button @click="router.push('/login')" class="nav-link">Login</button>
+                         <button @click="router.push('/signup')" class="btn btn-demo">Start for free</button>
+                     </div>
                 </nav>
             </div>
         </header>
@@ -140,24 +105,24 @@ const scrollToSection = (sectionId: string) => {
             <div class="container">
                 <div class="hero-content">
                     <h1 class="hero-title">
-                        Dein Content.<br />
-                        Alle Plattformen.<br />
-                        <span class="gradient-text">Eine Zentrale.</span>
+                        Your Content.<br />
+                        All Platforms.<br />
+                        <span class="gradient-text">One Dashboard.</span>
                     </h1>
                     <p class="hero-description">
-                        Verwalte, plane und veröffentliche deine Social Media Videos über alle wichtigen
-                        Plattformen hinweg – alles aus einem einzigen Dashboard.
+                        Manage, schedule, and publish your social media videos across all major
+                        platforms – all from a single dashboard.
                     </p>
                     <div class="hero-actions">
                         <button @click="router.push('/signup')" class="btn btn-primary">
-                            Kostenlos starten
+                            Start for free
                             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                                 <path d="M7.5 15L12.5 10L7.5 5" stroke="currentColor" stroke-width="2"
                                     stroke-linecap="round" stroke-linejoin="round" />
                             </svg>
                         </button>
                         <button @click="scrollToFeatures" class="btn btn-secondary">
-                            Mehr erfahren
+                            Learn More
                         </button>
                     </div>
                     <div class="stats">
@@ -169,14 +134,17 @@ const scrollToSection = (sectionId: string) => {
                 </div>
                 <div class="hero-visual">
                     <div class="platforms-intro">
-                        <h3 class="platforms-title">Unterstützte Plattformen</h3>
-                        <p class="platforms-description">Veröffentliche auf allen wichtigen Social Media Plattformen</p>
+                        <h3 class="platforms-title">Supported platforms</h3>
+                        <p class="platforms-description">Publish to all your social media platforms. Don't see yours? <button @click="showModal = true" class="link">Let us know.</button></p>
                     </div>
-                    <div class="platform-cards">
-                        <div v-for="platform in platforms" :key="platform.name" class="platform-card">
+                    <div class="platform-scrolling-wrapper">
+                    <div class="logo-list">
+                        <div v-for="platform in platforms" :key="platform.name" class="platform-logo">
                             <i :class="`fab fa-${platform.icon}`" class="platform-icon"></i>
-                            <div class="platform-name">{{ platform.name }}</div>
-                            <div class="platform-status">● Verbunden</div>
+                        </div>
+                        <div v-for="platform in platforms" :key="platform.name" class="platform-logo">
+                            <i :class="`fab fa-${platform.icon}`" class="platform-icon"></i>
+                        </div>
                         </div>
                     </div>
                 </div>
@@ -185,9 +153,9 @@ const scrollToSection = (sectionId: string) => {
         <section id="features" class="features">
             <div class="container">
                 <div class="section-header">
-                    <h2 class="section-title">Alles, was du brauchst</h2>
+                    <h2 class="section-title">Everything You Need</h2>
                     <p class="section-description">
-                        Professionelles Social Media Management, das sich an deine Bedürfnisse anpasst
+                        Professional social media management that adapts to your needs
                     </p>
                 </div>
                 <div class="features-grid">
@@ -201,99 +169,54 @@ const scrollToSection = (sectionId: string) => {
                 </div>
             </div>
         </section>
-        <section id="news" class="news-section">
-            <div class="container">
-                <div class="section-header">
-                    <h2 class="section-title">
-                        Novinky a <span class="gradient-text">praktické rady</span>
-                    </h2>
-                    <p class="section-description">
-                        Držte krok s najnovšími trendmi v digitalizácii verejnej správy a získajte praktické rady od
-                        expertov
-                    </p>
-                </div>
-
-                <div class="news-grid">
-                    <div v-for="(item, index) in newsItems" :key="index" class="news-card">
-                        <div class="news-image">
-                            <div class="news-icon">{{ item.image }}</div>
-                            <div class="news-category" :style="{ background: item.categoryColor }">
-                                {{ item.category }}
-                            </div>
-                        </div>
-                        <div class="news-content">
-                            <div class="news-meta">
-                                <span class="news-date">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                        stroke-width="2">
-                                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                                        <line x1="16" y1="2" x2="16" y2="6" />
-                                        <line x1="8" y1="2" x2="8" y2="6" />
-                                        <line x1="3" y1="10" x2="21" y2="10" />
-                                    </svg>
-                                    {{ item.date }}
-                                </span>
-                                <span class="news-separator">•</span>
-                                <span class="news-time">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                        stroke-width="2">
-                                        <circle cx="12" cy="12" r="10" />
-                                        <polyline points="12 6 12 12 16 14" />
-                                    </svg>
-                                    {{ item.readTime }}
-                                </span>
-                            </div>
-                            <h3 class="news-title">{{ item.title }}</h3>
-                            <p class="news-description">{{ item.description }}</p>
-                            <div class="news-footer">
-                                <div class="news-author">
-                                    <div class="author-avatar">{{ item.author.charAt(0) }}</div>
-                                    <span class="author-name">{{ item.author }}</span>
-                                </div>
-                                <button class="news-link">
-                                    <span>→</span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="news-cta">
-                    <button @click="scrollToSection('cta')" class="btn btn-orange">
-                        Mehr erfahren
-                        <span class="btn-arrow">→</span>
-                    </button>
-                </div>
-            </div>
-        </section>
+       
         <section id="cta" class="cta">
             <div class="container">
                 <div class="cta-content">
-                    <h2 class="cta-title">Bereit, durchzustarten?</h2>
+                    <h2 class="cta-title">Ready to Get Started?</h2>
                     <p class="cta-description">
-                        Starte noch heute und bring deine Social Media Präsenz auf das nächste Level.
+                        Start today and take your social media presence to the next level.
                     </p>
                     <div class="cta-actions">
                         <button @click="router.push('/signup')" class="btn btn-primary btn-large">
-                            Jetzt kostenlos testen
+                            Try Free Now
                         </button>
-                        <p class="cta-note">Keine Kreditkarte erforderlich</p>
+                        <p class="cta-note">No credit card required</p>
                     </div>
                 </div>
             </div>
         </section>
+
+        <!-- Modal for requesting platform -->
+        <div v-if="showModal" class="modal-overlay" @click="showModal = false">
+            <div class="modal-content" @click.stop>
+                <h3>Request a platform</h3>
+                <p>Let us know what platform you want us to support.</p>
+                <form @submit.prevent="submitForm">
+                    <input v-model="platformName" type="text" placeholder="Platform name." required>
+                    <input v-model="email" type="text" placeholder="Email - so that we can get back to you." required>
+                    <textarea v-model="message" placeholder="Any additional details (optional)"></textarea>
+                    <div class="modal-actions">
+                        <button type="button" @click="showModal = false" class="btn-cancel">Cancel</button>
+                        <button type="submit" class="btn-submit">Submit Request</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
         <footer class="footer">
             <div class="container">
                 <div class="footer-grid">
                     <div class="footer-main">
                         <h3 class="footer-brand">Control Studio</h3>
-                        <p class="footer-tagline">Professionelles Social Media Management</p>
+                        <p class="footer-tagline">All SM platforms, one dashboard.</p>
                         <div class="trust-badges">
                             <div class="trust-badge">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                     stroke-width="2">
                                     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                                 </svg>
-                                <span>SSL gesichert</span>
+                                <span>SSL Secured</span>
                             </div>
                             <div class="trust-badge">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -301,7 +224,7 @@ const scrollToSection = (sectionId: string) => {
                                     <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
                                     <polyline points="22 4 12 14.01 9 11.01" />
                                 </svg>
-                                <span>DSGVO konform</span>
+                                <span>GDPR Compliant</span>
                             </div>
                             <div class="trust-badge highlight">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -309,32 +232,22 @@ const scrollToSection = (sectionId: string) => {
                                     <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
                                     <circle cx="12" cy="10" r="3" />
                                 </svg>
-                                <span>Made & Hosted in Austria</span>
+                                <span>Made & hosted in Austria</span>
                             </div>
                         </div>
                     </div>
 
                     <div class="footer-section">
-                        <h4 class="footer-heading">Produkt</h4>
+                        <h4 class="footer-heading">Product</h4>
                         <ul class="footer-links">
                             <li><button @click="scrollToSection('features')" class="footer-link">Features</button></li>
-                            <li><button @click="scrollToSection('news')" class="footer-link">News</button></li>
                             <li><button @click="router.push('/login')" class="footer-link">Login</button></li>
-                            <li><button @click="router.push('/signup')" class="footer-link">Registrieren</button></li>
+                            <li><button @click="router.push('/signup')" class="footer-link">Sign Up</button></li>
                         </ul>
                     </div>
 
                     <div class="footer-section">
-                        <h4 class="footer-heading">Andere Produkte</h4>
-                        <ul class="footer-links">
-                            <li v-for="product in otherProducts" :key="product.name">
-                                <a :href="product.url" target="_blank" class="footer-link">{{ product.name }}</a>
-                            </li>
-                        </ul>
-                    </div>
-
-                    <div class="footer-section">
-                        <h4 class="footer-heading">Kontakt</h4>
+                        <h4 class="footer-heading">Contact</h4>
                         <ul class="footer-contact">
                             <li>
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -368,22 +281,22 @@ const scrollToSection = (sectionId: string) => {
                                     <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
                                     <circle cx="12" cy="10" r="3" />
                                 </svg>
-                                <span class="footer-text">Musterstraße 123<br />1010 Wien, Österreich</span>
+                                <span class="footer-text">123 Main Street<br />10010 Vienna, Austria</span>
                             </li>
                         </ul>
                     </div>
                     <div class="footer-section">
-                        <h4 class="footer-heading">Rechtliches</h4>
+                        <h4 class="footer-heading">Legal</h4>
                         <ul class="footer-links">
-                            <li><a href="#" class="footer-link">Impressum</a></li>
-                            <li><a href="#" class="footer-link">Datenschutz</a></li>
-                            <li><a href="#" class="footer-link">AGB</a></li>
-                            <li><a href="#" class="footer-link">Cookie-Einstellungen</a></li>
+                            <li><a href="#" class="footer-link">Imprint</a></li>
+                            <li><a href="#" class="footer-link">Privacy Policy</a></li>
+                            <li><a href="#" class="footer-link">Terms of Service</a></li>
+                            <li><a href="#" class="footer-link">Cookie Settings</a></li>
                         </ul>
                     </div>
                 </div>
                 <div class="footer-bottom">
-                    <p>&copy; {{ new Date().getFullYear() }} Control Studio. Alle Rechte vorbehalten.</p>
+                    <p>&copy; {{ new Date().getFullYear() }} Control Studio. All rights reserved.</p>
                 </div>
             </div>
         </footer>
@@ -400,7 +313,7 @@ const scrollToSection = (sectionId: string) => {
 .landing-page {
     width: 100%;
     min-height: 100vh;
-    background: linear-gradient(to bottom, #ffffff 0%, #f8fafc 100%);
+    background: #f5f5f5;
     overflow-x: hidden;
 }
 
@@ -413,9 +326,9 @@ const scrollToSection = (sectionId: string) => {
 .header {
     position: sticky;
     top: 0;
-    background: rgba(15, 23, 42, 0.95);
+    background: rgba(248, 250, 252, 0.95);
     backdrop-filter: blur(10px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
     z-index: 1000;
     padding: 0.75rem 0;
 }
@@ -436,7 +349,7 @@ const scrollToSection = (sectionId: string) => {
 .logo-icon {
     width: 40px;
     height: 40px;
-    background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+    background: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%);
     border-radius: 8px;
     display: flex;
     align-items: center;
@@ -447,7 +360,7 @@ const scrollToSection = (sectionId: string) => {
 .brand-name {
     font-size: 1rem;
     font-weight: 600;
-    color: white;
+    color: #0f172a;
 }
 
 .nav-menu {
@@ -459,7 +372,7 @@ const scrollToSection = (sectionId: string) => {
 .nav-link {
     background: none;
     border: none;
-    color: #cbd5e1;
+    color: #64748b;
     font-size: 0.875rem;
     font-weight: 500;
     cursor: pointer;
@@ -468,7 +381,7 @@ const scrollToSection = (sectionId: string) => {
 }
 
 .nav-link:hover {
-    color: white;
+    color: #0f172a;
 }
 
 .theme-toggle {
@@ -482,6 +395,10 @@ const scrollToSection = (sectionId: string) => {
     justify-content: center;
     cursor: pointer;
     transition: all 0.2s;
+    position: absolute;
+    top: 0.75rem;
+    left: 2rem;
+    z-index: 1001;
 }
 
 .theme-toggle:hover {
@@ -489,7 +406,7 @@ const scrollToSection = (sectionId: string) => {
 }
 
 .btn-demo {
-    background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+    background: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%);
     color: white;
     padding: 0.625rem 1.25rem;
     border-radius: 8px;
@@ -555,9 +472,18 @@ const scrollToSection = (sectionId: string) => {
     color: #0f172a;
     margin-bottom: 1.5rem;
     letter-spacing: -0.02em;
+    text-align: center;
 }
 
 .gradient-text {
+  background-image: linear-gradient(45deg, #ede9fe, #8b5cf6); /* Set your colors and gradient angle */
+  background-clip: text;
+  -webkit-background-clip: text; /* Chrome/Safari support */
+  color: transparent;
+  -webkit-text-fill-color: transparent; /* Chrome/Safari support */
+}
+
+.red-text {
     background: linear-gradient(135deg, #dc2626 0%, #ef4444 50%, #f87171 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -595,14 +521,14 @@ const scrollToSection = (sectionId: string) => {
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+    background: linear-gradient(135deg, #7c3aed 0%, #7c3aaf 100%);
     color: white;
-    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+    box-shadow: 0 4px 12px rgba(159, 38, 220, 0.3);
 }
 
 .btn-primary:hover {
     transform: translateY(-1px);
-    box-shadow: 0 8px 20px rgba(220, 38, 38, 0.4);
+    box-shadow: 0 9px 20px rgba(159, 38, 220, 0.3);
 }
 
 .btn-secondary {
@@ -653,7 +579,7 @@ const scrollToSection = (sectionId: string) => {
 .stat-value {
     font-size: 2.5rem;
     font-weight: 800;
-    background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+    background: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -690,33 +616,48 @@ const scrollToSection = (sectionId: string) => {
     color: #64748b;
 }
 
-.platform-cards {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 1rem;
-    padding: 1rem 0;
+.platform-scrolling-wrapper {
+    display: flex;
+    overflow: hidden;
+    width: 100%;
+    position: relative;
 }
 
-.platform-card {
-    background: white;
-    border-radius: 1rem;
-    padding: 1.5rem;
-    text-align: center;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-    transition: all 0.2s ease;
-    border: 2px solid transparent;
-}
+.platform-logo {
+    width: 120px;
+    color: #7c3aed;
+    height: 80px;
+    object-fit: contain;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 1rem;
+    transition: all 0.3s;
 
-.platform-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.15);
-    border-color: rgba(220, 38, 38, 0.2);
+
 }
 
 .platform-icon {
     font-size: 2.5rem;
-    color: #dc2626;
-    margin-bottom: 0.75rem;
+}
+
+.logo-list {
+  display: flex;
+  gap: 24px;
+  animation: scroll 20s linear infinite;
+}
+
+@keyframes scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.platform-icon:hover {
+    transform: scale(1.1) ease-in-out 0.3s;
 }
 
 .platform-name {
@@ -782,7 +723,7 @@ const scrollToSection = (sectionId: string) => {
     margin-bottom: 1.25rem;
     width: 80px;
     height: 80px;
-    background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+    background: linear-gradient(135deg, #7c3aed 0%, #7c3aaf 100%);
     border-radius: 16px;
     display: flex;
     align-items: center;
@@ -802,161 +743,13 @@ const scrollToSection = (sectionId: string) => {
     color: #64748b;
 }
 
-/* News Section */
-.news-section {
-    padding: 6rem 0;
-    background: #1e293b;
-}
 
-.news-section .section-title,
-.news-section .section-description {
-    color: white;
-}
 
-.news-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-    gap: 2rem;
-    margin-bottom: 3rem;
-}
-
-.news-card {
-    background: #334155;
-    border-radius: 1rem;
-    overflow: hidden;
-    transition: all 0.3s;
-    cursor: pointer;
-}
-
-.news-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-}
-
-.news-image {
-    position: relative;
-    height: 200px;
-    background: linear-gradient(135deg, #475569 0%, #334155 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.news-icon {
-    font-size: 3rem;
-    font-weight: 800;
-    color: white;
-    width: 80px;
-    height: 80px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.news-category {
-    position: absolute;
-    top: 1rem;
-    left: 1rem;
-    padding: 0.375rem 0.875rem;
-    border-radius: 9999px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: white;
-}
-
-.news-content {
-    padding: 1.5rem;
-}
-
-.news-meta {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.75rem;
-    color: #94a3b8;
-    margin-bottom: 1rem;
-}
-
-.news-separator {
-    color: #475569;
-}
-
-.news-title {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: white;
-    margin-bottom: 0.75rem;
-    line-height: 1.4;
-}
-
-.news-description {
-    font-size: 0.875rem;
-    line-height: 1.6;
-    color: #cbd5e1;
-    margin-bottom: 1.5rem;
-}
-
-.news-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-top: 1rem;
-    border-top: 1px solid #475569;
-}
-
-.news-author {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-}
-
-.author-avatar {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background: #475569;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1rem;
-}
-
-.author-name {
-    font-size: 0.875rem;
-    color: #e2e8f0;
-    font-weight: 500;
-}
-
-.news-link {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background: rgba(220, 38, 38, 0.2);
-    border: none;
-    color: #ef4444;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s;
-    font-size: 1.25rem;
-}
-
-.news-link:hover {
-    background: #dc2626;
-    color: white;
-}
-
-.news-cta {
-    text-align: center;
-}
 
 /* CTA Section */
 .cta {
     padding: 6rem 0;
-    background: linear-gradient(135deg, #dc2626 0%, #ef4444 50%, #f87171 100%);
+    background: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 50%, #a78bfa 100%);
     position: relative;
     overflow: hidden;
 }
@@ -1008,8 +801,8 @@ const scrollToSection = (sectionId: string) => {
 
 /* Footer */
 .footer {
-    background: #0f172a;
-    color: white;
+    background: #f8fafc;
+    color: #0f172a;
     padding: 4rem 0 2rem;
 }
 
@@ -1018,7 +811,7 @@ const scrollToSection = (sectionId: string) => {
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 3rem;
     padding-bottom: 3rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .footer-main {
@@ -1029,11 +822,11 @@ const scrollToSection = (sectionId: string) => {
     font-size: 1.5rem;
     font-weight: 700;
     margin-bottom: 0.75rem;
-    color: white;
+    color: #0f172a;
 }
 
 .footer-tagline {
-    color: #94a3b8;
+    color: #64748b;
     font-size: 0.875rem;
     margin-bottom: 1.5rem;
 }
@@ -1050,10 +843,10 @@ const scrollToSection = (sectionId: string) => {
     align-items: center;
     gap: 0.5rem;
     font-size: 0.875rem;
-    color: #94a3b8;
+    color: #64748b;
     padding: 0.5rem;
     border-radius: 6px;
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(0, 0, 0, 0.05);
 }
 
 .trust-badge svg {
@@ -1061,14 +854,14 @@ const scrollToSection = (sectionId: string) => {
 }
 
 .trust-badge.highlight {
-    background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(220, 38, 38, 0.15) 100%);
-    color: #fca5a5;
+    background: linear-gradient(135deg, rgba(93, 0, 255, 0.15) 0%, rgba(139, 92, 246, 0.15) 100%);
+    color: #8b7ad1ff;
     font-weight: 600;
-    border: 1px solid rgba(239, 68, 68, 0.3);
+    border: 1px solid rgba(124, 58, 237, 0.3);
 }
 
 .trust-badge.highlight svg {
-    color: #fca5a5;
+    color: #c4b5fd;
 }
 
 .footer-social {
@@ -1101,7 +894,7 @@ const scrollToSection = (sectionId: string) => {
 .footer-heading {
     font-size: 0.875rem;
     font-weight: 600;
-    color: white;
+    color: #0f172a;
     margin-bottom: 1rem;
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -1117,7 +910,7 @@ const scrollToSection = (sectionId: string) => {
 .footer-link {
     background: none;
     border: none;
-    color: #94a3b8;
+    color: #64748b;
     cursor: pointer;
     font-size: 0.875rem;
     transition: color 0.2s;
@@ -1127,7 +920,7 @@ const scrollToSection = (sectionId: string) => {
 }
 
 .footer-link:hover {
-    color: white;
+    color: #0f172a;
 }
 
 .footer-contact {
@@ -1149,21 +942,9 @@ const scrollToSection = (sectionId: string) => {
     color: #6366f1;
 }
 
-.news-meta svg {
-    display: inline-block;
-    vertical-align: middle;
-    margin-right: 0.25rem;
-}
-
-.news-date,
-.news-time {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
-}
 
 .footer-text {
-    color: #94a3b8;
+    color: #64748b;
     font-size: 0.875rem;
 }
 
@@ -1174,6 +955,103 @@ const scrollToSection = (sectionId: string) => {
     align-items: center;
     color: #64748b;
     font-size: 0.875rem;
+}
+
+/* Modal Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    border-radius: 12px;
+    justify-content: center;
+    z-index: 10000;
+}
+
+.modal-content {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    max-width: 400px;
+    width: 90%;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.modal-content h3 {
+    margin-bottom: 0.5rem;
+    color: #0f172a;
+}
+
+.modal-content p {
+    margin-bottom: 1.5rem;
+    color: #64748b;
+}
+
+.modal-content input,
+.modal-content textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #d1d5db;
+    color: #0f172a;
+    background: white;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+}
+
+.modal-content input::placeholder,
+.modal-content textarea::placeholder {
+    color: #64748b;
+}
+
+.modal-content textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+}
+
+.btn-submit {
+    background: #7c3aed;
+    color: white;
+    border: none;
+    padding: 0.5rem 0.5em;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-cancel {
+    background: rgba(255, 56, 56, 1);
+    color: white;
+    border: none;
+    padding: 0.5rem 0.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.link {
+    background: none;
+    border: none;
+    padding: 0;
+    font: inherit;
+    color: #7c3aed;
+    text-decoration: underline;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.link:hover {
+    color: #6d28d9;
 }
 
 /* Responsive */
@@ -1226,9 +1104,6 @@ const scrollToSection = (sectionId: string) => {
     }
 
     .features-grid,
-    .news-grid {
-        grid-template-columns: 1fr;
-    }
 
     .footer-grid {
         grid-template-columns: 1fr;
@@ -1248,9 +1123,17 @@ const scrollToSection = (sectionId: string) => {
     }
 }
 
-@media (prefers-color-scheme: dark) {
+:global(.dark) {
     .landing-page {
         background: linear-gradient(to bottom, #0f172a 0%, #1e293b 100%);
+    }
+
+    .theme-toggle {
+        background: rgba(0, 0, 0, 0.1);
+    }
+
+    .theme-toggle:hover {
+        background: rgba(0, 0, 0, 0.15);
     }
 
     .hero-title {

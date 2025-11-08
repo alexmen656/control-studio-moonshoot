@@ -1,6 +1,6 @@
 <template>
     <div
-        class="min-h-screen bg-gradient-to-br from-primary-600 via-primary-700 to-primary-800 dark:from-gray-800 dark:via-gray-900 dark:to-black flex items-center justify-center px-4 sm:px-6 lg:px-8">
+        class="min-h-screen bg-gradient-to-br from-violet-600 via-violet-700 to-purple-500 dark:from-gray-800 dark:via-gray-900 dark:to-black flex items-center justify-center px-4 sm:px-6 lg:px-8">
         <div class="max-w-md w-full space-y-8">
             <div class="text-center">
                 <!-- <div class="flex justify-center">
