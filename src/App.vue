@@ -1,28 +1,28 @@
 <script setup lang="ts">
 import { RouterView, useRoute } from 'vue-router'
-import { computed } from 'vue'
+import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
 import AppHeader from './components/AppHeader.vue'
 import AppSidebar from './components/AppSidebar.vue'
 
 const route = useRoute()
 
+const isAuthenticated = ref(!!localStorage.getItem('auth_token'))
+
+function onAuthChange() {
+  isAuthenticated.value = !!localStorage.getItem('auth_token')
+}
+
+onMounted(() => window.addEventListener('auth-change', onAuthChange))
+onBeforeUnmount(() => window.removeEventListener('auth-change', onAuthChange))
+
 const showHeader = computed(() => {
-  if (localStorage.getItem('auth_token')) {
-    return !['landing', 'login', 'signup', 'blog', 'undefined'].includes(route.name as string)
-  } else {
-    return false;
-  }
+  if (!isAuthenticated.value) return false
+  return !['landing', 'login', 'signup', 'blog', 'undefined'].includes(route.name as string)
 })
 
 const showSidebar = computed(() => {
-  //console.log(route.name);
-  //alert(route.name);
-
-  if (localStorage.getItem('auth_token')) {
-    return !['landing', 'login', 'signup', 'blog', 'undefined'].includes(route.name as string)
-  } else {
-    return false;
-  }
+  if (!isAuthenticated.value) return false
+  return !['landing', 'login', 'signup', 'blog', 'undefined'].includes(route.name as string)
 })
 </script>
 
