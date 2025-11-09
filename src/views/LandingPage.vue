@@ -126,6 +126,12 @@ const platforms = [
 const expandedFeature = ref<number | null>(null)
 const isScrolled = ref(false)
 
+const scrollToSection = (sectionId: string) => {
+    if (typeof document !== 'undefined') {
+        document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' })
+    }
+}
+
 onMounted(() => {
     window.addEventListener('scroll', () => {
         isScrolled.value = window.scrollY > 100
@@ -147,9 +153,9 @@ onMounted(() => {
                             class="text-lg font-bold bg-gradient-to-r from-violet-600 to-blue-600 bg-clip-text text-transparent">Reelmia</span>
                     </div>
                     <div class="hidden md:flex items-center gap-8">
-                        <button @click="document.getElementById('benefits')?.scrollIntoView({ behavior: 'smooth' })"
+                        <button @click="scrollToSection('benefits')"
                             class="text-slate-600 text-sm font-medium hover:text-slate-900 transition-colors">Features</button>
-                        <button @click="document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })"
+                        <button @click="scrollToSection('pricing')"
                             class="text-slate-600 text-sm font-medium hover:text-slate-900 transition-colors">Pricing</button>
                         <a href="#"
                             class="text-slate-600 text-sm font-medium hover:text-slate-900 transition-colors">Docs</a>
