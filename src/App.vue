@@ -8,7 +8,7 @@ const route = useRoute()
 
 const showHeader = computed(() => {
   if (localStorage.getItem('auth_token')) {
-    return !['landing', 'login', 'signup', 'undefined'].includes(route.name as string)
+    return !['landing', 'login', 'signup', 'blog', 'undefined'].includes(route.name as string)
   } else {
     return false;
   }
@@ -19,7 +19,7 @@ const showSidebar = computed(() => {
   //alert(route.name);
 
   if (localStorage.getItem('auth_token')) {
-    return !['landing', 'login', 'signup', 'undefined'].includes(route.name as string)
+    return !['landing', 'login', 'signup', 'blog', 'undefined'].includes(route.name as string)
   } else {
     return false;
   }

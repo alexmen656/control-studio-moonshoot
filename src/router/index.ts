@@ -13,6 +13,16 @@ const router = createRouter({
       component: LandingPage,
     },
     {
+      path: '/blog',
+      name: 'blog',
+      component: () => import('../views/BlogHub.vue'),
+    },
+    {
+      path: '/blog/:id',
+      name: 'blog-post',
+      component: () => import('../views/BlogPost.vue'),
+    },
+    {
       path: '/login',
       name: 'login',
       component: () => import('../views/LoginView.vue'),
