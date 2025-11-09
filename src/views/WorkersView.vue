@@ -1,294 +1,316 @@
 <template>
-  <div class="workers-view">
-    <div class="header">
-      <h1>Worker Management</h1>
-      <div class="stats">
-        <div class="stat-card">
-          <span class="stat-label">Total Workers</span>
-          <span class="stat-value">{{ workers.length }}</span>
-        </div>
-        <div class="stat-card online">
-          <span class="stat-label">Online</span>
-          <span class="stat-value">{{ onlineWorkers }}</span>
-        </div>
-        <div class="stat-card">
-          <span class="stat-label">Total Jobs</span>
-          <span class="stat-value">{{ jobs.length }}</span>
-        </div>
-        <div class="stat-card processing">
-          <span class="stat-label">Processing</span>
-          <span class="stat-value">{{ processingJobs }}</span>
+  <div class="min-h-screen bg-white dark:bg-gray-900 transition-colors duration-300">
+    <div class="p-8 max-w-7xl mx-auto">
+      <div class="mb-8">
+        <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-6">Worker Management</h1>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div
+            class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 transition-all duration-300">
+            <p class="text-gray-600 dark:text-gray-400 text-sm font-medium mb-2">Total Workers</p>
+            <p class="text-3xl font-bold text-gray-900 dark:text-white">{{ workers.length }}</p>
+          </div>
+          <div class="bg-gradient-to-br from-green-500 to-green-600 p-6 rounded-lg shadow-sm text-white">
+            <p class="text-sm opacity-90 font-medium mb-2">Online</p>
+            <p class="text-3xl font-bold">{{ onlineWorkers }}</p>
+          </div>
+          <div
+            class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 transition-all duration-300">
+            <p class="text-gray-600 dark:text-gray-400 text-sm font-medium mb-2">Total Jobs</p>
+            <p class="text-3xl font-bold text-gray-900 dark:text-white">{{ jobs.length }}</p>
+          </div>
+          <div class="bg-gradient-to-br from-blue-500 to-blue-600 p-6 rounded-lg shadow-sm text-white">
+            <p class="text-sm opacity-90 font-medium mb-2">Processing</p>
+            <p class="text-3xl font-bold">{{ processingJobs }}</p>
+          </div>
         </div>
       </div>
+      <section class="mb-12">
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Workers</h2>
+          <button @click="refreshWorkers" :disabled="loading"
+            class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 font-medium transition-all duration-200">
+            <span v-if="!loading">Refresh</span>
+            <span v-else>⏳ Loading...</span>
+          </button>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div v-for="worker in workers" :key="worker.worker_id"
+            class="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md dark:hover:shadow-xl transition-all duration-200"
+            :class="{ 'opacity-60': worker.status !== 'online' }">
+            <div class="flex items-start justify-between mb-4 pb-4 border-b border-gray-200 dark:border-gray-700">
+              <div class="flex items-center gap-3">
+                <span class="inline-block w-2.5 h-2.5 rounded-full"
+                  :class="worker.status === 'online' ? 'bg-green-500 animate-pulse' : 'bg-red-500'"></span>
+                <h3 class="font-semibold text-gray-900 dark:text-white">{{ worker.worker_name }}</h3>
+              </div>
+              <span class="text-xs font-semibold px-3 py-1 rounded-full transition-colors duration-200" :class="worker.status === 'online'
+                ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+                : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'">
+                {{ worker.status }}
+              </span>
+            </div>
+            <div class="space-y-2 mb-4 pb-4 border-b border-gray-200 dark:border-gray-700 text-sm">
+              <div class="flex justify-between">
+                <span class="text-gray-600 dark:text-gray-400">ID:</span>
+                <span class="font-mono text-gray-900 dark:text-gray-300">{{ worker.worker_id.substring(0, 16)
+                  }}...</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600 dark:text-gray-400">Hostname:</span>
+                <span class="text-gray-900 dark:text-gray-300">{{ worker.hostname }}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600 dark:text-gray-400">Last Heartbeat:</span>
+                <span class="text-gray-900 dark:text-gray-300">{{ formatDate(worker.last_heartbeat) }}</span>
+              </div>
+            </div>
+            <div class="space-y-3">
+              <div>
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase">Load</span>
+                  <span class="text-xs font-semibold text-gray-900 dark:text-gray-300">{{ worker.current_load }} / {{
+                    worker.max_concurrent_tasks }}</span>
+                </div>
+                <div class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                  <div class="h-full bg-gradient-to-r from-blue-400 to-blue-600 transition-all duration-300"
+                    :style="{ width: `${(worker.current_load / worker.max_concurrent_tasks) * 100}%` }"></div>
+                </div>
+              </div>
+              <div>
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase">CPU</span>
+                  <span class="text-xs font-semibold text-gray-900 dark:text-gray-300">{{ Number(worker.cpu_usage ||
+                    0).toFixed(1) }}%</span>
+                </div>
+                <div class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                  <div class="h-full bg-gradient-to-r from-amber-400 to-amber-600 transition-all duration-300"
+                    :style="{ width: `${worker.cpu_usage || 0}%` }"></div>
+                </div>
+              </div>
+              <div>
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase">RAM</span>
+                  <span class="text-xs font-semibold text-gray-900 dark:text-gray-300">{{ Number(worker.memory_usage ||
+                    0).toFixed(1) }}%</span>
+                </div>
+                <div class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                  <div class="h-full bg-gradient-to-r from-purple-400 to-purple-600 transition-all duration-300"
+                    :style="{ width: `${worker.memory_usage || 0}%` }"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div v-if="workers.length === 0" class="text-center py-12">
+          <p class="text-gray-600 dark:text-gray-400 text-lg">😔 No workers found. Start some workers to see them here.
+          </p>
+        </div>
+      </section>
+      <section>
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Jobs</h2>
+          <div class="flex gap-2">
+            <select v-model="jobFilter"
+              class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200 text-sm">
+              <option value="all">All Jobs</option>
+              <option value="pending">Pending</option>
+              <option value="assigned">Assigned</option>
+              <option value="processing">Processing</option>
+              <option value="completed">Completed</option>
+              <option value="failed">Failed</option>
+            </select>
+            <button @click="openCreateJobModal('upload')"
+              class="px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white font-medium transition-colors duration-200 text-sm">
+              Upload Job
+            </button>
+            <button @click="openCreateJobModal('analytics')"
+              class="px-4 py-2 rounded-lg bg-purple-500 hover:bg-purple-600 text-white font-medium transition-colors duration-200 text-sm">
+              Analytics Job
+            </button>
+            <button @click="refreshJobs" :disabled="loading"
+              class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 font-medium transition-all duration-200 text-sm">
+              Refresh
+            </button>
+          </div>
+        </div>
+        <div
+          class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full">
+              <thead>
+                <tr class="bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
+                  <th
+                    class="px-6 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                    Job ID</th>
+                  <th
+                    class="px-6 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                    Platform</th>
+                  <th
+                    class="px-6 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                    Video ID</th>
+                  <th
+                    class="px-6 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                    Worker</th>
+                  <th
+                    class="px-6 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                    Status</th>
+                  <th
+                    class="px-6 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                    Priority</th>
+                  <th
+                    class="px-6 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                    Created</th>
+                  <th
+                    class="px-6 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                    Duration</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                <tr v-for="job in filteredJobs" :key="job.job_id"
+                  class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors duration-150">
+                  <td class="px-6 py-4 text-sm font-mono text-gray-900 dark:text-gray-300">{{ job.job_id.substring(0,
+                    20) }}...</td>
+                  <td class="px-6 py-4">
+                    <span class="inline-block px-2 py-1 rounded text-xs font-semibold"
+                      :class="getPlatformBadgeClass(job.platform)">
+                      {{ job.platform }}
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-300">{{ job.video_id }}</td>
+                  <td class="px-6 py-4 text-sm">
+                    <span v-if="job.worker_name"
+                      class="inline-block px-2 py-1 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-medium">
+                      {{ job.worker_name }}
+                    </span>
+                    <span v-else class="text-gray-500 dark:text-gray-500 italic text-xs">Not assigned</span>
+                  </td>
+                  <td class="px-6 py-4">
+                    <span class="inline-block px-2 py-1 rounded text-xs font-semibold"
+                      :class="getStatusBadgeClass(job.status)">
+                      {{ job.status }}
+                    </span>
+                  </td>
+                  <td class="px-6 py-4">
+                    <span class="inline-block px-2 py-1 rounded text-xs font-semibold"
+                      :class="getPriorityBadgeClass(job.priority)">
+                      {{ job.priority }}
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-300">{{ formatDate(job.created_at) }}</td>
+                  <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-300">{{ getJobDuration(job) }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div v-if="filteredJobs.length === 0" class="text-center py-12">
+            <p class="text-gray-600 dark:text-gray-400">No jobs found.</p>
+          </div>
+        </div>
+      </section>
     </div>
-
-    <!-- Workers Section -->
-    <section class="workers-section">
-      <div class="section-header">
-        <h2>Workers</h2>
-        <button @click="refreshWorkers" class="btn-refresh" :disabled="loading">
-          <span v-if="!loading">Refresh</span>
-          <span v-else>⏳ Loading...</span>
-        </button>
-      </div>
-
-      <div class="workers-grid">
-        <div 
-          v-for="worker in workers" 
-          :key="worker.worker_id"
-          class="worker-card"
-          :class="{ 'offline': worker.status !== 'online' }"
-        >
-          <div class="worker-header">
-            <div class="worker-title">
-              <span class="worker-status-dot" :class="worker.status"></span>
-              <h3>{{ worker.worker_name }}</h3>
-            </div>
-            <span class="worker-status-badge" :class="worker.status">
-              {{ worker.status }}
-            </span>
-          </div>
-
-          <div class="worker-info">
-            <div class="info-row">
-              <span class="info-label">ID:</span>
-              <span class="info-value">{{ worker.worker_id.substring(0, 16) }}...</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">Hostname:</span>
-              <span class="info-value">{{ worker.hostname }}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">Last Heartbeat:</span>
-              <span class="info-value">{{ formatDate(worker.last_heartbeat) }}</span>
-            </div>
-          </div>
-
-          <div class="worker-metrics">
-            <div class="metric">
-              <span class="metric-label">Load</span>
-              <div class="metric-bar">
-                <div 
-                  class="metric-fill load" 
-                  :style="{ width: `${(worker.current_load / worker.max_concurrent_tasks) * 100}%` }"
-                ></div>
-              </div>
-              <span class="metric-value">{{ worker.current_load }} / {{ worker.max_concurrent_tasks }}</span>
-            </div>
-
-            <div class="metric">
-              <span class="metric-label">CPU</span>
-              <div class="metric-bar">
-                <div 
-                  class="metric-fill cpu" 
-                  :style="{ width: `${worker.cpu_usage || 0}%` }"
-                ></div>
-              </div>
-              <span class="metric-value">{{ Number(worker.cpu_usage || 0).toFixed(1) }}%</span>
-            </div>
-
-            <div class="metric">
-              <span class="metric-label">RAM</span>
-              <div class="metric-bar">
-                <div 
-                  class="metric-fill ram" 
-                  :style="{ width: `${worker.memory_usage || 0}%` }"
-                ></div>
-              </div>
-              <span class="metric-value">{{ Number(worker.memory_usage || 0).toFixed(1) }}%</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div v-if="workers.length === 0" class="empty-state">
-        <p>😔 No workers found. Start some workers to see them here.</p>
-      </div>
-    </section>
-
-    <!-- Jobs Section -->
-    <section class="jobs-section">
-      <div class="section-header">
-        <h2>Jobs</h2>
-        <div class="job-controls">
-          <select v-model="jobFilter" class="filter-select">
-            <option value="all">All Jobs</option>
-            <option value="pending">Pending</option>
-            <option value="assigned">Assigned</option>
-            <option value="processing">Processing</option>
-            <option value="completed">Completed</option>
-            <option value="failed">Failed</option>
-          </select>
-          <button @click="openCreateJobModal('upload')" class="btn-create">
-            Create Upload Job
-          </button>
-          <button @click="openCreateJobModal('analytics')" class="btn-create analytics">
-            Create Analytics Job
-          </button>
-          <button @click="refreshJobs" class="btn-refresh" :disabled="loading">
-            Refresh
+    <div v-if="showCreateJobModal"
+      class="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 transition-opacity duration-300">
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+          <h2 class="text-xl font-bold text-gray-900 dark:text-white">
+            {{ jobModalType === 'upload' ? 'Create Upload Job' : 'Create Analytics Job' }}
+          </h2>
+          <button @click="showCreateJobModal = false"
+            class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
+            ✕
           </button>
         </div>
-      </div>
-
-      <div class="jobs-table-container">
-        <table class="jobs-table">
-          <thead>
-            <tr>
-              <th>Job ID</th>
-              <th>Platform</th>
-              <th>Video ID</th>
-              <th>Worker</th>
-              <th>Status</th>
-              <th>Priority</th>
-              <th>Created</th>
-              <th>Duration</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="job in filteredJobs" :key="job.job_id">
-              <td class="job-id">{{ job.job_id.substring(0, 20) }}...</td>
-              <td>
-                <span class="platform-badge" :class="job.platform">
-                  {{ job.platform }}
-                </span>
-              </td>
-              <td>{{ job.video_id }}</td>
-              <td>
-                <span v-if="job.worker_name" class="worker-badge">
-                  {{ job.worker_name }}
-                </span>
-                <span v-else class="no-worker">Not assigned</span>
-              </td>
-              <td>
-                <span class="status-badge" :class="job.status">
-                  {{ job.status }}
-                </span>
-              </td>
-              <td>
-                <span class="priority-badge" :class="getPriorityClass(job.priority)">
-                  {{ job.priority }}
-                </span>
-              </td>
-              <td>{{ formatDate(job.created_at) }}</td>
-              <td>{{ getJobDuration(job) }}</td>
-            </tr>
-          </tbody>
-        </table>
-
-        <div v-if="filteredJobs.length === 0" class="empty-state">
-          <p>No jobs found.</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- Create Job Modal -->
-    <div v-if="showCreateJobModal" class="modal-overlay" @click="showCreateJobModal = false">
-      <div class="modal-content" @click.stop>
-        <div class="modal-header">
-          <h2>{{ jobModalType === 'upload' ? 'Create Upload Job' : 'Create Analytics Job' }}</h2>
-          <button @click="showCreateJobModal = false" class="btn-close">✕</button>
-        </div>
-
-        <!-- Upload Job Form -->
-        <form v-if="jobModalType === 'upload'" @submit.prevent="createUploadJob" class="job-form">
-          <div class="form-group">
-            <label>Video ID *</label>
-            <input 
-              v-model.number="newUploadJob.video_id" 
-              type="number" 
-              required 
-              placeholder="Enter video ID"
-            />
+        <form v-if="jobModalType === 'upload'" @submit.prevent="createUploadJob" class="p-6 space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Video ID *</label>
+            <input v-model.number="newUploadJob.video_id" type="number" required placeholder="Enter video ID"
+              class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200" />
           </div>
-
-          <div class="form-group">
-            <label>Platforms *</label>
-            <div class="platform-checkboxes">
-              <label v-for="platform in availablePlatforms" :key="platform" class="checkbox-label">
-                <input 
-                  type="checkbox" 
-                  :value="platform" 
-                  v-model="newUploadJob.platforms"
-                />
-                <span>{{ platform }}</span>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Platforms *</label>
+            <div class="grid grid-cols-2 gap-2">
+              <label v-for="platform in availablePlatforms" :key="platform"
+                class="flex items-center gap-2 p-2 rounded border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer transition-colors">
+                <input type="checkbox" :value="platform" v-model="newUploadJob.platforms"
+                  class="w-4 h-4 rounded accent-blue-500" />
+                <span class="text-sm text-gray-700 dark:text-gray-300 capitalize">{{ platform }}</span>
               </label>
             </div>
           </div>
-
-          <div class="form-group">
-            <label>Priority</label>
-            <select v-model.number="newUploadJob.priority">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Priority</label>
+            <select v-model.number="newUploadJob.priority"
+              class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200">
               <option :value="0">Normal (0)</option>
               <option :value="1">High (1)</option>
               <option :value="2">Urgent (2)</option>
             </select>
           </div>
-
-          <div class="form-actions">
-            <button type="button" @click="showCreateJobModal = false" class="btn-cancel">
+          <div class="flex gap-3 pt-4">
+            <button type="button" @click="showCreateJobModal = false"
+              class="flex-1 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 font-medium transition-colors duration-200">
               Cancel
             </button>
-            <button type="submit" class="btn-submit" :disabled="submitting">
-              {{ submitting ? 'Creating...' : 'Create Upload Job' }}
+            <button type="submit" :disabled="submitting"
+              class="flex-1 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 disabled:bg-blue-400 text-white font-medium transition-colors duration-200">
+              {{ submitting ? 'Creating...' : 'Create' }}
             </button>
           </div>
-
-          <div v-if="createError" class="error-message">
+          <div v-if="createError"
+            class="p-3 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 text-sm">
             {{ createError }}
           </div>
-          <div v-if="createSuccess" class="success-message">
+          <div v-if="createSuccess"
+            class="p-3 rounded-lg bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-sm">
             Upload jobs created successfully!
           </div>
         </form>
-
-        <!-- Analytics Job Form -->
-        <form v-if="jobModalType === 'analytics'" @submit.prevent="createAnalyticsJob" class="job-form">
-          <div class="form-group">
-            <label>Task Type *</label>
-            <select v-model="newAnalyticsJob.task_type" required>
+        <form v-if="jobModalType === 'analytics'" @submit.prevent="createAnalyticsJob" class="p-6 space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Task Type *</label>
+            <select v-model="newAnalyticsJob.task_type" required
+              class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200">
               <option value="channel_analytics">Channel Analytics</option>
               <option value="video_analytics">Video Analytics</option>
               <option value="hourly_analytics">Hourly Analytics</option>
             </select>
           </div>
-
-          <div class="form-group">
-            <label>Platforms *</label>
-            <div class="platform-checkboxes">
-              <label v-for="platform in availablePlatforms" :key="platform" class="checkbox-label">
-                <input 
-                  type="checkbox" 
-                  :value="platform" 
-                  v-model="newAnalyticsJob.platforms"
-                />
-                <span>{{ platform }}</span>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Platforms *</label>
+            <div class="grid grid-cols-2 gap-2">
+              <label v-for="platform in availablePlatforms" :key="platform"
+                class="flex items-center gap-2 p-2 rounded border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer transition-colors">
+                <input type="checkbox" :value="platform" v-model="newAnalyticsJob.platforms"
+                  class="w-4 h-4 rounded accent-blue-500" />
+                <span class="text-sm text-gray-700 dark:text-gray-300 capitalize">{{ platform }}</span>
               </label>
             </div>
           </div>
-
-          <div class="form-group">
-            <label>Priority</label>
-            <select v-model.number="newAnalyticsJob.priority">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Priority</label>
+            <select v-model.number="newAnalyticsJob.priority"
+              class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200">
               <option :value="0">Normal (0)</option>
               <option :value="1">High (1)</option>
               <option :value="2">Urgent (2)</option>
             </select>
           </div>
-
-          <div class="form-actions">
-            <button type="button" @click="showCreateJobModal = false" class="btn-cancel">
+          <div class="flex gap-3 pt-4">
+            <button type="button" @click="showCreateJobModal = false"
+              class="flex-1 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 font-medium transition-colors duration-200">
               Cancel
             </button>
-            <button type="submit" class="btn-submit" :disabled="submitting">
-              {{ submitting ? 'Creating...' : 'Create Analytics Job' }}
+            <button type="submit" :disabled="submitting"
+              class="flex-1 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 disabled:bg-blue-400 text-white font-medium transition-colors duration-200">
+              {{ submitting ? 'Creating...' : 'Create' }}
             </button>
           </div>
-
-          <div v-if="createError" class="error-message">
+          <div v-if="createError"
+            class="p-3 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 text-sm">
             {{ createError }}
           </div>
-          <div v-if="createSuccess" class="success-message">
+          <div v-if="createSuccess"
+            class="p-3 rounded-lg bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-sm">
             Analytics jobs created successfully!
           </div>
         </form>
@@ -358,12 +380,6 @@ const submitting = ref(false)
 const createError = ref('')
 const createSuccess = ref(false)
 
-const newJob = ref<NewJob>({
-  video_id: null,
-  platforms: [],
-  priority: 0
-})
-
 const newUploadJob = ref<NewJob>({
   video_id: null,
   platforms: [],
@@ -380,12 +396,11 @@ const availablePlatforms = ['youtube', 'tiktok', 'instagram', 'facebook', 'x', '
 
 let refreshInterval: number | null = null
 
-// Computed
-const onlineWorkers = computed(() => 
+const onlineWorkers = computed(() =>
   workers.value.filter(w => w.status === 'online').length
 )
 
-const processingJobs = computed(() => 
+const processingJobs = computed(() =>
   jobs.value.filter(j => j.status === 'processing').length
 )
 
@@ -394,15 +409,11 @@ const filteredJobs = computed(() => {
   return jobs.value.filter(j => j.status === jobFilter.value)
 })
 
-// Methods
 async function refreshWorkers() {
   try {
     loading.value = true
-    console.log('Fetching workers from /workers...')
     const response = await axios.get('/workers')
-    console.log('Workers API response:', response.data)
     workers.value = response.data.workers || []
-    console.log('Workers count:', workers.value.length)
   } catch (error) {
     console.error('Error fetching workers:', error)
   } finally {
@@ -413,11 +424,8 @@ async function refreshWorkers() {
 async function refreshJobs() {
   try {
     loading.value = true
-    console.log('Fetching jobs from /jobs...')
     const response = await axios.get('/jobs')
-    console.log('Jobs API response:', response.data)
     jobs.value = response.data.jobs || []
-    console.log('Jobs count:', jobs.value.length)
   } catch (error) {
     console.error('Error fetching jobs:', error)
   } finally {
@@ -425,62 +433,23 @@ async function refreshJobs() {
   }
 }
 
-async function createJob() {
-  if (newJob.value.platforms.length === 0) {
-    createError.value = 'Please select at least one platform'
-    return
-  }
-
-  try {
-    submitting.value = true
-    createError.value = ''
-    createSuccess.value = false
-
-    const project_id = localStorage.getItem('currentProjectId') || 2
-    await axios.post(`/jobs?project_id=${project_id}`, newJob.value)
-
-    createSuccess.value = true
-    
-    // Reset form
-    newJob.value = {
-      video_id: null,
-      platforms: [],
-      priority: 0
-    }
-
-    // Refresh jobs
-    setTimeout(() => {
-      refreshJobs()
-      showCreateJobModal.value = false
-      createSuccess.value = false
-    }, 1500)
-
-  } catch (error: any) {
-    createError.value = error.response?.data?.error || 'Failed to create job'
-    console.error('Error creating job:', error)
-  } finally {
-    submitting.value = false
-  }
-}
-
 function openCreateJobModal(type: 'upload' | 'analytics') {
   jobModalType.value = type
   createError.value = ''
   createSuccess.value = false
-  
-  // Reset forms
+
   newUploadJob.value = {
     video_id: null,
     platforms: [],
     priority: 0
   }
-  
+
   newAnalyticsJob.value = {
     task_type: 'channel_analytics',
     platforms: [],
     priority: 0
   }
-  
+
   showCreateJobModal.value = true
 }
 
@@ -499,7 +468,7 @@ async function createUploadJob() {
     await axios.post(`/jobs?project_id=${project_id}`, newUploadJob.value)
 
     createSuccess.value = true
-    
+
     setTimeout(() => {
       refreshJobs()
       showCreateJobModal.value = false
@@ -526,18 +495,17 @@ async function createAnalyticsJob() {
     createSuccess.value = false
 
     const project_id = localStorage.getItem('currentProjectId') || 2
-    
+
     const payload = {
       platforms: newAnalyticsJob.value.platforms,
       task_type: newAnalyticsJob.value.task_type,
       priority: newAnalyticsJob.value.priority
     }
-    
-    console.log('Creating analytics job:', payload)
+
     await axios.post(`/jobs/analytics?project_id=${project_id}`, payload)
 
     createSuccess.value = true
-    
+
     setTimeout(() => {
       refreshJobs()
       showCreateJobModal.value = false
@@ -557,38 +525,59 @@ function formatDate(dateString: string | null): string {
   const date = new Date(dateString)
   const now = new Date()
   const diff = now.getTime() - date.getTime()
-  
+
   if (diff < 60000) return 'Just now'
   if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`
   if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`
-  
+
   return date.toLocaleString()
 }
 
 function getJobDuration(job: Job): string {
   if (!job.started_at) return 'N/A'
-  
+
   const start = new Date(job.started_at)
   const end = job.completed_at ? new Date(job.completed_at) : new Date()
   const diff = end.getTime() - start.getTime()
-  
+
   if (diff < 1000) return '< 1s'
   if (diff < 60000) return `${Math.floor(diff / 1000)}s`
   return `${Math.floor(diff / 60000)}m ${Math.floor((diff % 60000) / 1000)}s`
 }
 
-function getPriorityClass(priority: number): string {
-  if (priority >= 2) return 'high'
-  if (priority >= 1) return 'medium'
-  return 'normal'
+function getPlatformBadgeClass(platform: string): string {
+  const classes: Record<string, string> = {
+    youtube: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400',
+    tiktok: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400',
+    instagram: 'bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-400',
+    facebook: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400',
+    x: 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300',
+    reddit: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400',
+  }
+  return classes[platform] || 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
 }
 
-// Lifecycle
+function getStatusBadgeClass(status: string): string {
+  const classes: Record<string, string> = {
+    pending: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400',
+    assigned: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400',
+    processing: 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400',
+    completed: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400',
+    failed: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400',
+  }
+  return classes[status] || 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+}
+
+function getPriorityBadgeClass(priority: number): string {
+  if (priority >= 2) return 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
+  if (priority >= 1) return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400'
+  return 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+}
+
 onMounted(() => {
   refreshWorkers()
   refreshJobs()
-  
-  // Auto-refresh every 10 seconds
+
   refreshInterval = setInterval(() => {
     refreshWorkers()
     refreshJobs()
@@ -601,497 +590,3 @@ onUnmounted(() => {
   }
 })
 </script>
-
-<style scoped>
-.workers-view {
-  padding: 2rem;
-  max-width: 1400px;
-  margin: 0 auto;
-}
-
-.header {
-  margin-bottom: 2rem;
-}
-
-.header h1 {
-  margin-bottom: 1rem;
-  font-size: 2rem;
-}
-
-.stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-}
-
-.stat-card {
-  background: white;
-  padding: 1.5rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.stat-card.online {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  color: white;
-}
-
-.stat-card.processing {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-  color: white;
-}
-
-.stat-label {
-  font-size: 0.875rem;
-  opacity: 0.8;
-}
-
-.stat-value {
-  font-size: 2rem;
-  font-weight: bold;
-}
-
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-}
-
-.section-header h2 {
-  font-size: 1.5rem;
-}
-
-.job-controls {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.workers-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 3rem;
-}
-
-.worker-card {
-  background: white;
-  border-radius: 8px;
-  padding: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  transition: transform 0.2s;
-}
-
-.worker-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-}
-
-.worker-card.offline {
-  opacity: 0.6;
-  background: #f3f4f6;
-}
-
-.worker-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-}
-
-.worker-title {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.worker-title h3 {
-  margin: 0;
-  font-size: 1.1rem;
-}
-
-.worker-status-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: #ef4444;
-}
-
-.worker-status-dot.online {
-  background: #10b981;
-  animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
-}
-
-.worker-status-badge {
-  padding: 0.25rem 0.75rem;
-  border-radius: 12px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-}
-
-.worker-status-badge.online {
-  background: #d1fae5;
-  color: #065f46;
-}
-
-.worker-status-badge.offline {
-  background: #fee2e2;
-  color: #991b1b;
-}
-
-.worker-info {
-  margin-bottom: 1rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.info-row {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 0.5rem;
-  font-size: 0.875rem;
-}
-
-.info-label {
-  color: #6b7280;
-}
-
-.info-value {
-  font-weight: 500;
-  font-family: monospace;
-}
-
-.worker-metrics {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.metric {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.metric-label {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #6b7280;
-  text-transform: uppercase;
-}
-
-.metric-bar {
-  height: 8px;
-  background: #e5e7eb;
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.metric-fill {
-  height: 100%;
-  transition: width 0.3s ease;
-}
-
-.metric-fill.load {
-  background: linear-gradient(90deg, #3b82f6, #2563eb);
-}
-
-.metric-fill.cpu {
-  background: linear-gradient(90deg, #f59e0b, #d97706);
-}
-
-.metric-fill.ram {
-  background: linear-gradient(90deg, #8b5cf6, #7c3aed);
-}
-
-.metric-value {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #374151;
-}
-
-.jobs-table-container {
-  background: white;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
-.jobs-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.jobs-table th {
-  background: #f9fafb;
-  padding: 1rem;
-  text-align: left;
-  font-weight: 600;
-  color: #374151;
-  border-bottom: 2px solid #e5e7eb;
-}
-
-.jobs-table td {
-  padding: 1rem;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.job-id {
-  font-family: monospace;
-  font-size: 0.875rem;
-}
-
-.platform-badge {
-  padding: 0.25rem 0.75rem;
-  border-radius: 12px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-}
-
-.platform-badge.youtube { background: #fee2e2; color: #991b1b; }
-.platform-badge.tiktok { background: #dbeafe; color: #1e40af; }
-.platform-badge.instagram { background: #fce7f3; color: #9f1239; }
-.platform-badge.facebook { background: #dbeafe; color: #1e3a8a; }
-.platform-badge.x { background: #f3f4f6; color: #111827; }
-.platform-badge.reddit { background: #fee2e2; color: #7f1d1d; }
-
-.worker-badge {
-  padding: 0.25rem 0.5rem;
-  background: #e0e7ff;
-  border-radius: 4px;
-  font-size: 0.875rem;
-  font-weight: 500;
-}
-
-.no-worker {
-  color: #9ca3af;
-  font-style: italic;
-}
-
-.status-badge {
-  padding: 0.25rem 0.75rem;
-  border-radius: 12px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-}
-
-.status-badge.pending { background: #fef3c7; color: #92400e; }
-.status-badge.assigned { background: #dbeafe; color: #1e40af; }
-.status-badge.processing { background: #ddd6fe; color: #5b21b6; }
-.status-badge.completed { background: #d1fae5; color: #065f46; }
-.status-badge.failed { background: #fee2e2; color: #991b1b; }
-
-.priority-badge {
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  font-weight: 600;
-}
-
-.priority-badge.normal { background: #f3f4f6; color: #6b7280; }
-.priority-badge.medium { background: #fef3c7; color: #92400e; }
-.priority-badge.high { background: #fee2e2; color: #991b1b; }
-
-.btn-refresh, .btn-create, .filter-select {
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  border: 1px solid #d1d5db;
-  background: white;
-  cursor: pointer;
-  font-weight: 500;
-  transition: all 0.2s;
-}
-
-.btn-refresh:hover:not(:disabled), .btn-create:hover {
-  background: #f9fafb;
-  border-color: #9ca3af;
-}
-
-.btn-refresh:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.btn-create {
-  background: #3b82f6;
-  color: white;
-  border-color: #3b82f6;
-}
-
-.btn-create:hover {
-  background: #2563eb;
-}
-
-.btn-create.analytics {
-  background: #8b5cf6;
-  border-color: #8b5cf6;
-}
-
-.btn-create.analytics:hover {
-  background: #7c3aed;
-}
-
-.empty-state {
-  text-align: center;
-  padding: 3rem;
-  color: #6b7280;
-}
-
-/* Modal */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.modal-content {
-  background: white;
-  border-radius: 12px;
-  padding: 2rem;
-  max-width: 500px;
-  width: 90%;
-  max-height: 90vh;
-  overflow-y: auto;
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-}
-
-.modal-header h2 {
-  margin: 0;
-}
-
-.btn-close {
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  cursor: pointer;
-  color: #6b7280;
-}
-
-.job-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.form-group label {
-  font-weight: 600;
-  color: #374151;
-}
-
-.form-group input,
-.form-group select {
-  padding: 0.75rem;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 1rem;
-}
-
-.platform-checkboxes {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0.75rem;
-}
-
-.checkbox-label {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.checkbox-label:hover {
-  background: #f9fafb;
-}
-
-.checkbox-label input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
-}
-
-.form-actions {
-  display: flex;
-  gap: 1rem;
-  justify-content: flex-end;
-}
-
-.btn-cancel, .btn-submit {
-  padding: 0.75rem 1.5rem;
-  border-radius: 6px;
-  border: none;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-cancel {
-  background: #f3f4f6;
-  color: #374151;
-}
-
-.btn-cancel:hover {
-  background: #e5e7eb;
-}
-
-.btn-submit {
-  background: #3b82f6;
-  color: white;
-}
-
-.btn-submit:hover:not(:disabled) {
-  background: #2563eb;
-}
-
-.btn-submit:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.error-message {
-  padding: 1rem;
-  background: #fee2e2;
-  color: #991b1b;
-  border-radius: 6px;
-  font-weight: 500;
-}
-
-.success-message {
-  padding: 1rem;
-  background: #d1fae5;
-  color: #065f46;
-  border-radius: 6px;
-  font-weight: 500;
-}
-</style>
