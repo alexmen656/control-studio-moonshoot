@@ -3,7 +3,9 @@ import { google } from 'googleapis';
 import fs2 from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import crypto from 'crypto';
 import { storeTokenByProjectID, retrieveTokenByProjectID } from '../utils/token_manager.js';
+import { storeOAuthState, retrieveOAuthState } from '../utils/oauth_states.js';
 import dotenv from 'dotenv';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -18,9 +20,10 @@ const SCOPES = [
 ];
 
 class YouTubeManager {
-    constructor(credentialsPath = path.join(__dirname, 'credentials.json'), redirectUri = process.env.MODE === 'prod' ? 'https://api.reelmia.com/api/oauth2callback/youtube' : 'http://localhost:6709/api/oauth2callback/youtube') {
-        this.credentialsPath = credentialsPath;
-        this.redirectUri = redirectUri;
+    constructor(options = {}) {
+        this.credentialsPath = options.credentialsPath || path.join(__dirname, 'credentials.json');
+        this.redirectUri = options.redirectUri || (process.env.MODE === 'prod' ? 'https://api.reelmia.com/api/oauth2callback/youtube' : 'http://localhost:6709/api/oauth2callback/youtube');
+        this.projectId = options.projectId || 1;
         this.oAuth2Client = null;
         this.credentials = null;
     }
@@ -38,40 +41,45 @@ class YouTubeManager {
         }
     }
 
-    async authorize(projectId = 1) {
+    async authorize(projectId = this.projectId) {
         await this.initialize();
 
         try {
-            const token = await retrieveTokenByProjectID(1, 'youtube_token', projectId);
+            const token = await retrieveTokenByProjectID('youtube_token', projectId);
 
             if (!token.refresh_token) {
-                return this.generateAuthUrl();
+                return this.generateAuthUrl(projectId);
             }
 
             this.oAuth2Client.setCredentials(token);
             return this.oAuth2Client;
         } catch (err) {
             console.log('No token found, need to get a new one');
-            return this.generateAuthUrl();
+            return this.generateAuthUrl(projectId);
         }
     }
 
-    generateAuthUrl() {
+    generateAuthUrl(projectId = this.projectId) {
+        const state = crypto.randomBytes(16).toString('hex');
+        
+        storeOAuthState('youtube', projectId, state);
+        
         const authUrl = this.oAuth2Client.generateAuthUrl({
             access_type: 'offline',
             prompt: 'consent',
             scope: SCOPES,
+            state: state,
         });
         return { authUrl };
     }
 
-    async getTokenFromCode(code, projectId = 1) {
+    async getTokenFromCode(code, projectId = this.projectId) {
         await this.initialize();
 
         const tokenResponse = await this.oAuth2Client.getToken(code);
         this.oAuth2Client.setCredentials(tokenResponse.tokens);
 
-        await storeTokenByProjectID(1, 'youtube_token', tokenResponse.tokens, projectId);
+        await storeTokenByProjectID('youtube_token', tokenResponse.tokens, projectId);
         return tokenResponse.tokens;
     }
 
@@ -86,7 +94,7 @@ class YouTubeManager {
         return auth;
     }*/
 
-    async uploadVideo(videoFile, projectId = 1) {
+    async uploadVideo(videoFile, projectId = this.projectId) {
         try {
             console.log('Starting upload process...');
             const auth = await this.authorize(projectId);
@@ -138,7 +146,7 @@ class YouTubeManager {
         });
     }
 
-    async getVideoAnalytics(projectId = 2, options = {}) {
+    async getVideoAnalytics(projectId = this.projectId, options = {}) {
         const auth = await this.authorize(projectId);
 
         if (auth.authUrl) {
@@ -168,7 +176,7 @@ class YouTubeManager {
         return res.data;
     }
 
-    async getChannelInfo(projectId = 1) {
+    async getChannelInfo(projectId = this.projectId) {
         const auth = await this.authorize(projectId);
 
         if (auth.authUrl) {
