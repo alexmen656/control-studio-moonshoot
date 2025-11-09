@@ -219,7 +219,8 @@ const handleOnSuccess = async (response: AuthCodeFlowSuccessResponse) => {
             );
 
             if (success) {
-                router.push('/');
+                window.dispatchEvent(new Event('auth-change'))
+                router.push('/home');
             }
         } else {
             authStore.error = 'Failed to fetch user information from Google';
@@ -254,7 +255,8 @@ const handleLogin = async () => {
         pendingUserId.value = result.userId
         authStore.error = null
     } else if (result.success) {
-        router.push('/')
+        window.dispatchEvent(new Event('auth-change'))
+        router.push('/home')
     }
 }
 
@@ -269,8 +271,8 @@ const loginWithPasskey = async () => {
         const options = await authStore.getPasskeyAuthenticationOptions(username.value || undefined)
         const asseResp = await startAuthentication(options)
         await authStore.verifyPasskeyAuthentication(asseResp, options.challengeKey)
-
-        router.push('/')
+        window.dispatchEvent(new Event('auth-change'))
+        router.push('/home')
     } catch (error: any) {
         console.error('Passkey login error:', error)
         if (error.name === 'NotAllowedError') {

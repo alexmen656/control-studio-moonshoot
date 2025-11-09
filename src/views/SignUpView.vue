@@ -239,7 +239,7 @@ const handleOnSuccess = async (response: AuthCodeFlowSuccessResponse) => {
             );
 
             if (success) {
-                router.push('/');
+                router.push('/home');
             } else {
                 error.value = 'Google sign up failed. Please try again.';
             }
@@ -297,14 +297,17 @@ const setupPasskey = async () => {
         const deviceName = prompt('Enter a name for this device (optional):') || undefined
         await authStore.verifyPasskeyRegistration(attResp, deviceName)
 
-        router.push('/')
+        window.dispatchEvent(new Event('auth-change'))
+        router.push('/home')
     } catch (err: any) {
         console.error('Passkey registration error:', err)
-        router.push('/')
+        window.dispatchEvent(new Event('auth-change'))
+        router.push('/home')
     }
 }
 
 const skipPasskey = () => {
-    router.push('/')
+    window.dispatchEvent(new Event('auth-change'))
+    router.push('/home')
 }
 </script>
