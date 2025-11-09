@@ -5,9 +5,15 @@
                 <div>
                     <div class="mb-10">
                         <div class="flex items-center gap-3 mb-2">
-                            <div
+                            <!-- <div
                                 class="w-14 h-14 bg-gradient-to-br from-violet-600 to-blue-600 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg">
                                 R
+                            </div>-->
+
+                            <div
+                                class="w-9 h-9 rounded-lg flex items-center justify-center text-white font-bold text-sm">
+                                <!--bg-gradient-to-br from-violet-600 to-blue-600-->
+                                <img src="@/assets/new_new_logo.svg" alt="Reelmia.com logo">
                             </div>
                         </div>
                         <p class="text-sm text-slate-600">Social video management</p>

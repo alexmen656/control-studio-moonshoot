@@ -136,9 +136,13 @@ const subscribeNewsletter = () => {
             <div class="max-w-[1200px] mx-auto px-6">
                 <nav class="flex justify-between items-center">
                     <div class="flex items-center gap-2 cursor-pointer" @click="router.push('/')">
-                        <div
+                        <!--<div
                             class="w-8 h-8 bg-gradient-to-br from-violet-600 to-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">
-                            R</div>
+                            R</div>-->
+                        <div class="w-9 h-9 rounded-lg flex items-center justify-center text-white font-bold text-sm">
+                            <!--bg-gradient-to-br from-violet-600 to-blue-600-->
+                            <img src="@/assets/new_new_logo.svg" alt="Reelmia.com logo">
+                        </div>
                         <span
                             class="text-lg font-bold bg-gradient-to-r from-violet-600 to-blue-600 bg-clip-text text-transparent">Reelmia</span>
                     </div>
@@ -428,9 +432,14 @@ const subscribeNewsletter = () => {
                 <div class="grid md:grid-cols-4 gap-8 mb-8">
                     <div>
                         <div class="flex items-center gap-2 mb-4">
-                            <div
+                            <!-- <div
                                 class="w-8 h-8 bg-gradient-to-br from-violet-600 to-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">
-                                R</div>
+                                R</div>-->
+                            <div
+                                class="w-9 h-9 rounded-lg flex items-center justify-center text-white font-bold text-sm">
+                                <!--bg-gradient-to-br from-violet-600 to-blue-600-->
+                                <img src="@/assets/new_new_logo.svg" alt="Reelmia.com logo">
+                            </div>
                             <span class="text-lg font-bold text-white">Reelmia Blog</span>
                         </div>
                         <p class="text-sm text-slate-400">Insights for content creators and social media managers.</p>
