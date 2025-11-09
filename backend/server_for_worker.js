@@ -2,7 +2,6 @@ import https from 'https';
 import fs from 'fs';
 import express from 'express';
 import * as db from './utils/db.js'
-import tls from 'tls';
 import { startJobScheduler } from './utils/job_scheduler.js';
 import { SignJWT } from 'jose';
 import { CompactEncrypt } from 'jose';
@@ -10,7 +9,6 @@ import { importPKCS8, importSPKI } from 'jose';
 import { createHash } from 'crypto';
 import { retrieveTokenByProjectID } from './utils/token_manager.js';
 import { startAnalyticsScheduler } from './utils/analytics_scheduler.js';
-//import { forEachLeadingCommentRange } from 'typescript';
 
 const vpsPrivateKeyPem = fs.readFileSync('./keys/vps/vps-private.pem', 'utf8');
 const workerPublicKeyPem = fs.readFileSync('./keys/worker/worker-public.pem', 'utf8');
@@ -219,32 +217,16 @@ const options = {
   key: fs.readFileSync('certs/vps.key'),
   cert: fs.readFileSync('certs/vps.crt'),
   ca: fs.readFileSync('certs/ca.crt'),
-  requestCert: true, //true,
-  rejectUnauthorized: true, //true,
-
-  //tls versions
-  //minVersion: 'TLSv1.2',
-  //maxVersion: 'TLSv1.3'
-
-  // minVersion: tls.TLS1_2,
-  // maxVersion: tls.TLS1_3
+  requestCert: true,
+  rejectUnauthorized: true,
   minVersion: 'TLSv1.2',
   maxVersion: 'TLSv1.3'
 };
 
-//worker cert middleware
 const requireWorkerCert = (req, res, next) => {
   if (!req.socket.authorized) {
     return res.status(401).json({ error: 'Invalid worker certificate' });
   }
-
-  const cert = req.socket.getPeerCertificate();
-  /* console.log('Worker Certificate Details:');
-   console.log('  Subject:', cert.subject);
-   console.log('  Issuer:', cert.issuer);
-   console.log('  Valid From:', cert.valid_from);
-   console.log('  Valid To:', cert.valid_to);
-   console.log('  Common Name (CN):', cert.subject.CN);*/
 
   next();
 };
@@ -335,22 +317,15 @@ app.post('/api/workers/heartbeat', requireWorkerCert, async (req, res) => {
   }
 });
 
-app.post('/api/platform-token/:platform/:projectId', requireWorkerCert, async (req, res) => {//get
+app.post('/api/platform-token/:platform/:projectId', requireWorkerCert, async (req, res) => {
   try {
     const { platform, projectId } = req.params;
-    // const { workerId } = req.body;
-    const workerId = req.body.worker_id;
     console.log(`Fetching token for platform: ${platform}, projectId: ${projectId}`);
 
-    console.log('body', req.body); // <-- also undefined
-    //const workerId = req.body.worker_id; //<-- undefined for some reason 
     const clientCert = req.socket.getPeerCertificate();
-
     const certThumbprint = getCertificateThumbprint(
       clientCert.raw || clientCert.cert
     );
-
-    //res.json({ access_token: encryptedToken });
 
     if (platform == 'youtube') {
       try {
@@ -752,40 +727,12 @@ app.patch('/api/jobs/:jobId/status', requireWorkerCert, async (req, res) => {
   }
 });
 
-
-/*app.get('/api/videos/:id', requireWorkerCert, async (req, res) => {
-  try {
-    const video = await db.getVideoById(req.params.id)
-    if (!video) {
-      return res.status(404).json({ error: 'Video not found' })
-    }
-
-    if (video.project_id) {
-      const accessResult = await db.query(
-        'SELECT 1 FROM project_users WHERE project_id = $1 AND user_id = $2',
-        [video.project_id, req.user.id]
-      );
-
-      if (accessResult.rows.length === 0) {
-        return res.status(403).json({ error: 'Access denied to this video' });
-      }
-    }
-
-    res.json(video)
-  } catch (error) {
-    console.error('Error reading video:', error)
-    res.status(500).json({ error: 'Error reading video' })
-  }
-})*/
-
 https.createServer(options, app).listen(3001, () => {
   console.log('Worker server running on :3001');
 
   startJobScheduler(30000);
 
-  // Start analytics scheduler (every 5 minutes = 300000ms)
-
   //pause for debugging
   //startAnalyticsScheduler(300000);
-  console.log('📊 Analytics scheduler started (5-minute intervals)');
+  console.log('Analytics scheduler started (5-minute intervals)');
 });

@@ -2,12 +2,17 @@ import axios from 'axios';
 
 export async function fetchInstagramAnalytics(token, metadata) {
     console.log('   Calling Instagram Analytics API...');
+    console.log(metadata);
 
     const instagramToken = {
         accessToken: token.sub.accessToken,
         instagramUserId: token.sub.instagramUserId
     };
 
+    // await new Promise(resolve => setTimeout(resolve, 5000));
+
+    //const analytics = await getTotalAnalytics(instagramToken, 'impressions', 'day');//,reach,profile_views,website_clicks
+    //console.log('Instagram analytics fetched:', analytics);
     const analyticsData = {
         totalVideos: 0,
         totalViews: 0,
@@ -50,9 +55,37 @@ export async function fetchInstagramAnalytics(token, metadata) {
     };
 }
 
+async function getTotalAnalytics(token, metric = 'reach', period = 'day') {//projectId
+    //    const { instagramUserId, accessToken } = await this._getCredentials(projectId);
+    const { instagramUserId, accessToken } = token;
+
+    console.log('--------------------------------------------------------');
+    console.log('Instagram User ID for analytics:', instagramUserId);
+
+    const apiVersion = 'v21.0'
+    const url = `https://graph.facebook.com/${apiVersion}/${instagramUserId}/insights`;
+
+    const params = {
+        metric: metric,
+        period: period,
+        access_token: accessToken
+    };
+
+    const response = await axios.get(url, { params });
+
+    console.log('Total analytics data:', response.data);
+    console.log('Total analytics values:', response.data.data?.values);
+
+    return response.data;
+}
+
+// copied over from baceknd/platforms/Instagram.js
 async function getUserMedia(token, limit = 25) {
     try {
+        //console.log('Fetching Instagram user media for project ID:', projectId);
         const { instagramUserId, accessToken } = token;
+
+        console.log('Fetching Instagram media for user:', instagramUserId);
 
         const apiVersion = 'v21.0'
         const mediaUrl = `https://graph.facebook.com/${apiVersion}/${instagramUserId}/media`;
@@ -63,6 +96,9 @@ async function getUserMedia(token, limit = 25) {
         };
 
         const mediaResponse = await axios.get(mediaUrl, { params: mediaParams });
+
+        console.log('Instagram media fetched:', mediaResponse.data.data?.length || 0, 'posts');
+
         const mediaWithInsights = [];
 
         for (const media of mediaResponse.data.data || []) {
@@ -101,10 +137,11 @@ async function getUserMedia(token, limit = 25) {
 async function _getMediaInsights(mediaId, accessToken, mediaType, mediaProductType) {
     const apiVersion = 'v21.0';
     const insightsUrl = `https://graph.facebook.com/${apiVersion}/${mediaId}/insights`;
+    
     let metrics;
-
+    
     if (mediaProductType === 'REELS') {
-        metrics = 'reach,total_interactions,likes,comments,shares,saved';
+        metrics = 'reach,total_interactions,likes,comments,shares,saved';//plays
     } else if (mediaType === 'VIDEO') {
         metrics = 'impressions,reach,saved,video_views,shares';
     } else if (mediaType === 'IMAGE') {
@@ -114,7 +151,7 @@ async function _getMediaInsights(mediaId, accessToken, mediaType, mediaProductTy
     } else {
         metrics = 'impressions,reach,saved';
     }
-
+    
     const insightsParams = {
         metric: metrics,
         access_token: accessToken
@@ -124,7 +161,7 @@ async function _getMediaInsights(mediaId, accessToken, mediaType, mediaProductTy
         console.log(`Fetching insights for ${mediaProductType || mediaType} (${mediaType}) media ${mediaId} with metrics: ${metrics}`);
         const insightsResponse = await axios.get(insightsUrl, { params: insightsParams });
         console.log(`Insights for media ${mediaId}:`, insightsResponse.data);
-
+        
         const insights = {
             impressions: 0,
             reach: 0,
@@ -164,3 +201,17 @@ async function _getMediaInsights(mediaId, accessToken, mediaType, mediaProductTy
         };
     }
 }
+
+/* async function getAccountInfo(projectId = this.projectId) {
+     const { instagramUserId, accessToken } = await this._getCredentials(projectId);
+     const url = `https://graph.facebook.com/${this.apiVersion}/${instagramUserId}`;
+
+     const response = await axios.get(url, {
+         params: {
+             fields: 'username,name,profile_picture_url,followers_count,follows_count,media_count',
+             access_token: accessToken
+         }
+     });
+
+     return response.data;
+ }*/
