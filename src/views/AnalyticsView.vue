@@ -269,7 +269,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed, nextTick, watch } from 'vue'
-import axios from 'axios'
+import axios from '../axios'
 import { Chart, registerables } from 'chart.js'
 
 Chart.register(...registerables)
@@ -430,16 +430,56 @@ const createViewsChart = () => {
 
 const fetchHourlyData = async () => {
     try {
-        const params: Record<string, string> = { hours: '48' }
         if (selectedPlatform.value) {
-            params.platform = selectedPlatform.value
+            const PROJECT_ID = localStorage.getItem('currentProjectId');
+            const response = await axios.get(
+                `http://localhost:6709/api/analytics/live/projects/2/platforms/${selectedPlatform.value}/24h?project_id=${PROJECT_ID}`
+            )
+            console.log('Fetched 24h live data:', response.data)
+            
+            const analytics24h = response.data.analytics || []
+            const labels = analytics24h.map((d: any) => 
+                new Date(d.collected_at).toLocaleTimeString('de-DE', { 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                })
+            )
+            const data = analytics24h.map((d: any) => d.total_views || 0)
+            
+            hourlyData.value = {
+                labels,
+                data,
+                totalViews: data.reduce((sum: number, val: number) => sum + val, 0),
+                hours: 24
+            }
+        } else {
+            const PROJECT_ID = localStorage.getItem('currentProjectId');
+            const response = await axios.get(`http://localhost:6709/api/analytics/live/projects/2/latest?project_id=${PROJECT_ID}`)
+            const platforms = response.data.platforms || []
+            
+            const labels = platforms.map((p: any) => p.platform)
+            const data = platforms.map((p: any) => p.total_views || 0)
+            
+            hourlyData.value = {
+                labels,
+                data,
+                totalViews: data.reduce((sum: number, val: number) => sum + val, 0),
+                hours: 0
+            }
         }
-
-        const response = await axios.get('http://localhost:6709/api/analytics/hourly', { params })
-        console.log('Fetched hourly data:', response.data)
-        hourlyData.value = response.data
     } catch (err) {
         console.error('Error fetching hourly data:', err)
+        try {
+            const params: Record<string, string> = { hours: '48' }
+            if (selectedPlatform.value) {
+                params.platform = selectedPlatform.value
+            }
+            const PROJECT_ID = localStorage.getItem('currentProjectId');
+            const response = await axios.get(`http://localhost:6709/api/analytics/hourly?project_id=${PROJECT_ID}`, { params })
+            hourlyData.value = response.data
+        } catch (fallbackErr) {
+            console.error('Error fetching fallback hourly data:', fallbackErr)
+        }
     }
 }
 
@@ -448,27 +488,122 @@ const fetchAnalytics = async () => {
     error.value = null
 
     try {
-        const params: Record<string, string> = {}
         if (selectedPlatform.value) {
-            params.platform = selectedPlatform.value
+            const PROJECT_ID = localStorage.getItem('currentProjectId');
+            
+            const [latestResponse, contentResponse] = await Promise.all([
+                axios.get(`http://localhost:6709/api/analytics/live/projects/2/platforms/${selectedPlatform.value}/24h?project_id=${PROJECT_ID}`),
+                axios.get(`http://localhost:6709/api/analytics/live/projects/2/platforms/${selectedPlatform.value}/content?limit=50&sortBy=views&project_id=${PROJECT_ID}`),
+                fetchHourlyData()
+            ])
+            
+            const analyticsData = latestResponse.data.analytics || []
+            const latest = analyticsData.length > 0 ? analyticsData[analyticsData.length - 1] : {}
+            const content = contentResponse.data.content || []
+            
+            analytics.value = {
+                totalViews: latest.total_views || 0,
+                totalLikes: latest.total_likes || 0,
+                totalComments: latest.total_comments || 0,
+                totalVideos: latest.total_videos || latest.total_posts || latest.total_tweets || 0,
+                totalShares: latest.total_shares || latest.total_retweets || 0,
+                platforms: {
+                    [selectedPlatform.value]: {
+                        views: latest.total_views || 0,
+                        likes: latest.total_likes || 0,
+                        comments: latest.total_comments || 0,
+                        shares: latest.total_shares || latest.total_retweets || 0,
+                        videos: latest.total_videos || latest.total_posts || latest.total_tweets || 0
+                    }
+                },
+                videos: content.map((item: any) => ({
+                    platform: item.platform || selectedPlatform.value,
+                    title: item.title || 'Untitled',
+                    views: item.views || 0,
+                    likes: item.likes || 0,
+                    comments: item.comments || 0,
+                    shares: item.shares || item.retweets || 0
+                }))
+            }
+        } else {
+            const PROJECT_ID = localStorage.getItem('currentProjectId');
+            const [overviewResponse] = await Promise.all([
+                axios.get(`http://localhost:6709/api/analytics/live/projects/2/overview?project_id=${PROJECT_ID}`),
+                fetchHourlyData()
+            ])
+            
+            const overview = overviewResponse.data
+            const platforms = overview.platforms || []
+            const totals = overview.totals || {}
+            
+            const platformsMap: Record<string, PlatformStats> = {}
+            const allVideos: Video[] = []
+            
+            for (const platform of platforms) {
+                platformsMap[platform.platform] = {
+                    views: platform.total_views || 0,
+                    likes: platform.total_likes || 0,
+                    comments: platform.total_comments || 0,
+                    shares: platform.total_shares || platform.total_retweets || 0,
+                    videos: platform.total_content || 0
+                }
+                
+                try {
+                    const PROJECT_ID = localStorage.getItem('currentProjectId');
+                    const contentResponse = await axios.get(
+                        `http://localhost:6709/api/analytics/live/projects/2/platforms/${platform.platform}/content?limit=10&sortBy=views&project_id=${PROJECT_ID}`
+                    )
+                    const content = contentResponse.data.content || []
+                    allVideos.push(...content.map((item: any) => ({
+                        platform: platform.platform,
+                        title: item.title || 'Untitled',
+                        views: item.views || 0,
+                        likes: item.likes || 0,
+                        comments: item.comments || 0,
+                        shares: item.shares || item.retweets || 0
+                    })))
+                } catch (err) {
+                    console.error(`Error fetching content for ${platform.platform}:`, err)
+                }
+            }
+            
+            analytics.value = {
+                totalViews: totals.total_views || 0,
+                totalLikes: totals.total_likes || 0,
+                totalComments: totals.total_comments || 0,
+                totalVideos: totals.total_content || 0,
+                totalShares: 0,
+                platforms: platformsMap,
+                videos: allVideos
+            }
         }
 
-        const [analyticsResponse] = await Promise.all([
-            axios.get('http://localhost:6709/api/analytics/total', { params }),
-            fetchHourlyData()
-        ])
-        
-        analytics.value = analyticsResponse.data
-
-        if (analyticsResponse.data.error) {
-            error.value = analyticsResponse.data.error
-        }
-        
-        console.log('Analytics data:', analytics.value)
-        console.log('Videos:', analytics.value?.videos)
+        console.log('Live analytics data loaded:', analytics.value)
     } catch (err) {
-        console.error('Error fetching analytics:', err)
-        error.value = 'Failed to load analytics. Please try again.'
+        console.error('Error fetching live analytics, falling back to old endpoint:', err)
+        
+        try {
+            const params: Record<string, string> = {}
+            if (selectedPlatform.value) {
+                params.platform = selectedPlatform.value
+            }
+            
+            const PROJECT_ID = localStorage.getItem('currentProjectId');
+            
+            const [analyticsResponse] = await Promise.all([
+                axios.get(`http://localhost:6709/api/analytics/total?project_id=${PROJECT_ID}`, { params }),
+                fetchHourlyData()
+            ])
+            
+            analytics.value = analyticsResponse.data
+            
+            if (analyticsResponse.data.error) {
+                error.value = analyticsResponse.data.error
+            }
+        } catch (fallbackErr) {
+            console.error('Error fetching fallback analytics:', fallbackErr)
+            error.value = 'Failed to load analytics. Please try again.'
+        }
     } finally {
         loading.value = false
     }
@@ -485,7 +620,24 @@ const formatNumber = (num: number | undefined) => {
     return num.toString()
 }
 
+let refreshInterval: number | null = null
+
 onMounted(() => {
     fetchAnalytics()
+    
+    refreshInterval = window.setInterval(() => {
+        console.log('Auto-refreshing analytics...')
+        fetchAnalytics()
+    }, 300000)
+})
+
+import { onUnmounted } from 'vue'
+onUnmounted(() => {
+    if (refreshInterval) {
+        clearInterval(refreshInterval)
+    }
+    if (viewsChart) {
+        viewsChart.destroy()
+    }
 })
 </script>

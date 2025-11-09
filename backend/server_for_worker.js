@@ -9,10 +9,167 @@ import { CompactEncrypt } from 'jose';
 import { importPKCS8, importSPKI } from 'jose';
 import { createHash } from 'crypto';
 import { retrieveTokenByProjectID } from './utils/token_manager.js';
+import { startAnalyticsScheduler } from './utils/analytics_scheduler.js';
 //import { forEachLeadingCommentRange } from 'typescript';
 
 const vpsPrivateKeyPem = fs.readFileSync('./keys/vps/vps-private.pem', 'utf8');
 const workerPublicKeyPem = fs.readFileSync('./keys/worker/worker-public.pem', 'utf8');
+
+async function storeAnalyticsData(resultData) {
+  const { analytics_data, project_id, platform, task_type } = resultData;
+
+  if (!analytics_data || !project_id || !platform) {
+    console.warn('⚠️ Missing required analytics data fields');
+    return;
+  }
+
+  try {
+    const channelInsertQuery = `
+      INSERT INTO channel_analytics (
+        project_id, platform, 
+        followers, subscribers,
+        total_videos, total_posts, total_tweets,
+        total_views, total_likes, total_comments, total_shares,
+        total_retweets, total_replies, total_upvotes,
+        engagement_rate, average_score, karma,
+        total_reach, total_impressions,
+        metadata, collected_at
+      ) VALUES (
+        $1, $2, 
+        $3, $4,
+        $5, $6, $7,
+        $8, $9, $10, $11,
+        $12, $13, $14,
+        $15, $16, $17,
+        $18, $19,
+        $20, CURRENT_TIMESTAMP
+      ) 
+      ON CONFLICT (project_id, platform, collected_at) 
+      DO UPDATE SET
+        followers = EXCLUDED.followers,
+        subscribers = EXCLUDED.subscribers,
+        total_videos = EXCLUDED.total_videos,
+        total_posts = EXCLUDED.total_posts,
+        total_tweets = EXCLUDED.total_tweets,
+        total_views = EXCLUDED.total_views,
+        total_likes = EXCLUDED.total_likes,
+        total_comments = EXCLUDED.total_comments,
+        total_shares = EXCLUDED.total_shares,
+        total_retweets = EXCLUDED.total_retweets,
+        total_replies = EXCLUDED.total_replies,
+        total_upvotes = EXCLUDED.total_upvotes,
+        engagement_rate = EXCLUDED.engagement_rate,
+        average_score = EXCLUDED.average_score,
+        karma = EXCLUDED.karma,
+        total_reach = EXCLUDED.total_reach,
+        total_impressions = EXCLUDED.total_impressions,
+        metadata = EXCLUDED.metadata
+      RETURNING id
+    `;
+
+    const channelResult = await db.query(channelInsertQuery, [
+      project_id,
+      platform,
+      analytics_data.followers || analytics_data.subscribers || 0,
+      analytics_data.subscribers || 0,
+      analytics_data.total_videos || 0,
+      analytics_data.total_posts || 0,
+      analytics_data.total_tweets || 0,
+      analytics_data.total_views || 0,
+      analytics_data.total_likes || 0,
+      analytics_data.total_comments || 0,
+      analytics_data.total_shares || 0,
+      analytics_data.total_retweets || 0,
+      analytics_data.total_replies || 0,
+      analytics_data.total_upvotes || 0,
+      parseFloat(analytics_data.engagement_rate) || 0,
+      parseFloat(analytics_data.average_score) || 0,
+      analytics_data.karma || 0,
+      analytics_data.total_reach || 0,
+      analytics_data.total_impressions || 0,
+      JSON.stringify({
+        task_type,
+        raw_data: analytics_data
+      })
+    ]);
+
+    const channelAnalyticsId = channelResult.rows[0].id;
+
+    if (analytics_data.videos && Array.isArray(analytics_data.videos)) {
+      for (const video of analytics_data.videos) {
+        await storeContentAnalytics(channelAnalyticsId, project_id, platform, video);
+      }
+    }
+
+    if (analytics_data.posts && Array.isArray(analytics_data.posts)) {
+      for (const post of analytics_data.posts) {
+        await storeContentAnalytics(channelAnalyticsId, project_id, platform, post);
+      }
+    }
+
+    if (analytics_data.tweets && Array.isArray(analytics_data.tweets)) {
+      for (const tweet of analytics_data.tweets) {
+        await storeContentAnalytics(channelAnalyticsId, project_id, platform, tweet);
+      }
+    }
+
+    console.log(`✅ Stored analytics for project ${project_id}, platform ${platform}`);
+  } catch (error) {
+    console.error('Error storing analytics data:', error);
+    throw error;
+  }
+}
+
+async function storeContentAnalytics(channelAnalyticsId, projectId, platform, content) {
+  try {
+    const contentInsertQuery = `
+      INSERT INTO content_analytics (
+        channel_analytics_id, project_id, platform,
+        content_id, content_type, title,
+        views, likes, comments, shares,
+        retweets, replies, upvotes, score,
+        metadata, collected_at
+      ) VALUES (
+        $1, $2, $3,
+        $4, $5, $6,
+        $7, $8, $9, $10,
+        $11, $12, $13, $14,
+        $15, CURRENT_TIMESTAMP
+      )
+      ON CONFLICT (project_id, platform, content_id, collected_at)
+      DO UPDATE SET
+        views = EXCLUDED.views,
+        likes = EXCLUDED.likes,
+        comments = EXCLUDED.comments,
+        shares = EXCLUDED.shares,
+        retweets = EXCLUDED.retweets,
+        replies = EXCLUDED.replies,
+        upvotes = EXCLUDED.upvotes,
+        score = EXCLUDED.score,
+        metadata = EXCLUDED.metadata
+    `;
+
+    await db.query(contentInsertQuery, [
+      channelAnalyticsId,
+      projectId,
+      platform,
+      content.id,
+      content.platform === 'youtube' ? 'video' : (content.platform === 'x' ? 'tweet' : 'post'),
+      content.title || '',
+      content.views || 0,
+      content.likes || 0,
+      content.comments || 0,
+      content.shares || 0,
+      content.retweets || 0,
+      content.replies || 0,
+      content.upvotes || 0,
+      content.score || 0,
+      JSON.stringify(content)
+    ]);
+  } catch (error) {
+    console.error(`Error storing content analytics for ${content.id}:`, error);
+  }
+}
 
 const vpsPrivateKey = await importPKCS8(vpsPrivateKeyPem, 'ES256');
 const workerPublicKey = await importSPKI(workerPublicKeyPem, 'RSA-OAEP');
@@ -199,13 +356,13 @@ app.post('/api/platform-token/:platform/:projectId', requireWorkerCert, async (r
       try {
         const youtubeToken = await retrieveTokenByProjectID('youtube_token', projectId);
         const youtubeChannelInfo = await retrieveTokenByProjectID('youtube_channel_info', projectId);
-        
+
         const token = {
           access_token: youtubeToken.access_token,
           refresh_token: youtubeToken.refresh_token,
           channelId: youtubeChannelInfo?.channelId || null
         };
-        
+
         const encryptedToken = await createEncryptedToken(token, certThumbprint);
         res.json(encryptedToken);
       } catch (err) {
@@ -216,12 +373,12 @@ app.post('/api/platform-token/:platform/:projectId', requireWorkerCert, async (r
     } else if (platform == 'tiktok') {
       try {
         const tiktokToken = await retrieveTokenByProjectID('tiktok_token', projectId);
-        
+
         const token = {
           access_token: tiktokToken.access_token,
           refresh_token: tiktokToken.refresh_token
         };
-        
+
         const encryptedToken = await createEncryptedToken(token, certThumbprint);
         res.json(encryptedToken);
       } catch (err) {
@@ -268,13 +425,13 @@ app.post('/api/platform-token/:platform/:projectId', requireWorkerCert, async (r
       try {
         const xToken = await retrieveTokenByProjectID('x_token', projectId);
         const xUserInfo = await retrieveTokenByProjectID('x_user_info', projectId);
-        
+
         const token = {
           access_token: xToken.access_token,
           refresh_token: xToken.refresh_token,
           userId: xUserInfo?.id || null
         };
-        
+
         const encryptedToken = await createEncryptedToken(token, certThumbprint);
         res.json(encryptedToken);
       } catch (err) {
@@ -286,13 +443,13 @@ app.post('/api/platform-token/:platform/:projectId', requireWorkerCert, async (r
       try {
         const redditToken = await retrieveTokenByProjectID('reddit_token', projectId);
         const redditUserInfo = await retrieveTokenByProjectID('reddit_user_info', projectId);
-        
+
         const token = {
           access_token: redditToken.access_token,
           refresh_token: redditToken.refresh_token,
           username: redditUserInfo?.name || 'unknown'
         };
-        
+
         const encryptedToken = await createEncryptedToken(token, certThumbprint);
         res.json(encryptedToken);
       } catch (err) {
@@ -569,6 +726,17 @@ app.patch('/api/jobs/:jobId/status', requireWorkerCert, async (req, res) => {
 
     const result = await db.query(updateQuery, params);
 
+    // If job completed successfully with analytics data, store it in the database
+    if (status === 'completed' && result_data?.analytics_data) {
+      try {
+        await storeAnalyticsData(result_data);
+        console.log(`✅ Analytics data stored for job ${jobId}`);
+      } catch (analyticsError) {
+        console.error(`❌ Error storing analytics data for job ${jobId}:`, analyticsError);
+        // Don't fail the job status update if analytics storage fails
+      }
+    }
+
     if (['completed', 'failed'].includes(status)) {
       const { releaseWorkerFromJob } = await import('./utils/worker_selector.js');
       await releaseWorkerFromJob(workerId, jobId, status, error_message);
@@ -614,4 +782,8 @@ https.createServer(options, app).listen(3001, () => {
   console.log('Worker server running on :3001');
 
   startJobScheduler(30000);
+
+  // Start analytics scheduler (every 5 minutes = 300000ms)
+  startAnalyticsScheduler(300000);
+  console.log('📊 Analytics scheduler started (5-minute intervals)');
 });

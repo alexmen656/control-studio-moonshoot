@@ -370,4 +370,285 @@ router.get('/activity', authMiddleware, projectAccessMiddleware, async (req, res
   }
 });
 
+// ============================================
+// NEW LIVE ANALYTICS ROUTES (5-min intervals)
+// ============================================
+
+router.get('/live/projects/:projectId/latest', authMiddleware, projectAccessMiddleware, async (req, res) => {
+  try {
+    const { projectId } = req.params;
+
+    const result = await db.query(`
+      SELECT * FROM latest_channel_analytics
+      WHERE project_id = $1
+      ORDER BY platform
+    `, [projectId]);
+
+    res.json({
+      project_id: parseInt(projectId),
+      platforms: result.rows
+    });
+
+  } catch (error) {
+    console.error('Error fetching latest analytics:', error);
+    res.status(500).json({ error: 'Failed to fetch latest analytics' });
+  }
+});
+
+router.get('/live/projects/:projectId/platforms/:platform', authMiddleware, projectAccessMiddleware, async (req, res) => {
+  try {
+    const { projectId, platform } = req.params;
+    const { startTime, endTime, limit = 288 } = req.query; // 288 = 24 hours at 5-min intervals
+
+    let query = `
+      SELECT 
+        id, project_id, platform,
+        followers, subscribers,
+        total_videos, total_posts, total_tweets,
+        total_views, total_likes, total_comments, total_shares,
+        total_retweets, total_replies, total_upvotes,
+        engagement_rate, average_score, karma,
+        total_reach, total_impressions,
+        collected_at
+      FROM channel_analytics
+      WHERE project_id = $1 AND platform = $2
+    `;
+
+    const params = [projectId, platform];
+    let paramIndex = 3;
+
+    if (startTime) {
+      query += ` AND collected_at >= $${paramIndex}`;
+      params.push(startTime);
+      paramIndex++;
+    }
+
+    if (endTime) {
+      query += ` AND collected_at <= $${paramIndex}`;
+      params.push(endTime);
+      paramIndex++;
+    }
+
+    query += ` ORDER BY collected_at DESC LIMIT $${paramIndex}`;
+    params.push(parseInt(limit));
+
+    const result = await db.query(query, params);
+
+    res.json({
+      project_id: parseInt(projectId),
+      platform,
+      data_points: result.rows.length,
+      analytics: result.rows.reverse()
+    });
+  } catch (error) {
+    console.error('Error fetching platform analytics:', error);
+    res.status(500).json({ error: 'Failed to fetch platform analytics' });
+  }
+});
+
+router.get('/live/projects/:projectId/platforms/:platform/24h', authMiddleware, projectAccessMiddleware, async (req, res) => {
+  try {
+    const { projectId, platform } = req.params;
+
+    const result = await db.query(`
+      SELECT 
+        collected_at,
+        followers, subscribers,
+        total_views, total_likes, total_comments, total_shares,
+        engagement_rate,
+        total_reach, total_impressions
+      FROM channel_analytics
+      WHERE project_id = $1 
+        AND platform = $2
+        AND collected_at >= NOW() - INTERVAL '24 hours'
+      ORDER BY collected_at ASC
+    `, [projectId, platform]);
+
+    res.json({
+      project_id: parseInt(projectId),
+      platform,
+      time_range: '24h',
+      data_points: result.rows.length,
+      analytics: result.rows
+    });
+  } catch (error) {
+    console.error('Error fetching 24h analytics:', error);
+    res.status(500).json({ error: 'Failed to fetch 24h analytics' });
+  }
+});
+
+router.get('/live/projects/:projectId/platforms/:platform/content', authMiddleware, projectAccessMiddleware, async (req, res) => {
+  try {
+    const { projectId, platform } = req.params;
+    const { limit = 50, sortBy = 'views' } = req.query;
+
+    const validSortFields = ['views', 'likes', 'comments', 'shares', 'collected_at'];
+    const sortField = validSortFields.includes(sortBy) ? sortBy : 'views';
+
+    const result = await db.query(`
+      SELECT DISTINCT ON (content_id)
+        content_id, content_type, title,
+        views, likes, comments, shares,
+        retweets, replies, upvotes, score,
+        collected_at
+      FROM content_analytics
+      WHERE project_id = $1 AND platform = $2
+      ORDER BY content_id, collected_at DESC
+      LIMIT $3
+    `, [projectId, platform, parseInt(limit)]);
+
+    const sortedRows = result.rows.sort((a, b) => {
+      if (sortField === 'collected_at') {
+        return new Date(b[sortField]) - new Date(a[sortField]);
+      }
+      return (b[sortField] || 0) - (a[sortField] || 0);
+    });
+
+    res.json({
+      project_id: parseInt(projectId),
+      platform,
+      content_count: sortedRows.length,
+      content: sortedRows
+    });
+  } catch (error) {
+    console.error('Error fetching content analytics:', error);
+    res.status(500).json({ error: 'Failed to fetch content analytics' });
+  }
+});
+
+router.get('/live/projects/:projectId/platforms/:platform/trends', authMiddleware, projectAccessMiddleware, async (req, res) => {
+  try {
+    const { projectId, platform } = req.params;
+
+    const result = await db.query(`
+      WITH latest AS (
+        SELECT * FROM channel_analytics
+        WHERE project_id = $1 AND platform = $2
+        ORDER BY collected_at DESC
+        LIMIT 1
+      ),
+      previous AS (
+        SELECT * FROM channel_analytics
+        WHERE project_id = $1 AND platform = $2
+          AND collected_at <= NOW() - INTERVAL '24 hours'
+        ORDER BY collected_at DESC
+        LIMIT 1
+      )
+      SELECT 
+        l.followers as current_followers,
+        p.followers as previous_followers,
+        l.total_views as current_views,
+        p.total_views as previous_views,
+        l.total_likes as current_likes,
+        p.total_likes as previous_likes,
+        l.engagement_rate as current_engagement,
+        p.engagement_rate as previous_engagement,
+        l.collected_at as current_time,
+        p.collected_at as previous_time
+      FROM latest l
+      LEFT JOIN previous p ON true
+    `, [projectId, platform]);
+
+    if (result.rows.length === 0) {
+      return res.json({
+        project_id: parseInt(projectId),
+        platform,
+        trends: null,
+        message: 'No data available'
+      });
+    }
+
+    const data = result.rows[0];
+    const trends = {
+      followers: {
+        current: data.current_followers || 0,
+        previous: data.previous_followers || 0,
+        change: (data.current_followers || 0) - (data.previous_followers || 0),
+        percentage: data.previous_followers > 0
+          ? (((data.current_followers - data.previous_followers) / data.previous_followers) * 100).toFixed(2)
+          : 0
+      },
+      views: {
+        current: data.current_views || 0,
+        previous: data.previous_views || 0,
+        change: (data.current_views || 0) - (data.previous_views || 0),
+        percentage: data.previous_views > 0
+          ? (((data.current_views - data.previous_views) / data.previous_views) * 100).toFixed(2)
+          : 0
+      },
+      likes: {
+        current: data.current_likes || 0,
+        previous: data.previous_likes || 0,
+        change: (data.current_likes || 0) - (data.previous_likes || 0),
+        percentage: data.previous_likes > 0
+          ? (((data.current_likes - data.previous_likes) / data.previous_likes) * 100).toFixed(2)
+          : 0
+      },
+      engagement_rate: {
+        current: parseFloat(data.current_engagement) || 0,
+        previous: parseFloat(data.previous_engagement) || 0,
+        change: (parseFloat(data.current_engagement) || 0) - (parseFloat(data.previous_engagement) || 0)
+      },
+      time_range: {
+        current: data.current_time,
+        previous: data.previous_time
+      }
+    };
+
+    res.json({
+      project_id: parseInt(projectId),
+      platform,
+      trends
+    });
+  } catch (error) {
+    console.error('Error fetching analytics trends:', error);
+    res.status(500).json({ error: 'Failed to fetch analytics trends' });
+  }
+});
+
+router.get('/live/projects/:projectId/overview', authMiddleware, projectAccessMiddleware, async (req, res) => {
+  try {
+    const { projectId } = req.params;
+
+    const result = await db.query(`
+      SELECT 
+        platform,
+        followers,
+        total_videos + total_posts + total_tweets as total_content,
+        total_views,
+        total_likes,
+        total_comments,
+        engagement_rate,
+        collected_at
+      FROM latest_channel_analytics
+      WHERE project_id = $1
+      ORDER BY platform
+    `, [projectId]);
+
+    const totals = result.rows.reduce((acc, row) => ({
+      total_followers: acc.total_followers + (row.followers || 0),
+      total_content: acc.total_content + (row.total_content || 0),
+      total_views: acc.total_views + (row.total_views || 0),
+      total_likes: acc.total_likes + (row.total_likes || 0),
+      total_comments: acc.total_comments + (row.total_comments || 0)
+    }), {
+      total_followers: 0,
+      total_content: 0,
+      total_views: 0,
+      total_likes: 0,
+      total_comments: 0
+    });
+
+    res.json({
+      project_id: parseInt(projectId),
+      platforms: result.rows,
+      totals,
+      platform_count: result.rows.length
+    });
+  } catch (error) {
+    console.error('Error fetching project overview:', error);
+    res.status(500).json({ error: 'Failed to fetch project overview' });
+  }
+});
+
 export default router;
