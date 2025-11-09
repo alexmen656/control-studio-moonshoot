@@ -1,45 +1,124 @@
 <template>
-    <div class="min-h-screen bg-white flex">
-        <div class="w-full lg:w-1/2 flex flex-col">
-            <header class="p-6 lg:p-8">
-                <button @click="router.push('/')"
-                    class="flex items-center gap-2 text-slate-600 hover:text-slate-900 transition-colors">
-                    <i class="fas fa-arrow-left"></i>
-                    <span class="text-sm font-medium">Back to Home</span>
-                </button>
-            </header>
-            <div class="flex-1 flex items-center justify-center px-6 lg:px-16 py-12">
-                <div class="w-full max-w-md">
-                    <div class="lg:hidden flex items-center gap-2 mb-8">
+    <div class="min-h-screen bg-[#FAFAFA] flex">
+        <div class="hidden lg:flex lg:w-[40%] bg-[#F5F3FF] py-12 px-12 relative overflow-y-auto">
+            <div class="w-full max-w-md mx-auto flex flex-col justify-between min-h-full">
+                <div>
+                    <div class="mb-10">
+                        <div class="flex items-center gap-3 mb-2">
+                            <div
+                                class="w-14 h-14 bg-gradient-to-br from-violet-600 to-blue-600 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg">
+                                R
+                            </div>
+                        </div>
+                        <p class="text-sm text-slate-600">Social video management</p>
+                    </div>
+                    <h2 class="text-3xl font-bold text-slate-900 mb-8">
+                        Everything you need
+                    </h2>
+                    <div class="space-y-4 mb-10">
+                        <div class="flex items-center gap-3">
+                            <div
+                                class="w-6 h-6 rounded-full bg-violet-600 flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-check text-white text-xs"></i>
+                            </div>
+                            <span class="text-base font-medium text-slate-700">Post to all platforms</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div
+                                class="w-6 h-6 rounded-full bg-violet-600 flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-check text-white text-xs"></i>
+                            </div>
+                            <span class="text-base font-medium text-slate-700">Smart scheduling</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div
+                                class="w-6 h-6 rounded-full bg-violet-600 flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-check text-white text-xs"></i>
+                            </div>
+                            <span class="text-base font-medium text-slate-700">Team collaboration</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div
+                                class="w-6 h-6 rounded-full bg-violet-600 flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-check text-white text-xs"></i>
+                            </div>
+                            <span class="text-base font-medium text-slate-700">No credit card</span>
+                        </div>
+                    </div>
+                    <div class="mb-8">
                         <div
-                            class="w-10 h-10 bg-gradient-to-br from-violet-600 to-blue-600 rounded-lg flex items-center justify-center text-white font-bold">
+                            class="bg-white rounded-xl shadow-xl border border-slate-200/50 overflow-hidden w-full max-w-xs mx-auto">
+                            <div
+                                class="bg-gradient-to-r from-slate-900 to-slate-800 h-7 flex items-center px-3 gap-1.5">
+                                <div class="w-2.5 h-2.5 rounded-full bg-red-500"></div>
+                                <div class="w-2.5 h-2.5 rounded-full bg-yellow-500"></div>
+                                <div class="w-2.5 h-2.5 rounded-full bg-green-500"></div>
+                            </div>
+                            <div class="p-6 space-y-3">
+                                <div class="flex gap-3 justify-center">
+                                    <div class="w-16 h-16 bg-gradient-to-br from-red-400 to-red-600 rounded-lg"></div>
+                                    <div class="w-16 h-16 bg-gradient-to-br from-pink-400 to-rose-600 rounded-lg"></div>
+                                    <div class="w-16 h-16 bg-gradient-to-br from-blue-400 to-blue-600 rounded-lg"></div>
+                                </div>
+                                <div class="space-y-2">
+                                    <div class="h-2 bg-slate-200 rounded w-3/4 mx-auto"></div>
+                                    <div class="h-2 bg-slate-200 rounded w-1/2 mx-auto"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 mt-auto">
+                    <div class="flex -space-x-2">
+                        <div
+                            class="w-10 h-10 rounded-full bg-gradient-to-br from-violet-400 to-blue-400 border-2 border-white">
+                        </div>
+                        <div
+                            class="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-pink-400 border-2 border-white">
+                        </div>
+                        <div
+                            class="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-blue-400 border-2 border-white">
+                        </div>
+                    </div>
+                    <span class="text-sm text-slate-600">
+                        <span class="font-semibold text-slate-900">500+ creators</span> using Reelmia
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="w-full lg:w-[60%] flex flex-col bg-white overflow-y-auto">
+            <div class="flex-1 flex items-center justify-center py-12 px-6 lg:px-16">
+                <div class="w-full max-w-xl">
+                    <div class="mb-20">
+                        <button @click="router.push('/')"
+                            class="text-[12px] text-slate-400 hover:text-slate-600 transition-colors">
+                            <i class="fas fa-arrow-left mr-1"></i> Back to Home
+                        </button>
+                    </div>
+                    <div class="lg:hidden flex items-center gap-2 mb-6">
+                        <div
+                            class="w-10 h-10 bg-gradient-to-br from-violet-600 to-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">
                             R
                         </div>
                         <span
-                            class="text-xl font-bold bg-gradient-to-r from-violet-600 to-blue-600 bg-clip-text text-transparent">Reelmia</span>
+                            class="text-lg font-bold bg-gradient-to-r from-violet-600 to-blue-600 bg-clip-text text-transparent">Reelmia</span>
                     </div>
-                    <div class="mb-8">
-                        <h1 class="text-3xl lg:text-4xl font-bold text-slate-900 mb-3">
-                            Start Your Free 14-Day Trial
-                        </h1>
-                        <div class="flex flex-col gap-2 text-sm text-slate-600">
-                            <div class="flex items-center gap-2">
-                                <i class="fas fa-check text-green-500"></i>
-                                <span>No credit card required</span>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <i class="fas fa-check text-green-500"></i>
-                                <span>Cancel anytime</span>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <i class="fas fa-check text-green-500"></i>
-                                <span>Full access to all features</span>
-                            </div>
+                    <h1 class="text-[28px] font-bold text-[#1F2937] mb-3 leading-tight">
+                        Start Your Free Trial
+                    </h1>
+                    <div class="flex flex-wrap items-center gap-3 text-[13px] text-slate-600 mb-6">
+                        <div class="flex items-center gap-1.5">
+                            <i class="fas fa-check text-green-500 text-xs"></i>
+                            <span>No credit card</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <i class="fas fa-check text-green-500 text-xs"></i>
+                            <span>Cancel anytime</span>
                         </div>
                     </div>
-                    <div class="space-y-3 mb-6">
+                    <div class="mb-6">
                         <button :disabled="!isReady" @click="() => login()"
-                            class="w-full h-12 flex items-center justify-center gap-3 border border-slate-300 rounded-lg text-slate-700 font-medium hover:bg-slate-50 hover:border-slate-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                            class="w-full h-12 flex items-center justify-center gap-3 border-2 border-slate-300 rounded-lg text-base text-slate-700 font-medium hover:bg-slate-50 hover:border-slate-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
                             <svg class="w-5 h-5" viewBox="0 0 24 24">
                                 <path fill="#4285F4"
                                     d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -58,23 +137,23 @@
                             <div class="w-full border-t border-slate-200"></div>
                         </div>
                         <div class="relative flex justify-center text-sm">
-                            <span class="px-4 bg-white text-slate-500">Or sign up with email</span>
+                            <span class="px-4 bg-white text-slate-500">Or email</span>
                         </div>
                     </div>
                     <div v-if="error"
-                        class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700 flex items-start gap-2">
+                        class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700 flex items-start gap-2">
                         <i class="fas fa-exclamation-circle mt-0.5"></i>
                         <span>{{ error }}</span>
                     </div>
                     <form @submit.prevent="register" class="space-y-5">
                         <div>
-                            <label for="name" class="block text-sm font-semibold text-slate-700 mb-1.5">
+                            <label for="name" class="block text-sm font-semibold text-slate-700 mb-2">
                                 Full Name
                             </label>
                             <div class="relative">
                                 <input id="name" v-model="name" @blur="touchedFields.name = true" type="text"
                                     autocomplete="name" placeholder="John Doe" :disabled="authStore.isLoading" :class="[
-                                        'w-full h-12 px-4 border rounded-lg text-base transition-all',
+                                        'w-full h-12 px-4 border-2 rounded-lg text-base transition-all',
                                         touchedFields.name && !name
                                             ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
                                             : name
@@ -87,14 +166,14 @@
                             </div>
                         </div>
                         <div>
-                            <label for="email" class="block text-sm font-semibold text-slate-700 mb-1.5">
+                            <label for="email" class="block text-sm font-semibold text-slate-700 mb-2">
                                 Work Email
                             </label>
                             <div class="relative">
                                 <input id="email" v-model="email" @blur="touchedFields.email = true" type="email"
                                     autocomplete="email" placeholder="you@company.com" required
                                     :disabled="authStore.isLoading" :class="[
-                                        'w-full h-12 px-4 border rounded-lg text-base transition-all',
+                                        'w-full h-12 px-4 border-2 rounded-lg text-base transition-all',
                                         touchedFields.email && !email
                                             ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
                                             : email
@@ -105,28 +184,20 @@
                                 <i v-if="email && !authStore.isLoading"
                                     class="fas fa-check absolute right-4 top-1/2 -translate-y-1/2 text-green-500"></i>
                             </div>
-                            <p class="mt-1.5 text-xs text-slate-500">
+                            <p class="mt-2 text-xs text-slate-500">
                                 We'll never spam you or share your email
                             </p>
                         </div>
                         <div>
-                            <label for="username" class="block text-sm font-semibold text-slate-700 mb-1.5">
-                                Username
-                            </label>
-                            <input id="username" v-model="username" type="text" autocomplete="username"
-                                placeholder="john_doe" :disabled="authStore.isLoading"
-                                class="w-full h-12 px-4 border border-slate-300 rounded-lg text-base focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed" />
-                        </div>
-                        <div>
-                            <label for="password" class="block text-sm font-semibold text-slate-700 mb-1.5">
+                            <label for="password" class="block text-sm font-semibold text-slate-700 mb-2">
                                 Password
                             </label>
                             <div class="relative">
                                 <input id="password" v-model="password" @blur="touchedFields.password = true"
                                     :type="showPassword ? 'text' : 'password'" autocomplete="new-password"
                                     placeholder="Min. 8 characters" required :disabled="authStore.isLoading" :class="[
-                                        'w-full h-12 px-4 pr-10 border rounded-lg text-base transition-all',
-                                        touchedFields.password && password.length < 6
+                                        'w-full h-12 px-4 pr-12 border-2 rounded-lg text-base transition-all',
+                                        touchedFields.password && password.length < 8
                                             ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
                                             : 'border-slate-300 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20',
                                         authStore.isLoading && 'opacity-50 cursor-not-allowed'
@@ -137,45 +208,43 @@
                                     <i :class="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
                                 </button>
                             </div>
-
-                            <div v-if="touchedFields.password && password.length < 6"
-                                class="mt-1.5 text-sm text-red-600">
-                                Password must be at least 6 characters
+                            <div v-if="password.length > 0" class="mt-3">
+                                <div class="flex gap-1 mb-2">
+                                    <div v-for="i in 4" :key="i" :class="[
+                                        'h-1 flex-1 rounded-full transition-all',
+                                        i <= passwordStrength.level ? passwordStrength.color : 'bg-slate-200'
+                                    ]"></div>
+                                </div>
+                                <p class="text-xs text-slate-600">
+                                    Strength: <span
+                                        :class="passwordStrength.level >= 3 ? 'text-green-600 font-semibold' : 'text-orange-600'">{{
+                                            passwordStrength.text }}</span>
+                                </p>
                             </div>
-                            <div v-else class="mt-2 space-y-1 text-xs text-slate-500">
+                            <div v-if="touchedFields.password && password.length > 0 && password.length < 8"
+                                class="mt-2 text-xs text-red-600">
+                                Password must be at least 8 characters
+                            </div>
+                            <div v-if="password.length > 0" class="mt-3 space-y-1 text-xs text-slate-500">
                                 <div class="flex items-center gap-2">
-                                    <i :class="password.length >= 6 ? 'fas fa-check text-green-500' : 'fas fa-circle text-slate-300'"
-                                        style="font-size: 6px"></i>
-                                    <span>Min. 6 characters</span>
+                                    <i :class="password.length >= 8 ? 'fas fa-check text-green-500' : 'fas fa-circle text-slate-300'"
+                                        style="font-size: 8px"></i>
+                                    <span>Min. 8 characters</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <i :class="/\d/.test(password) ? 'fas fa-check text-green-500' : 'fas fa-circle text-slate-300'"
+                                        style="font-size: 8px"></i>
+                                    <span>At least 1 number</span>
                                 </div>
                             </div>
-                            <p class="mt-1.5 text-xs text-slate-500">
+                            <p class="mt-2 text-xs text-slate-500">
                                 Your data is encrypted and secure
                             </p>
                         </div>
-                        <div>
-                            <label for="confirm-password" class="block text-sm font-semibold text-slate-700 mb-1.5">
-                                Confirm Password
-                            </label>
-                            <input id="confirm-password" v-model="confirmPassword"
-                                @blur="touchedFields.confirmPassword = true" :type="showPassword ? 'text' : 'password'"
-                                autocomplete="new-password" placeholder="Confirm your password" required
-                                :disabled="authStore.isLoading" :class="[
-                                    'w-full h-12 px-4 border rounded-lg text-base transition-all',
-                                    touchedFields.confirmPassword && password !== confirmPassword
-                                        ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
-                                        : 'border-slate-300 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20',
-                                    authStore.isLoading && 'opacity-50 cursor-not-allowed'
-                                ]" />
-                            <p v-if="touchedFields.confirmPassword && password !== confirmPassword"
-                                class="mt-1.5 text-sm text-red-600">
-                                Passwords do not match
-                            </p>
-                        </div>
-                        <div>
+                        <div class="pt-2">
                             <label class="flex items-start gap-3 cursor-pointer">
                                 <input v-model="termsAccepted" type="checkbox" :disabled="authStore.isLoading"
-                                    class="w-5 h-5 mt-0.5 rounded border-2 border-slate-300 text-violet-600 focus:ring-2 focus:ring-violet-500/20 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed" />
+                                    class="w-4 h-4 mt-0.5 rounded border-2 border-slate-300 text-violet-600 focus:ring-2 focus:ring-violet-500/20 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed" />
                                 <span class="text-sm text-slate-600">
                                     I agree to the
                                     <a href="#" class="text-violet-600 underline hover:text-violet-700">Terms of
@@ -186,188 +255,22 @@
                                 </span>
                             </label>
                         </div>
-                        <button type="submit" :disabled="authStore.isLoading"
-                            class="w-full h-14 bg-gradient-to-r from-orange-500 to-orange-600 text-white text-lg font-semibold rounded-lg shadow-lg shadow-orange-500/30 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none">
+                        <button type="submit" :disabled="authStore.isLoading" style="background: #FF6B35;"
+                            class="w-full h-14 text-white text-lg font-bold rounded-lg shadow-lg shadow-orange-500/30 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none">
                             <span v-if="!authStore.isLoading">Start Free Trial</span>
                             <span v-else class="flex items-center justify-center gap-2">
                                 <i class="fas fa-spinner fa-spin"></i>
                                 Creating your account...
                             </span>
                         </button>
-
-                        <p class="text-center text-xs text-slate-500">
-                            By signing up, you'll get instant access to all features
-                        </p>
                     </form>
-                    <div class="mt-8 flex flex-wrap justify-center gap-6 text-xs text-slate-500">
-                        <div class="flex items-center gap-2">
-                            <i class="fas fa-lock"></i>
-                            <span>256-bit SSL Encryption</span>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <i class="fas fa-check-circle"></i>
-                            <span>GDPR Compliant</span>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <i class="fas fa-bolt"></i>
-                            <span>Instant Setup</span>
-                        </div>
-                    </div>
-                    <p class="mt-8 text-center text-sm text-slate-600">
+                    <p class="mt-6 text-center text-sm text-slate-600">
                         Already have an account?
                         <button @click="router.push('/login')"
                             class="text-violet-600 font-semibold hover:text-violet-700 transition-colors">
                             Log in
                         </button>
                     </p>
-                </div>
-            </div>
-        </div>
-        <div class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-violet-50 via-blue-50 to-slate-50 p-16">
-            <div class="w-full max-w-lg mx-auto flex flex-col justify-center">
-                <div class="flex items-center gap-2 mb-12">
-                    <div
-                        class="w-10 h-10 bg-gradient-to-br from-violet-600 to-blue-600 rounded-lg flex items-center justify-center text-white font-bold">
-                        R
-                    </div>
-                    <span
-                        class="text-xl font-bold bg-gradient-to-r from-violet-600 to-blue-600 bg-clip-text text-transparent">Reelmia</span>
-                </div>
-                <h2 class="text-3xl font-bold text-slate-900 mb-8">
-                    Everything you need to manage social videos
-                </h2>
-                <div class="space-y-6 mb-12">
-                    <div class="flex gap-4">
-                        <div
-                            class="w-10 h-10 rounded-full bg-gradient-to-br from-violet-500 to-violet-600 flex items-center justify-center flex-shrink-0">
-                            <i class="fas fa-check text-white"></i>
-                        </div>
-                        <div>
-                            <h3 class="text-base font-semibold text-slate-900 mb-1">
-                                Upload once, post everywhere
-                            </h3>
-                            <p class="text-sm text-slate-600">
-                                Schedule to TikTok, Instagram Reels, YouTube Shorts from one dashboard
-                            </p>
-                        </div>
-                    </div>
-                    <div class="flex gap-4">
-                        <div
-                            class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center flex-shrink-0">
-                            <i class="fas fa-check text-white"></i>
-                        </div>
-                        <div>
-                            <h3 class="text-base font-semibold text-slate-900 mb-1">
-                                Smart scheduling that works
-                            </h3>
-                            <p class="text-sm text-slate-600">
-                                AI-powered best time suggestions and automated posting
-                            </p>
-                        </div>
-                    </div>
-                    <div class="flex gap-4">
-                        <div
-                            class="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center flex-shrink-0">
-                            <i class="fas fa-check text-white"></i>
-                        </div>
-                        <div>
-                            <h3 class="text-base font-semibold text-slate-900 mb-1">
-                                Analytics that make sense
-                            </h3>
-                            <p class="text-sm text-slate-600">
-                                Track performance across all platforms in real-time
-                            </p>
-                        </div>
-                    </div>
-                    <div class="flex gap-4">
-                        <div
-                            class="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center flex-shrink-0">
-                            <i class="fas fa-check text-white"></i>
-                        </div>
-                        <div>
-                            <h3 class="text-base font-semibold text-slate-900 mb-1">
-                                Collaborate with your team
-                            </h3>
-                            <p class="text-sm text-slate-600">
-                                Role-based permissions and seamless workflow management
-                            </p>
-                        </div>
-                    </div>
-                    <div class="flex gap-4">
-                        <div
-                            class="w-10 h-10 rounded-full bg-gradient-to-br from-violet-500 to-blue-600 flex items-center justify-center flex-shrink-0">
-                            <i class="fas fa-check text-white"></i>
-                        </div>
-                        <div>
-                            <h3 class="text-base font-semibold text-slate-900 mb-1">
-                                No credit card required
-                            </h3>
-                            <p class="text-sm text-slate-600">
-                                Full access to all features for 14 days, absolutely free
-                            </p>
-                        </div>
-                    </div>
-                </div>
-                <div class="bg-white rounded-2xl p-6 shadow-xl border border-slate-200/50">
-                    <div
-                        class="bg-gradient-to-r from-slate-900 to-slate-800 h-8 flex items-center px-4 gap-2 rounded-t-lg -mt-6 -mx-6 mb-4">
-                        <div class="w-3 h-3 rounded-full bg-red-500"></div>
-                        <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
-                        <div class="w-3 h-3 rounded-full bg-green-500"></div>
-                    </div>
-                    <div class="space-y-3">
-                        <div class="flex gap-2">
-                            <div class="w-20 h-20 bg-gradient-to-br from-red-400 to-red-600 rounded-lg"></div>
-                            <div class="w-20 h-20 bg-gradient-to-br from-pink-400 to-rose-600 rounded-lg"></div>
-                            <div class="w-20 h-20 bg-gradient-to-br from-blue-400 to-blue-600 rounded-lg"></div>
-                        </div>
-                        <div class="space-y-2">
-                            <div class="h-2.5 bg-slate-200 rounded w-3/4"></div>
-                            <div class="h-2.5 bg-slate-200 rounded w-1/2"></div>
-                        </div>
-                        <div class="flex gap-3 pt-2">
-                            <i class="fab fa-tiktok text-lg text-slate-600"></i>
-                            <i class="fab fa-instagram text-lg text-slate-600"></i>
-                            <i class="fab fa-youtube text-lg text-slate-600"></i>
-                            <i class="fab fa-facebook text-lg text-slate-600"></i>
-                        </div>
-                    </div>
-                </div>
-                <div class="mt-8 flex items-center gap-4">
-                    <div class="flex -space-x-2">
-                        <div
-                            class="w-10 h-10 rounded-full bg-gradient-to-br from-violet-400 to-blue-400 border-2 border-white">
-                        </div>
-                        <div
-                            class="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-pink-400 border-2 border-white">
-                        </div>
-                        <div
-                            class="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-blue-400 border-2 border-white">
-                        </div>
-                        <div
-                            class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 border-2 border-white">
-                        </div>
-                    </div>
-                    <div>
-                        <div class="flex gap-0.5 mb-1">
-                            <i v-for="i in 5" :key="i" class="fas fa-star text-orange-500 text-xs"></i>
-                        </div>
-                        <p class="text-sm text-slate-600">
-                            <span class="font-semibold text-slate-900">500+ creators</span> already using Reelmia
-                        </p>
-                    </div>
-                </div>
-                <div class="mt-6 p-4 bg-white rounded-xl border border-slate-200">
-                    <p class="text-sm text-slate-600 italic mb-3">
-                        "Reelmia cut my posting time from 2 hours to 15 minutes per week."
-                    </p>
-                    <div class="flex items-center gap-3">
-                        <div class="text-2xl">👩‍💼</div>
-                        <div>
-                            <p class="text-sm font-semibold text-slate-900">Sarah Chen</p>
-                            <p class="text-xs text-slate-600">Content Creator</p>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
@@ -403,7 +306,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import {
@@ -418,14 +321,28 @@ const authStore = useAuthStore()
 
 const name = ref('')
 const email = ref('')
-const username = ref('')
 const password = ref('')
-const confirmPassword = ref('')
 const termsAccepted = ref(false)
 const showPassword = ref(false)
 const error = ref<string | null>(null)
 const showPasskeySetup = ref(false)
 const touchedFields = ref<Record<string, boolean>>({})
+
+const passwordStrength = computed(() => {
+    const pwd = password.value
+    if (!pwd) return { level: 0, text: '', color: '' }
+
+    let strength = 0
+    if (pwd.length >= 8) strength++
+    if (/[a-z]/.test(pwd) && /[A-Z]/.test(pwd)) strength++
+    if (/\d/.test(pwd)) strength++
+    if (/[^a-zA-Z0-9]/.test(pwd)) strength++
+
+    if (strength <= 1) return { level: 1, text: 'Weak', color: 'bg-red-500' }
+    if (strength === 2) return { level: 2, text: 'Medium', color: 'bg-orange-500' }
+    if (strength === 3) return { level: 3, text: 'Good', color: 'bg-yellow-500' }
+    return { level: 4, text: 'Strong', color: 'bg-green-500' }
+})
 
 const handleOnSuccess = async (response: AuthCodeFlowSuccessResponse) => {
     console.log("Access Token: ", response.access_token);
@@ -452,7 +369,7 @@ const handleOnSuccess = async (response: AuthCodeFlowSuccessResponse) => {
             );
 
             if (success) {
-                router.push('/home');
+                router.push('/onboarding');
             } else {
                 error.value = 'Google sign up failed. Please try again.';
             }
@@ -479,19 +396,16 @@ const { isReady, login } = useTokenClient({
 const register = async () => {
     error.value = null;
 
-    if (password.value !== confirmPassword.value) {
-        error.value = 'Passwords do not match';
+    if (password.value.length < 8) {
+        error.value = 'Password must be at least 8 characters long';
         return;
     }
 
-    if (password.value.length < 6) {
-        error.value = 'Password must be at least 6 characters long';
-        return;
-    }
+    const generatedUsername = email.value.split('@')[0] || 'user';
 
     const success = await authStore.register(
         email.value,
-        username.value,
+        generatedUsername,
         password.value,
         name.value || undefined
     );
@@ -511,16 +425,16 @@ const setupPasskey = async () => {
         await authStore.verifyPasskeyRegistration(attResp, deviceName)
 
         window.dispatchEvent(new Event('auth-change'))
-        router.push('/home')
+        router.push('/onboarding')
     } catch (err: any) {
         console.error('Passkey registration error:', err)
         window.dispatchEvent(new Event('auth-change'))
-        router.push('/home')
+        router.push('/onboarding')
     }
 }
 
 const skipPasskey = () => {
     window.dispatchEvent(new Event('auth-change'))
-    router.push('/home')
+    router.push('/onboarding')
 }
 </script>
