@@ -198,20 +198,36 @@ app.post('/api/platform-token/:platform/:projectId', requireWorkerCert, async (r
     if (platform == 'youtube') {
       try {
         const youtubeToken = await retrieveTokenByProjectID('youtube_token', projectId);
-        const encryptedToken = await createEncryptedToken(youtubeToken, certThumbprint);
+        const youtubeChannelInfo = await retrieveTokenByProjectID('youtube_channel_info', projectId);
+        
+        const token = {
+          access_token: youtubeToken.access_token,
+          refresh_token: youtubeToken.refresh_token,
+          channelId: youtubeChannelInfo?.channelId || null
+        };
+        
+        const encryptedToken = await createEncryptedToken(token, certThumbprint);
         res.json(encryptedToken);
       } catch (err) {
         // Not connected
         console.error('Error fetching YouTube token:', err);
+        res.status(401).json({ error: 'YouTube token not found or expired' });
       }
     } else if (platform == 'tiktok') {
       try {
         const tiktokToken = await retrieveTokenByProjectID('tiktok_token', projectId);
-        const encryptedToken = await createEncryptedToken(tiktokToken, certThumbprint);
+        
+        const token = {
+          access_token: tiktokToken.access_token,
+          refresh_token: tiktokToken.refresh_token
+        };
+        
+        const encryptedToken = await createEncryptedToken(token, certThumbprint);
         res.json(encryptedToken);
       } catch (err) {
         // Not connected
         console.error('Error fetching TikTok token:', err);
+        res.status(401).json({ error: 'TikTok token not found or expired' });
       }
     } else if (platform == 'instagram') {
       try {
@@ -220,9 +236,9 @@ app.post('/api/platform-token/:platform/:projectId', requireWorkerCert, async (r
         const facebook_accounts_for_instagram = await retrieveTokenByProjectID('facebook_accounts_for_instagram', projectId);
 
         const token = {
-          instagramUserId: instagramAccount.id,//instagram_business_account
+          instagramUserId: instagramAccount.instagram_business_account?.id || instagramAccount.id,
           accessToken: facebook_accounts_for_instagram.data[0].access_token
-        }
+        };
 
         const encryptedToken = await createEncryptedToken(token, certThumbprint);
         res.json(encryptedToken);
@@ -230,13 +246,14 @@ app.post('/api/platform-token/:platform/:projectId', requireWorkerCert, async (r
       } catch (err) {
         // Not connected
         console.error('Error fetching Instagram account:', err);
+        res.status(401).json({ error: 'Instagram account not found or not connected' });
       }
     } else if (platform == 'facebook') {
       try {
         const facebookAccounts = await retrieveTokenByProjectID('facebook_accounts', projectId);
 
         const token = {
-          accessToken: facebookAccounts.data[0].access_token,
+          access_token: facebookAccounts.data[0].access_token,
           pageId: facebookAccounts.data[0].id
         };
 
@@ -245,24 +262,43 @@ app.post('/api/platform-token/:platform/:projectId', requireWorkerCert, async (r
       } catch (err) {
         // Not connected
         console.error('Error fetching Facebook accounts:', err);
+        res.status(401).json({ error: 'Facebook account not found or not connected' });
       }
     } else if (platform == 'x') {
       try {
         const xToken = await retrieveTokenByProjectID('x_token', projectId);
-        const encryptedToken = await createEncryptedToken(xToken, certThumbprint);
+        const xUserInfo = await retrieveTokenByProjectID('x_user_info', projectId);
+        
+        const token = {
+          access_token: xToken.access_token,
+          refresh_token: xToken.refresh_token,
+          userId: xUserInfo?.id || null
+        };
+        
+        const encryptedToken = await createEncryptedToken(token, certThumbprint);
         res.json(encryptedToken);
       } catch (err) {
         // Not connected
         console.error('Error fetching X token:', err);
+        res.status(401).json({ error: 'X token not found or expired' });
       }
     } else if (platform == 'reddit') {
       try {
         const redditToken = await retrieveTokenByProjectID('reddit_token', projectId);
-        const encryptedToken = await createEncryptedToken(redditToken, certThumbprint);
+        const redditUserInfo = await retrieveTokenByProjectID('reddit_user_info', projectId);
+        
+        const token = {
+          access_token: redditToken.access_token,
+          refresh_token: redditToken.refresh_token,
+          username: redditUserInfo?.name || 'unknown'
+        };
+        
+        const encryptedToken = await createEncryptedToken(token, certThumbprint);
         res.json(encryptedToken);
       } catch (err) {
         // Not connected
         console.error('Error fetching Reddit token:', err);
+        res.status(401).json({ error: 'Reddit token not found or expired' });
       }
     }
   } catch (error) {
