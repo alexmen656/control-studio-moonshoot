@@ -784,6 +784,8 @@ https.createServer(options, app).listen(3001, () => {
   startJobScheduler(30000);
 
   // Start analytics scheduler (every 5 minutes = 300000ms)
-  startAnalyticsScheduler(300000);
+
+  //pause for debugging
+  //startAnalyticsScheduler(300000);
   console.log('📊 Analytics scheduler started (5-minute intervals)');
 });

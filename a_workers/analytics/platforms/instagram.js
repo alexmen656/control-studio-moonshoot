@@ -13,8 +13,17 @@ export async function fetchInstagramAnalytics(token, metadata) {
 
     //const analytics = await getTotalAnalytics(instagramToken, 'impressions', 'day');//,reach,profile_views,website_clicks
     //console.log('Instagram analytics fetched:', analytics);
-    const analyticsData = {};
+    const analyticsData = {
+        totalVideos: 0,
+        totalViews: 0,
+        totalLikes: 0,
+        totalComments: 0,
+        totalShares: 0,
+        videos: []
+    };
+
     const instagramData = await getUserMedia(instagramToken);
+
     if (instagramData && instagramData.data && instagramData.data.media) {
         analyticsData.totalVideos = instagramData.data.media.length;
         analyticsData.videos = instagramData.data.media.map(media => ({
