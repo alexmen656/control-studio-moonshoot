@@ -5,9 +5,9 @@
                 <div class="flex items-center">
                     <div @click="router.push('/dashboard')" class="flex-shrink-0 flex items-center logo-container">
                         <img class="logo-image" src="../assets/new_new_logo.svg" alt="Logo">
-                        <span class="logo-text font-bold bg-gradient-to-r from-violet-600 to-blue-600 bg-clip-text text-transparent">
-                            {{ hostname === 'studio.control-center.eu' ? 'Control Studio' : 'Reelmia'
-                            }}</span>
+                        <span
+                            class="logo-text font-bold bg-gradient-to-r from-violet-600 to-blue-600 bg-clip-text text-transparent">
+                            Reelmia</span>
                     </div>
                 </div>
                 <!--- <div class="hidden md:flex flex-1 max-w-2xl mx-8">
@@ -72,14 +72,18 @@
                             <router-link to="/profile" @click="userMenuOpen = false"
                                 class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center space-x-2 block">
                                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clip-rule="evenodd" />
+                                    <path fill-rule="evenodd"
+                                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z"
+                                        clip-rule="evenodd" />
                                 </svg>
                                 <span>Profile</span>
                             </router-link>
                             <router-link to="/security" @click="userMenuOpen = false"
                                 class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center space-x-2 block">
                                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+                                    <path fill-rule="evenodd"
+                                        d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
+                                        clip-rule="evenodd" />
                                 </svg>
                                 <span>Security</span>
                             </router-link>

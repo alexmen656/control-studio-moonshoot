@@ -1,4 +1,4 @@
--- Control Studio Complete Database Setup
+-- Reelmia Complete Database Setup
 -- This file contains all tables with all modifications consolidated
 -- Execute this file for a fresh database setup
 

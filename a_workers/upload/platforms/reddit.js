@@ -59,7 +59,7 @@ async function uploadVideo(accessToken, videoFile, options) {
     console.log('Starting Reddit video upload process...');
 
     const API_BASE_URL = 'https://oauth.reddit.com';
-    const userAgent = 'Control Studio/1.0';
+    const userAgent = 'Reelmia/1.0';
 
     if (!options.subreddit) {
         throw new Error('Subreddit is required for Reddit video upload');
