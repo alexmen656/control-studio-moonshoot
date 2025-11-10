@@ -56,13 +56,13 @@
                             class="bg-white rounded-xl shadow-xl border border-slate-200/50 overflow-hidden w-full max-w-xs mx-auto">
                             <div
                                 class="bg-gradient-to-r from-slate-900 to-slate-800 h-7 flex items-center px-3 gap-1.5">
-                                <div class="w-2.5 h-2.5 rounded-full bg-red-500"></div>
+                                <div class="w-2.5 h-2.5 rounded-full bg-violet-500"></div>
                                 <div class="w-2.5 h-2.5 rounded-full bg-yellow-500"></div>
                                 <div class="w-2.5 h-2.5 rounded-full bg-green-500"></div>
                             </div>
                             <div class="p-6 space-y-3">
                                 <div class="flex gap-3 justify-center">
-                                    <div class="w-16 h-16 bg-gradient-to-br from-red-400 to-red-600 rounded-lg"></div>
+                                    <div class="w-16 h-16 bg-gradient-to-br from-violet-400 to-violet-600 rounded-lg"></div>
                                     <div class="w-16 h-16 bg-gradient-to-br from-pink-400 to-rose-600 rounded-lg"></div>
                                     <div class="w-16 h-16 bg-gradient-to-br from-blue-400 to-blue-600 rounded-lg"></div>
                                 </div>
@@ -147,7 +147,7 @@
                         </div>
                     </div>
                     <div v-if="error"
-                        class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700 flex items-start gap-2">
+                        class="mb-6 p-4 bg-orange-50 border border-orange-200 rounded-lg text-sm text-orange-700 flex items-start gap-2">
                         <i class="fas fa-exclamation-circle mt-0.5"></i>
                         <span>{{ error }}</span>
                     </div>
@@ -161,7 +161,7 @@
                                     autocomplete="name" placeholder="John Doe" :disabled="authStore.isLoading" :class="[
                                         'w-full h-12 px-4 border-2 rounded-lg text-base transition-all',
                                         touchedFields.name && !name
-                                            ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
+                                            ? 'border-violet-500 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20'
                                             : name
                                                 ? 'border-green-500 focus:border-green-500 focus:ring-2 focus:ring-green-500/20'
                                                 : 'border-slate-300 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20',
@@ -181,7 +181,7 @@
                                     :disabled="authStore.isLoading" :class="[
                                         'w-full h-12 px-4 border-2 rounded-lg text-base transition-all',
                                         touchedFields.email && !email
-                                            ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
+                                            ? 'border-violet-500 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20'
                                             : email
                                                 ? 'border-green-500 focus:border-green-500 focus:ring-2 focus:ring-green-500/20'
                                                 : 'border-slate-300 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20',
@@ -204,7 +204,7 @@
                                     placeholder="Min. 8 characters" required :disabled="authStore.isLoading" :class="[
                                         'w-full h-12 px-4 pr-12 border-2 rounded-lg text-base transition-all',
                                         touchedFields.password && password.length < 8
-                                            ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
+                                            ? 'border-violet-500 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20'
                                             : 'border-slate-300 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20',
                                         authStore.isLoading && 'opacity-50 cursor-not-allowed'
                                     ]" />
@@ -228,7 +228,7 @@
                                 </p>
                             </div>
                             <div v-if="touchedFields.password && password.length > 0 && password.length < 8"
-                                class="mt-2 text-xs text-red-600">
+                                class="mt-2 text-xs text-orange-600">
                                 Password must be at least 8 characters
                             </div>
                             <div v-if="password.length > 0" class="mt-3 space-y-1 text-xs text-slate-500">
@@ -344,7 +344,7 @@ const passwordStrength = computed(() => {
     if (/\d/.test(pwd)) strength++
     if (/[^a-zA-Z0-9]/.test(pwd)) strength++
 
-    if (strength <= 1) return { level: 1, text: 'Weak', color: 'bg-red-500' }
+    if (strength <= 1) return { level: 1, text: 'Weak', color: 'bg-violet-500' }
     if (strength === 2) return { level: 2, text: 'Medium', color: 'bg-orange-500' }
     if (strength === 3) return { level: 3, text: 'Good', color: 'bg-yellow-500' }
     return { level: 4, text: 'Strong', color: 'bg-green-500' }

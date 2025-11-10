@@ -40,9 +40,9 @@
                         <PlatformCard platform="youtube" name="YouTube" subtitle="Video platform"
                             description="Upload and share videos with millions of viewers worldwide"
                             :connected="accountDetails.youtube" :expanded="expandedPlatforms.youtube ?? false"
-                            :formats="['Long Video', 'Short Video']" iconColor="bg-red-100 dark:bg-red-900/30"
-                            iconTextColor="text-red-600 dark:text-red-400"
-                            buttonGradient="from-red-500 to-red-600 hover:from-red-600 hover:to-red-700"
+                            :formats="['Long Video', 'Short Video']" iconColor="bg-violet-100 dark:bg-violet-900/30"
+                            iconTextColor="text-violet-600 dark:text-violet-400"
+                            buttonGradient="from-violet-500 to-violet-600 hover:from-violet-600 hover:to-violet-700"
                             @connect="connectYouTube" @disconnect="disconnectYouTube"
                             @toggle-expand="toggleExpand('youtube')">
                             <template #icon>
@@ -223,8 +223,8 @@
                         <PlatformCard platform="pinterest" name="Pinterest" subtitle="Visual discovery"
                             description="Discover and save creative ideas" :connected="accountDetails.pinterest"
                             :expanded="expandedPlatforms.pinterest ?? false"
-                            :formats="['Image Pin', 'Video Pin', 'Idea Pin']" iconColor="bg-red-100 dark:bg-red-900/30"
-                            iconTextColor="text-red-600 dark:text-red-400" buttonGradient="bg-red-600 hover:bg-red-700"
+                            :formats="['Image Pin', 'Video Pin', 'Idea Pin']" iconColor="bg-violet-100 dark:bg-violet-900/30"
+                            iconTextColor="text-violet-600 dark:text-violet-400" buttonGradient="bg-violet-600 hover:bg-violet-700"
                             @connect="connectPinterest" @disconnect="disconnectPinterest"
                             @toggle-expand="toggleExpand('pinterest')">
                             <template #icon>

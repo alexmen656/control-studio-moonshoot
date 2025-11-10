@@ -38,7 +38,7 @@
                             ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
                             : activity.status === 'pending'
                                 ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'
-                                : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+                                : 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400'
                     ]">
                         {{ activity.status }}
                     </div>
@@ -96,7 +96,7 @@ export default defineComponent({
                 scheduled: 'bg-purple-100 dark:bg-purple-900/30',
                 published: 'bg-green-100 dark:bg-green-900/30',
                 edited: 'bg-yellow-100 dark:bg-yellow-900/30',
-                deleted: 'bg-red-100 dark:bg-red-900/30'
+                deleted: 'bg-orange-100 dark:bg-orange-900/30'
             };
             return backgrounds[this.activity.type] || 'bg-gray-100 dark:bg-gray-700';
         },
@@ -106,7 +106,7 @@ export default defineComponent({
                 scheduled: 'text-purple-600 dark:text-purple-400',
                 published: 'text-green-600 dark:text-green-400',
                 edited: 'text-yellow-600 dark:text-yellow-400',
-                deleted: 'text-red-600 dark:text-red-400'
+                deleted: 'text-orange-600 dark:text-orange-400'
             };
             return colors[this.activity.type] || 'text-gray-600 dark:text-gray-400';
         }

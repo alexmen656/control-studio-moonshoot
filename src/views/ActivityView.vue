@@ -9,14 +9,14 @@
                 <button v-for="filter in filters" :key="filter.value" @click="activeFilter = filter.value" :class="[
                     'px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap',
                     activeFilter === filter.value
-                        ? 'bg-red-600 text-white shadow-md'
+                        ? 'bg-violet-600 text-white shadow-md'
                         : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
                 ]">
                     {{ filter.label }}
                 </button>
             </div>
             <div v-if="isLoading" class="text-center py-16">
-                <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-600"></div>
+                <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-violet-600"></div>
                 <p class="mt-4 text-gray-600 dark:text-gray-400">Loading activity...</p>
             </div>
             <div v-else class="space-y-6">

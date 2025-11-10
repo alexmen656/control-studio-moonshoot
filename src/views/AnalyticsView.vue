@@ -5,7 +5,7 @@
             <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">Analytics</h1>
             <div class="flex gap-4 items-center">
                 <select v-model="selectedPlatform" @change="fetchAnalytics"
-                    class="px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 rounded-lg text-sm bg-white hover:border-red-500 focus:outline-none focus:border-red-500 focus:ring-3 focus:ring-red-100 transition-all cursor-pointer">
+                    class="px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 rounded-lg text-sm bg-white hover:border-violet-500 focus:outline-none focus:border-violet-500 focus:ring-3 focus:ring-violet-100 transition-all cursor-pointer">
                     <option value="">All Platforms</option>
                     <option value="youtube">YouTube</option>
                     <option value="tiktok">TikTok</option>
@@ -13,7 +13,7 @@
                     <option value="facebook">Facebook</option>
                 </select>
                 <button @click="fetchAnalytics" :disabled="loading"
-                    class="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700 disabled:opacity-60 disabled:cursor-not-allowed transition-all hover:-translate-y-0.5">
+                    class="flex items-center gap-2 px-4 py-2 bg-violet-600 text-white rounded-lg text-sm hover:bg-violet-700 disabled:opacity-60 disabled:cursor-not-allowed transition-all hover:-translate-y-0.5">
                     <svg v-if="!loading" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                         stroke-linejoin="round">
@@ -24,7 +24,7 @@
                 </button>
             </div>
         </div>
-        <div v-if="error" class="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-4 rounded-lg mb-4">
+        <div v-if="error" class="bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 p-4 rounded-lg mb-4">
             {{ error }}
         </div>
         <div v-if="loading" class="flex flex-col items-center justify-center py-16 gap-4">
@@ -147,7 +147,7 @@
                             <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 capitalize">{{ platform }}
                             </h3>
                         </div>
-                        <div v-if="stats.error" class="text-red-600 dark:text-red-400 text-sm">
+                        <div v-if="stats.error" class="text-orange-600 dark:text-orange-400 text-sm">
                             {{ stats.error }}
                         </div>
                         <div v-else class="space-y-3">

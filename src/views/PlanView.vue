@@ -175,7 +175,7 @@ const getPriorityColor = (priority: string) => {
     const colors = {
         low: 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300',
         medium: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
-        high: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'
+        high: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300'
     }
     return colors[priority as keyof typeof colors]
 }
@@ -216,7 +216,7 @@ const formatDate = (date: Date | null) => {
                     <p class="text-gray-500 dark:text-gray-400 mt-1">Collect ideas and manage your video projects</p>
                 </div>
                 <button @click="showAddModal = true"
-                    class="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-6 py-3 rounded-lg font-medium transition-all shadow-md hover:shadow-lg flex items-center gap-2">
+                    class="bg-gradient-to-r from-violet-500 to-violet-600 hover:from-violet-600 hover:to-violet-700 text-white px-6 py-3 rounded-lg font-medium transition-all shadow-md hover:shadow-lg flex items-center gap-2">
                     <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd"
                             d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
@@ -257,7 +257,7 @@ const formatDate = (date: Date | null) => {
                                         </svg>
                                     </button>
                                     <button @click="deleteIdea(idea.id)"
-                                        class="p-1 text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors">
+                                        class="p-1 text-gray-400 hover:text-orange-600 dark:hover:text-orange-400 transition-colors">
                                         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                             <path fill-rule="evenodd"
                                                 d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
@@ -330,7 +330,7 @@ const formatDate = (date: Date | null) => {
                             Title *
                         </label>
                         <input v-model="newIdea.title" type="text" required
-                            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                             placeholder="e.g. Tutorial: How to..." />
                     </div>
                     <div>
@@ -338,7 +338,7 @@ const formatDate = (date: Date | null) => {
                             Description
                         </label>
                         <textarea v-model="newIdea.description" rows="3"
-                            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 resize-none"
+                            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 resize-none"
                             placeholder="Describe your video idea..."></textarea>
                     </div>
                     <div>
@@ -365,7 +365,7 @@ const formatDate = (date: Date | null) => {
                             <button @click="newIdea.priority = 'high'" type="button" :class="[
                                 'flex-1 py-2 px-4 rounded-lg border-2 transition-all font-medium',
                                 newIdea.priority === 'high'
-                                    ? 'border-red-500 bg-red-50 dark:bg-red-900/30 text-red-900 dark:text-red-100'
+                                    ? 'border-violet-500 bg-violet-50 dark:bg-violet-900/30 text-violet-900 dark:text-violet-100'
                                     : 'border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:border-gray-400'
                             ]">
                                 High
@@ -380,7 +380,7 @@ const formatDate = (date: Date | null) => {
                             <button @click="togglePlatform('instagram')" type="button" :class="[
                                 'flex items-center gap-3 p-3 rounded-lg border-2 transition-all',
                                 newIdea.targetPlatforms.includes('instagram')
-                                    ? 'border-red-500 bg-red-50 dark:bg-red-900/20'
+                                    ? 'border-violet-500 bg-violet-50 dark:bg-violet-900/20'
                                     : 'border-gray-300 dark:border-gray-600 hover:border-gray-400'
                             ]">
                                 <div class="text-gray-600 dark:text-gray-400" v-html="getPlatformIcon('instagram')">
@@ -390,7 +390,7 @@ const formatDate = (date: Date | null) => {
                             <button @click="togglePlatform('tiktok')" type="button" :class="[
                                 'flex items-center gap-3 p-3 rounded-lg border-2 transition-all',
                                 newIdea.targetPlatforms.includes('tiktok')
-                                    ? 'border-red-500 bg-red-50 dark:bg-red-900/20'
+                                    ? 'border-violet-500 bg-violet-50 dark:bg-violet-900/20'
                                     : 'border-gray-300 dark:border-gray-600 hover:border-gray-400'
                             ]">
                                 <div class="text-gray-600 dark:text-gray-400" v-html="getPlatformIcon('tiktok')"></div>
@@ -399,7 +399,7 @@ const formatDate = (date: Date | null) => {
                             <button @click="togglePlatform('youtube')" type="button" :class="[
                                 'flex items-center gap-3 p-3 rounded-lg border-2 transition-all',
                                 newIdea.targetPlatforms.includes('youtube')
-                                    ? 'border-red-500 bg-red-50 dark:bg-red-900/20'
+                                    ? 'border-violet-500 bg-violet-50 dark:bg-violet-900/20'
                                     : 'border-gray-300 dark:border-gray-600 hover:border-gray-400'
                             ]">
                                 <div class="text-gray-600 dark:text-gray-400" v-html="getPlatformIcon('youtube')"></div>
@@ -408,7 +408,7 @@ const formatDate = (date: Date | null) => {
                             <button @click="togglePlatform('facebook')" type="button" :class="[
                                 'flex items-center gap-3 p-3 rounded-lg border-2 transition-all',
                                 newIdea.targetPlatforms.includes('facebook')
-                                    ? 'border-red-500 bg-red-50 dark:bg-red-900/20'
+                                    ? 'border-violet-500 bg-violet-50 dark:bg-violet-900/20'
                                     : 'border-gray-300 dark:border-gray-600 hover:border-gray-400'
                             ]">
                                 <div class="text-gray-600 dark:text-gray-400" v-html="getPlatformIcon('facebook')">
@@ -422,7 +422,7 @@ const formatDate = (date: Date | null) => {
                             Due Date (optional)
                         </label>
                         <input v-model="newIdea.dueDate" type="date"
-                            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
+                            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
                     </div>
 
                     <div>
@@ -430,7 +430,7 @@ const formatDate = (date: Date | null) => {
                             Notes
                         </label>
                         <textarea v-model="newIdea.notes" rows="2"
-                            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 resize-none"
+                            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 resize-none"
                             placeholder="Additional notes..."></textarea>
                     </div>
                 </div>
@@ -444,7 +444,7 @@ const formatDate = (date: Date | null) => {
                         'px-6 py-2 rounded-lg font-medium transition-colors',
                         !newIdea.title.trim()
                             ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 cursor-not-allowed'
-                            : 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white shadow-md hover:shadow-lg'
+                            : 'bg-gradient-to-r from-violet-500 to-violet-600 hover:from-violet-600 hover:to-violet-700 text-white shadow-md hover:shadow-lg'
                     ]">
                         Add Idea
                     </button>
@@ -476,14 +476,14 @@ const formatDate = (date: Date | null) => {
                             Title *
                         </label>
                         <input v-model="selectedIdea.title" type="text" required
-                            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
+                            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                             Description
                         </label>
                         <textarea v-model="selectedIdea.description" rows="3"
-                            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 resize-none"></textarea>
+                            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 resize-none"></textarea>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -509,7 +509,7 @@ const formatDate = (date: Date | null) => {
                             <button @click="selectedIdea.priority = 'high'" type="button" :class="[
                                 'flex-1 py-2 px-4 rounded-lg border-2 transition-all font-medium',
                                 selectedIdea.priority === 'high'
-                                    ? 'border-red-500 bg-red-50 dark:bg-red-900/30 text-red-900 dark:text-red-100'
+                                    ? 'border-violet-500 bg-violet-50 dark:bg-violet-900/30 text-violet-900 dark:text-violet-100'
                                     : 'border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:border-gray-400'
                             ]">
                                 High
@@ -524,7 +524,7 @@ const formatDate = (date: Date | null) => {
                             <button @click="togglePlatform('instagram')" type="button" :class="[
                                 'flex items-center gap-3 p-3 rounded-lg border-2 transition-all',
                                 selectedIdea.targetPlatforms?.includes('instagram')
-                                    ? 'border-red-500 bg-red-50 dark:bg-red-900/20'
+                                    ? 'border-violet-500 bg-violet-50 dark:bg-violet-900/20'
                                     : 'border-gray-300 dark:border-gray-600 hover:border-gray-400'
                             ]">
                                 <div class="text-gray-600 dark:text-gray-400" v-html="getPlatformIcon('instagram')">
@@ -534,7 +534,7 @@ const formatDate = (date: Date | null) => {
                             <button @click="togglePlatform('tiktok')" type="button" :class="[
                                 'flex items-center gap-3 p-3 rounded-lg border-2 transition-all',
                                 selectedIdea.targetPlatforms?.includes('tiktok')
-                                    ? 'border-red-500 bg-red-50 dark:bg-red-900/20'
+                                    ? 'border-violet-500 bg-violet-50 dark:bg-violet-900/20'
                                     : 'border-gray-300 dark:border-gray-600 hover:border-gray-400'
                             ]">
                                 <div class="text-gray-600 dark:text-gray-400" v-html="getPlatformIcon('tiktok')"></div>
@@ -543,7 +543,7 @@ const formatDate = (date: Date | null) => {
                             <button @click="togglePlatform('youtube')" type="button" :class="[
                                 'flex items-center gap-3 p-3 rounded-lg border-2 transition-all',
                                 selectedIdea.targetPlatforms?.includes('youtube')
-                                    ? 'border-red-500 bg-red-50 dark:bg-red-900/20'
+                                    ? 'border-violet-500 bg-violet-50 dark:bg-violet-900/20'
                                     : 'border-gray-300 dark:border-gray-600 hover:border-gray-400'
                             ]">
                                 <div class="text-gray-600 dark:text-gray-400" v-html="getPlatformIcon('youtube')"></div>
@@ -552,7 +552,7 @@ const formatDate = (date: Date | null) => {
                             <button @click="togglePlatform('facebook')" type="button" :class="[
                                 'flex items-center gap-3 p-3 rounded-lg border-2 transition-all',
                                 selectedIdea.targetPlatforms?.includes('facebook')
-                                    ? 'border-red-500 bg-red-50 dark:bg-red-900/20'
+                                    ? 'border-violet-500 bg-violet-50 dark:bg-violet-900/20'
                                     : 'border-gray-300 dark:border-gray-600 hover:border-gray-400'
                             ]">
                                 <div class="text-gray-600 dark:text-gray-400" v-html="getPlatformIcon('facebook')">
@@ -566,14 +566,14 @@ const formatDate = (date: Date | null) => {
                             Due Date
                         </label>
                         <input v-model="selectedIdea.dueDate" type="date"
-                            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
+                            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                             Notes
                         </label>
                         <textarea v-model="selectedIdea.notes" rows="2"
-                            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 resize-none"></textarea>
+                            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 resize-none"></textarea>
                     </div>
                 </div>
                 <div
@@ -584,7 +584,7 @@ const formatDate = (date: Date | null) => {
                     </button>
                     <button @click="updateIdea" :class="[
                         'px-6 py-2 rounded-lg font-medium transition-colors',
-                        'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white shadow-md hover:shadow-lg'
+                        'bg-gradient-to-r from-violet-500 to-violet-600 hover:from-violet-600 hover:to-violet-700 text-white shadow-md hover:shadow-lg'
                     ]">
                         Save Changes
                     </button>

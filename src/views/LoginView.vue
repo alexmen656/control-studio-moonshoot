@@ -23,7 +23,7 @@
             </div>
             <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 space-y-6">
                 <div v-if="authStore.error"
-                    class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-300 px-4 py-3 rounded-lg text-sm">
+                    class="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 text-orange-800 dark:text-orange-300 px-4 py-3 rounded-lg text-sm">
                     {{ authStore.error }}
                 </div>
 

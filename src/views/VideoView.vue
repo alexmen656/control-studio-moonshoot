@@ -230,7 +230,7 @@ const getStatusColor = (status: string) => {
         processing: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300',
         scheduled: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
         published: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
-        failed: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300',
+        failed: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
         'awaiting-details': 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300'
     }
     return colors[status as keyof typeof colors] || colors.ready
@@ -250,7 +250,7 @@ const getPlatformColor = (platform: string) => {
     const colors = {
         instagram: 'bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400',
         tiktok: 'bg-black',
-        youtube: 'bg-red-600',
+        youtube: 'bg-violet-600',
         facebook: 'bg-blue-600'
     }
     return colors[platform as keyof typeof colors] || 'bg-gray-600'
@@ -289,7 +289,7 @@ const averageEngagement = computed(() => {
     <div class="h-full flex flex-col bg-gray-50 dark:bg-gray-900">
         <div v-if="isLoading" class="flex-1 flex items-center justify-center">
             <div class="text-center">
-                <div class="animate-spin rounded-full h-16 w-16 border-b-2 border-red-600 mx-auto mb-4"></div>
+                <div class="animate-spin rounded-full h-16 w-16 border-b-2 border-violet-600 mx-auto mb-4"></div>
                 <p class="text-gray-600 dark:text-gray-400">Loading video...</p>
             </div>
         </div>
@@ -303,7 +303,7 @@ const averageEngagement = computed(() => {
                 <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">Video Not Found</h2>
                 <p class="text-gray-600 dark:text-gray-400 mb-6">The video you're looking for doesn't exist.</p>
                 <button @click="router.push({ name: 'home' })"
-                    class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg transition-colors">
+                    class="bg-violet-600 hover:bg-violet-700 text-white px-6 py-2 rounded-lg transition-colors">
                     Back to Videos
                 </button>
             </div>
@@ -340,7 +340,7 @@ const averageEngagement = computed(() => {
                                 '') }}
                         </span>
                         <button @click="showEditModal = true"
-                            class="p-2 text-gray-600 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 transition-colors"
+                            class="p-2 text-gray-600 hover:text-violet-600 dark:text-gray-400 dark:hover:text-violet-400 transition-colors"
                             title="Edit">
                             <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
                                 <path
@@ -348,7 +348,7 @@ const averageEngagement = computed(() => {
                             </svg>
                         </button>
                         <button @click="deleteVideo"
-                            class="p-2 text-gray-600 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 transition-colors"
+                            class="p-2 text-gray-600 hover:text-violet-600 dark:text-gray-400 dark:hover:text-violet-400 transition-colors"
                             title="Delete">
                             <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd"
@@ -488,7 +488,7 @@ const averageEngagement = computed(() => {
                                         'w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium transition-colors',
                                         currentVideo.status === 'scheduled' || currentVideo.status === 'published'
                                             ? 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
-                                            : 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white shadow-md hover:shadow-lg'
+                                            : 'bg-gradient-to-r from-violet-500 to-violet-600 hover:from-violet-600 hover:to-violet-700 text-white shadow-md hover:shadow-lg'
                                     ]">
                                     <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd"
@@ -506,7 +506,7 @@ const averageEngagement = computed(() => {
                                     Edit Details
                                 </button>
                                 <button @click="deleteVideo"
-                                    class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg font-medium transition-colors">
+                                    class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-orange-50 dark:bg-orange-900/20 hover:bg-orange-100 dark:hover:bg-orange-900/30 text-orange-600 dark:text-orange-400 rounded-lg font-medium transition-colors">
                                     <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd"
                                             d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
@@ -588,12 +588,12 @@ const averageEngagement = computed(() => {
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Date</label>
                             <input v-model="scheduleDate" type="date" required
-                                class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
+                                class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Time</label>
                             <input v-model="scheduleTime" type="time" required
-                                class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
+                                class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
                         </div>
                     </div>
                     <div>
@@ -608,7 +608,7 @@ const averageEngagement = computed(() => {
                                 }" :class="[
                                     'flex items-center gap-3 p-4 rounded-lg border-2 transition-all',
                                     selectedPlatforms.includes(platform as any)
-                                        ? 'border-red-500 bg-red-50 dark:bg-red-900/20'
+                                        ? 'border-violet-500 bg-violet-50 dark:bg-orange-900/20'
                                         : 'border-gray-300 dark:border-gray-600 hover:border-gray-400'
                                 ]">
                                 <div
@@ -618,7 +618,7 @@ const averageEngagement = computed(() => {
                                 <span class="font-medium text-gray-900 dark:text-gray-100 capitalize">{{ platform
                                 }}</span>
                                 <div v-if="selectedPlatforms.includes(platform as any)" class="ml-auto">
-                                    <svg class="w-5 h-5 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <svg class="w-5 h-5 text-violet-600" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd"
                                             d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
                                             clip-rule="evenodd" />
@@ -639,7 +639,7 @@ const averageEngagement = computed(() => {
                             'px-6 py-2 rounded-lg font-medium transition-colors',
                             !scheduleDate || !scheduleTime || selectedPlatforms.length === 0
                                 ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-500 cursor-not-allowed'
-                                : 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white shadow-md hover:shadow-lg'
+                                : 'bg-gradient-to-r from-violet-500 to-violet-600 hover:from-violet-600 hover:to-violet-700 text-white shadow-md hover:shadow-lg'
                         ]">
                         Schedule Post
                     </button>
@@ -669,20 +669,20 @@ const averageEngagement = computed(() => {
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Video Title
                             *</label>
                         <input v-model="videoDetailsForm.title" type="text" required
-                            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                             placeholder="Enter video title" />
                     </div>
                     <div>
                         <label
                             class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Description</label>
                         <textarea v-model="videoDetailsForm.description" rows="4"
-                            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 resize-none"
+                            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 resize-none"
                             placeholder="Describe your video..."></textarea>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tags</label>
                         <input v-model="videoDetailsForm.tags" type="text"
-                            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                             placeholder="tutorial, cooking, funny (comma separated)" />
                     </div>
                     <div>
@@ -693,7 +693,7 @@ const averageEngagement = computed(() => {
                                 @click="togglePlatform(platform as any)" :class="[
                                     'flex items-center gap-3 p-4 rounded-lg border-2 transition-all',
                                     videoDetailsForm.platforms.includes(platform as any)
-                                        ? 'border-red-500 bg-red-50 dark:bg-red-900/20'
+                                        ? 'border-violet-500 bg-violet-50 dark:bg-orange-900/20'
                                         : 'border-gray-300 dark:border-gray-600 hover:border-gray-400'
                                 ]">
                                 <div
@@ -703,7 +703,7 @@ const averageEngagement = computed(() => {
                                 <span class="font-medium text-gray-900 dark:text-gray-100 capitalize">{{ platform
                                 }}</span>
                                 <div v-if="videoDetailsForm.platforms.includes(platform as any)" class="ml-auto">
-                                    <svg class="w-5 h-5 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <svg class="w-5 h-5 text-violet-600" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd"
                                             d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
                                             clip-rule="evenodd" />
@@ -723,7 +723,7 @@ const averageEngagement = computed(() => {
                         'px-6 py-2 rounded-lg font-medium transition-colors',
                         !videoDetailsForm.title
                             ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 cursor-not-allowed'
-                            : 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white shadow-md hover:shadow-lg'
+                            : 'bg-gradient-to-r from-violet-500 to-violet-600 hover:from-violet-600 hover:to-violet-700 text-white shadow-md hover:shadow-lg'
                     ]">
                         Save Changes
                     </button>

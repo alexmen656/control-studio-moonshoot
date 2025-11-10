@@ -61,9 +61,8 @@
                     </div>
 
                     <div v-else-if="error" class="p-8 text-center">
-                        <p class="text-red-600 dark:text-red-400">{{ error }}</p>
+                        <p class="text-orange-600 dark:text-orange-400">{{ error }}</p>
                     </div>
-
                     <div v-else class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                             <thead class="bg-gray-50 dark:bg-gray-900">
@@ -135,7 +134,7 @@
                                         </button>
                                         <button 
                                             @click="deleteUser(user)" 
-                                            class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                                            class="text-orange-600 hover:text-orange-900 dark:text-orange-400 dark:hover:text-orange-300"
                                             :disabled="isLastAdmin(user)">
                                             Delete
                                         </button>
