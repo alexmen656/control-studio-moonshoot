@@ -8,8 +8,6 @@ export async function fetchTikTokAnalytics(token, metadata) {
         accessToken: token.sub.access_token
     };
 
-    // await new Promise(resolve => setTimeout(resolve, 5000));
-
     const analyticsData = {
         totalViews: 0,
         totalLikes: 0,
@@ -20,7 +18,7 @@ export async function fetchTikTokAnalytics(token, metadata) {
     };
 
     const tiktokData = await getUserVideos(tiktokToken);
-    
+
     if (tiktokData && tiktokData.data && tiktokData.data.videos) {
         analyticsData.totalVideos = tiktokData.data.videos.length;
         analyticsData.videos = tiktokData.data.videos.map(video => ({
@@ -51,7 +49,7 @@ export async function fetchTikTokAnalytics(token, metadata) {
         total_likes: analyticsData.totalLikes,
         total_comments: analyticsData.totalComments,
         total_shares: analyticsData.totalShares,
-        engagement_rate: analyticsData.totalViews > 0 
+        engagement_rate: analyticsData.totalViews > 0
             ? ((analyticsData.totalLikes + analyticsData.totalComments + analyticsData.totalShares) / analyticsData.totalViews * 100).toFixed(2)
             : '0.00',
         videos: analyticsData.videos

@@ -701,14 +701,12 @@ app.patch('/api/jobs/:jobId/status', requireWorkerCert, async (req, res) => {
 
     const result = await db.query(updateQuery, params);
 
-    // If job completed successfully with analytics data, store it in the database
     if (status === 'completed' && result_data?.analytics_data) {
       try {
         await storeAnalyticsData(result_data);
         console.log(`✅ Analytics data stored for job ${jobId}`);
       } catch (analyticsError) {
         console.error(`❌ Error storing analytics data for job ${jobId}:`, analyticsError);
-        // Don't fail the job status update if analytics storage fails
       }
     }
 
@@ -731,8 +729,6 @@ https.createServer(options, app).listen(3001, () => {
   console.log('Worker server running on :3001');
 
   startJobScheduler(30000);
-
-  //pause for debugging
-  //startAnalyticsScheduler(300000);
+  startAnalyticsScheduler(300000);
   console.log('Analytics scheduler started (5-minute intervals)');
 });
