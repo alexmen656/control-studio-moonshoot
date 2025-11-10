@@ -1,5 +1,6 @@
 <template>
-    <div class="p-8 max-w-7xl mx-auto dark:bg-gray-900 h-full">
+    <div class="w-full dark:bg-gray-900 min-h-full">
+        <div class="p-8 max-w-7xl mx-auto h-full">
         <div class="flex justify-between items-center mb-8">
             <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">Analytics</h1>
             <div class="flex gap-4 items-center">
@@ -263,6 +264,7 @@
             </svg>
             <h2 class="text-2xl font-semibold mb-2 dark:text-gray-100">No Analytics Data</h2>
             <p class="text-base dark:text-gray-300">Connect your social media accounts to see analytics</p>
+        </div>
         </div>
     </div>
 </template>
