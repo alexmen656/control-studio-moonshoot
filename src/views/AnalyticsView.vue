@@ -504,27 +504,27 @@ const fetchAnalytics = async () => {
             const content = contentResponse.data.content || []
             
             analytics.value = {
-                totalViews: latest.total_views || 0,
-                totalLikes: latest.total_likes || 0,
-                totalComments: latest.total_comments || 0,
-                totalVideos: latest.total_videos || latest.total_posts || latest.total_tweets || 0,
-                totalShares: latest.total_shares || latest.total_retweets || 0,
+                totalViews: Number(latest.total_views) || 0,
+                totalLikes: Number(latest.total_likes) || 0,
+                totalComments: Number(latest.total_comments) || 0,
+                totalVideos: Number(latest.total_videos || latest.total_posts || latest.total_tweets) || 0,
+                totalShares: Number(latest.total_shares || latest.total_retweets) || 0,
                 platforms: {
                     [selectedPlatform.value]: {
-                        views: latest.total_views || 0,
-                        likes: latest.total_likes || 0,
-                        comments: latest.total_comments || 0,
-                        shares: latest.total_shares || latest.total_retweets || 0,
-                        videos: latest.total_videos || latest.total_posts || latest.total_tweets || 0
+                        views: Number(latest.total_views) || 0,
+                        likes: Number(latest.total_likes) || 0,
+                        comments: Number(latest.total_comments) || 0,
+                        shares: Number(latest.total_shares || latest.total_retweets) || 0,
+                        videos: Number(latest.total_videos || latest.total_posts || latest.total_tweets) || 0
                     }
                 },
                 videos: content.map((item: any) => ({
                     platform: item.platform || selectedPlatform.value,
                     title: item.title || 'Untitled',
-                    views: item.views || 0,
-                    likes: item.likes || 0,
-                    comments: item.comments || 0,
-                    shares: item.shares || item.retweets || 0
+                    views: Number(item.views) || 0,
+                    likes: Number(item.likes) || 0,
+                    comments: Number(item.comments) || 0,
+                    shares: Number(item.shares || item.retweets) || 0
                 }))
             }
         } else {
@@ -543,11 +543,11 @@ const fetchAnalytics = async () => {
             
             for (const platform of platforms) {
                 platformsMap[platform.platform] = {
-                    views: platform.total_views || 0,
-                    likes: platform.total_likes || 0,
-                    comments: platform.total_comments || 0,
-                    shares: platform.total_shares || platform.total_retweets || 0,
-                    videos: platform.total_content || 0
+                    views: Number(platform.total_views) || 0,
+                    likes: Number(platform.total_likes) || 0,
+                    comments: Number(platform.total_comments) || 0,
+                    shares: Number(platform.total_shares || platform.total_retweets) || 0,
+                    videos: Number(platform.total_content) || 0
                 }
                 
                 try {
@@ -559,22 +559,28 @@ const fetchAnalytics = async () => {
                     allVideos.push(...content.map((item: any) => ({
                         platform: platform.platform,
                         title: item.title || 'Untitled',
-                        views: item.views || 0,
-                        likes: item.likes || 0,
-                        comments: item.comments || 0,
-                        shares: item.shares || item.retweets || 0
+                        views: Number(item.views) || 0,
+                        likes: Number(item.likes) || 0,
+                        comments: Number(item.comments) || 0,
+                        shares: Number(item.shares || item.retweets) || 0
                     })))
                 } catch (err) {
                     console.error(`Error fetching content for ${platform.platform}:`, err)
                 }
             }
             
+            const totalViews = Object.values(platformsMap).reduce((sum, p) => sum + (p.views || 0), 0)
+            const totalLikes = Object.values(platformsMap).reduce((sum, p) => sum + (p.likes || 0), 0)
+            const totalComments = Object.values(platformsMap).reduce((sum, p) => sum + (p.comments || 0), 0)
+            const totalVideos = Object.values(platformsMap).reduce((sum, p) => sum + (p.videos || 0), 0)
+            const totalShares = Object.values(platformsMap).reduce((sum, p) => sum + (p.shares || 0), 0)
+            
             analytics.value = {
-                totalViews: totals.total_views || 0,
-                totalLikes: totals.total_likes || 0,
-                totalComments: totals.total_comments || 0,
-                totalVideos: totals.total_content || 0,
-                totalShares: 0,
+                totalViews,
+                totalLikes,
+                totalComments,
+                totalVideos,
+                totalShares,
                 platforms: platformsMap,
                 videos: allVideos
             }
@@ -617,7 +623,7 @@ const fetchAnalytics = async () => {
 }
 
 const formatNumber = (num: number | undefined) => {
-    if (!num) return '0'
+    if (num === undefined || num === null) return '0'
     if (num >= 1000000) {
         return (num / 1000000).toFixed(1) + 'M'
     }
