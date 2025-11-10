@@ -171,6 +171,13 @@ const scheduleVideo = async () => {
             minutes ?? 0
         )
 
+        console.log('Schedule Debug:', {
+            input: { year, month, day, hours, minutes },
+            localString: scheduledDateTime.toString(),
+            isoString: scheduledDateTime.toISOString(),
+            timezoneOffset: scheduledDateTime.getTimezoneOffset()
+        })
+
         const response = await axios.patch(`${API_URL}/videos/${currentVideo.value.id}`, {
             status: 'scheduled',
             scheduledDate: scheduledDateTime.toISOString(),
