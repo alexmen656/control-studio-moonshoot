@@ -433,7 +433,7 @@ const fetchHourlyData = async () => {
         if (selectedPlatform.value) {
             const PROJECT_ID = localStorage.getItem('currentProjectId');
             const response = await axios.get(
-                `http://localhost:6709/api/analytics/live/projects/2/platforms/${selectedPlatform.value}/24h?project_id=${PROJECT_ID}`
+                `http://localhost:6709/api/analytics/live/projects/${PROJECT_ID}/platforms/${selectedPlatform.value}/24h?project_id=${PROJECT_ID}`
             )
             console.log('Fetched 24h live data:', response.data)
             
@@ -454,7 +454,7 @@ const fetchHourlyData = async () => {
             }
         } else {
             const PROJECT_ID = localStorage.getItem('currentProjectId');
-            const response = await axios.get(`http://localhost:6709/api/analytics/live/projects/2/latest?project_id=${PROJECT_ID}`)
+            const response = await axios.get(`http://localhost:6709/api/analytics/live/projects/${PROJECT_ID}/latest?project_id=${PROJECT_ID}`)
             const platforms = response.data.platforms || []
             
             const labels = platforms.map((p: any) => p.platform)
@@ -492,13 +492,13 @@ const fetchAnalytics = async () => {
             const PROJECT_ID = localStorage.getItem('currentProjectId');
             
             const [latestResponse, contentResponse] = await Promise.all([
-                axios.get(`http://localhost:6709/api/analytics/live/projects/2/platforms/${selectedPlatform.value}/24h?project_id=${PROJECT_ID}`),
-                axios.get(`http://localhost:6709/api/analytics/live/projects/2/platforms/${selectedPlatform.value}/content?limit=50&sortBy=views&project_id=${PROJECT_ID}`),
+                axios.get(`http://localhost:6709/api/analytics/live/projects/${PROJECT_ID}/platforms/${selectedPlatform.value}/24h?project_id=${PROJECT_ID}`),
+                axios.get(`http://localhost:6709/api/analytics/live/projects/${PROJECT_ID}/platforms/${selectedPlatform.value}/content?limit=50&sortBy=views&project_id=${PROJECT_ID}`),
                 fetchHourlyData()
             ])
             
             const analyticsData = latestResponse.data.analytics || []
-            const latest = analyticsData.length > 0 ? analyticsData[analyticsData.length - 1] : {}
+            const latest = analyticsData.length > 0 ? analyticsData[0] : {}
             const content = contentResponse.data.content || []
             
             analytics.value = {
@@ -526,9 +526,9 @@ const fetchAnalytics = async () => {
                 }))
             }
         } else {
-            const PROJECT_ID = localStorage.getItem('currentProjectId');
+            const PROJECT_ID = localStorage.getItem('currentProjectId') || '2';
             const [overviewResponse] = await Promise.all([
-                axios.get(`http://localhost:6709/api/analytics/live/projects/2/overview?project_id=${PROJECT_ID}`),
+                axios.get(`http://localhost:6709/api/analytics/live/projects/${PROJECT_ID}/overview?project_id=${PROJECT_ID}`),
                 fetchHourlyData()
             ])
             
@@ -549,9 +549,9 @@ const fetchAnalytics = async () => {
                 }
                 
                 try {
-                    const PROJECT_ID = localStorage.getItem('currentProjectId');
+                    const PROJECT_ID = localStorage.getItem('currentProjectId') || '2';
                     const contentResponse = await axios.get(
-                        `http://localhost:6709/api/analytics/live/projects/2/platforms/${platform.platform}/content?limit=10&sortBy=views&project_id=${PROJECT_ID}`
+                        `http://localhost:6709/api/analytics/live/projects/${PROJECT_ID}/platforms/${platform.platform}/content?limit=10&sortBy=views`
                     )
                     const content = contentResponse.data.content || []
                     allVideos.push(...content.map((item: any) => ({
@@ -588,10 +588,15 @@ const fetchAnalytics = async () => {
                 params.platform = selectedPlatform.value
             }
             
-            const PROJECT_ID = localStorage.getItem('currentProjectId');
+            const PROJECT_ID = localStorage.getItem('currentProjectId') || '2';
             
             const [analyticsResponse] = await Promise.all([
-                axios.get(`http://localhost:6709/api/analytics/total?project_id=${PROJECT_ID}`, { params }),
+                axios.get(`http://localhost:6709/api/analytics/total`, { 
+                    params: {
+                        project_id: PROJECT_ID,
+                        ...params
+                    }
+                }),
                 fetchHourlyData()
             ])
             
