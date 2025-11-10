@@ -79,7 +79,7 @@ const getVideoStats = (filePath) => {
 }
 
 app.get('/', (req, res) => {
-  res.send('Control Studio API - Social Media Manager');
+  res.send('Reelmia API - Social Media Manager');
 });
 
 app.post('/api/upload', authMiddleware, projectAccessMiddleware, upload.single('video'), async (req, res) => {

@@ -5,8 +5,8 @@ import { query } from './db.js';
 
 export const generateTOTPSecret = (email) => {
     const secret = speakeasy.generateSecret({
-        name: `Control Studio (${email})`,
-        issuer: 'Control Studio',
+        name: `Reelmia (${email})`,
+        issuer: 'Reelmia',
         length: 32
     });
 

@@ -14,7 +14,7 @@ const __dirname = path.dirname(__filename);
 const PROJECT_ROOT = path.join(__dirname, '..');
 dotenv.config({ path: path.join(PROJECT_ROOT, '.env') });
 
-const RP_NAME = 'Control Studio';
+const RP_NAME = 'Reelmia';
 const RP_ID = process.env.RP_ID || 'localhost';
 const ORIGIN = process.env.ORIGIN || 'http://localhost:5173';
 

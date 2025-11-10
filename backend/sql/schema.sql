@@ -1,4 +1,4 @@
--- Control Studio Database Schema
+-- Reelmia Database Schema
 
 -- Videos table
 CREATE TABLE IF NOT EXISTS videos (

@@ -24,7 +24,7 @@ class RedditManager {
         this.redirectUri = options.redirectUri || 'https://api.reelmia.com/api/oauth2callback/reddit';// : 'http://localhost:6709/api/oauth2callback/reddit', process.env.MODE === 'prod' ? 
         this.projectId = 2;
         this.scopes = options.scopes || SCOPES;
-        this.userAgent = options.userAgent || 'Control Studio/1.0';
+        this.userAgent = options.userAgent || 'Reelmia/1.0';
 
         if (!this.clientId || !this.clientSecret) {
             throw new Error('Reddit Client ID and Client Secret must be provided');

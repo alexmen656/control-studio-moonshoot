@@ -18,7 +18,7 @@
                     Welcome back
                 </h2>
                 <p class="mt-2 text-sm text-primary-100 dark:text-gray-300">
-                    Sign in to your Control Studio account
+                    Sign in to your Reelmia account
                 </p>
             </div>
             <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 space-y-6">

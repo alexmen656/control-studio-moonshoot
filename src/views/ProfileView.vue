@@ -121,7 +121,7 @@ const getFlagIcon = (lang: Language) => {
             </div>
             <div>
               <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100">Theme</h2>
-              <p class="text-sm text-gray-500 dark:text-gray-400">Choose how Control Studio looks to you</p>
+              <p class="text-sm text-gray-500 dark:text-gray-400">Choose how Reelmia looks to you</p>
             </div>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">

@@ -1,7 +1,7 @@
 {
   "name": "control-studio-worker",
   "version": "1.0.0",
-  "description": "Upload worker for Control Studio",
+  "description": "Upload worker for Reelmia",
   "main": "server.js",
   "type": "module",
   "scripts": {
