@@ -4,8 +4,8 @@
             <div class="flex justify-between items-center h-15">
                 <div class="flex items-center">
                     <div @click="router.push('/dashboard')" class="flex-shrink-0 flex items-center logo-container">
-                        <img data-v-c970699f="" class="logo-image" src="../assets/logo.png" alt="Logo">
-                        <span class="logo-text">
+                        <img class="logo-image" src="../assets/new_new_logo.svg" alt="Logo">
+                        <span class="logo-text font-bold bg-gradient-to-r from-violet-600 to-blue-600 bg-clip-text text-transparent">
                             {{ hostname === 'studio.control-center.eu' ? 'Control Studio' : 'Reelmia'
                             }}</span>
                     </div>
@@ -440,13 +440,11 @@ const XIcon = {
     letter-spacing: -0.8px;
     line-height: 1;
     transition: color 0.2s ease;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    color: #ea0e2b;
     cursor: pointer;
 }
 
 .logo-image {
-    height: 36px;
+    height: 34px;
     width: auto;
     transition: transform 0.2s ease;
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
