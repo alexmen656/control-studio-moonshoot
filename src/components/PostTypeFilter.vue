@@ -58,7 +58,7 @@ const getSelectedType = (value: string) => {
         @click="selectType(type.value)"
         :class="[
           'w-full flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-left',
-          modelValue === type.value ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 font-medium' : 'text-gray-700 dark:text-gray-300'
+          modelValue === type.value ? 'bg-violet-50 dark:bg-violet-900/20 text-violet-600 dark:text-violet-400 font-medium' : 'text-gray-700 dark:text-gray-300'
         ]"
       >
         <span class="text-base">{{ type.icon }}</span>

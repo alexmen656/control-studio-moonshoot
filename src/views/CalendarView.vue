@@ -286,7 +286,7 @@ onMounted(() => {
                         <button @click="viewMode = 'calendar'" :class="[
                             'px-4 py-2 rounded transition-colors font-medium text-sm',
                             viewMode === 'calendar'
-                                ? 'bg-white dark:bg-gray-700 text-red-600 shadow-sm'
+                                ? 'bg-white dark:bg-gray-700 text-violet-600 shadow-sm'
                                 : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
                         ]">
                             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -298,7 +298,7 @@ onMounted(() => {
                         <button @click="viewMode = 'list'" :class="[
                             'px-4 py-2 rounded transition-colors font-medium text-sm',
                             viewMode === 'list'
-                                ? 'bg-white dark:bg-gray-700 text-red-600 shadow-sm'
+                                ? 'bg-white dark:bg-gray-700 text-violet-600 shadow-sm'
                                 : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
                         ]">
                             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -314,7 +314,7 @@ onMounted(() => {
             <div v-if="viewMode === 'calendar'" class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
                     <button @click="previousMonth"
-                        class="p-2 text-gray-600 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 transition-colors">
+                        class="p-2 text-gray-600 hover:text-violet-600 dark:text-gray-400 dark:hover:text-violet-400 transition-colors">
                         <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd"
                                 d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
@@ -324,7 +324,7 @@ onMounted(() => {
                     <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100 capitalize">{{ currentMonth }}
                     </h2>
                     <button @click="nextMonth"
-                        class="p-2 text-gray-600 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 transition-colors">
+                        class="p-2 text-gray-600 hover:text-violet-600 dark:text-gray-400 dark:hover:text-violet-400 transition-colors">
                         <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd"
                                 d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
@@ -354,12 +354,12 @@ onMounted(() => {
                     <div v-for="(dayInfo, index) in calendarDays" :key="index" :class="[
                         'min-h-[120px] border-r border-b border-gray-200 dark:border-gray-700 p-2 last:border-r-0',
                         !dayInfo.isCurrentMonth ? 'bg-gray-50 dark:bg-gray-900/50' : '',
-                        dayInfo.isToday ? 'bg-red-50 dark:bg-red-900/10' : ''
+                        dayInfo.isToday ? 'bg-violet-50 dark:bg-violet-900/10' : ''
                     ]">
                         <div :class="[
                             'text-sm font-medium mb-2',
                             !dayInfo.isCurrentMonth ? 'text-gray-400 dark:text-gray-600' : 'text-gray-900 dark:text-gray-100',
-                            dayInfo.isToday ? 'text-red-600 dark:text-red-400' : ''
+                            dayInfo.isToday ? 'text-violet-600 dark:text-violet-400' : ''
                         ]">
                             {{ dayInfo.day }}
                         </div>

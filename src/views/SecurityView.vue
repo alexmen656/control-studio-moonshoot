@@ -58,7 +58,7 @@
                                 <input v-model="confirmNewPassword" type="password" required
                                     class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white" />
                             </div>
-                            <p v-if="passwordError" class="text-sm text-red-600 dark:text-red-400">{{ passwordError }}
+                            <p v-if="passwordError" class="text-sm text-orange-600 dark:text-orange-400">{{ passwordError }}
                             </p>
                             <p v-if="passwordSuccess" class="text-sm text-green-600 dark:text-green-400">{{
                                 passwordSuccess }}</p>

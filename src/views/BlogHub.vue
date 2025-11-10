@@ -37,7 +37,7 @@ const recentPosts = [
         title: 'YouTube Shorts Algorithm Explained: Get More Views',
         excerpt: 'Decode the YouTube Shorts algorithm and optimize your content for maximum visibility.',
         category: 'YouTube',
-        categoryColor: 'bg-red-500',
+        categoryColor: 'bg-orange-500',
         thumbnail: '/blog/yt-algo.jpg',
         author: { name: 'Elena Rodriguez', avatar: '👩‍💼' },
         readTime: '10 min',
@@ -336,10 +336,10 @@ const subscribeNewsletter = () => {
                             @click="router.push(`/blog/${post.id}`)">
                             <div
                                 class="w-24 h-24 bg-gradient-to-br from-red-100 to-red-200 rounded-lg flex-shrink-0 flex items-center justify-center">
-                                <i class="fab fa-youtube text-2xl text-red-600"></i>
+                                <i class="fab fa-youtube text-2xl text-orange-600"></i>
                             </div>
                             <div class="flex-1">
-                                <h3 class="font-bold text-slate-900 group-hover:text-red-600 transition-colors mb-2">{{
+                                <h3 class="font-bold text-slate-900 group-hover:text-orange-600 transition-colors mb-2">{{
                                     post.title }}</h3>
                                 <span class="text-sm text-slate-600">{{ post.readTime }}</span>
                             </div>

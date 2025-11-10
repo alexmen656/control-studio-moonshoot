@@ -358,7 +358,7 @@ const getStatusColor = (status: string) => {
     processing: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300',
     scheduled: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
     published: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
-    failed: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300',
+    failed: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
     'awaiting-details': 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300'
   }
   return colors[status as keyof typeof colors] || colors.ready
@@ -584,19 +584,19 @@ const saveVideoDetails = async () => {
                 clip-rule="evenodd" />
             </svg>
             <input v-model="searchQuery" type="text" placeholder="Search..."
-              class="w-full pl-9 pr-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" />
+              class="w-full pl-9 pr-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" />
           </div>
         </div>
         <PostTypeFilter v-model="postTypeFilter" />
         <StatusFilter v-model="filterStatus" />
         <div class="flex items-center gap-2 ml-auto">
           <div v-if="selectedVideos.size > 0"
-            class="flex items-center gap-1.5 px-3 py-1.5 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
-            <span class="text-xs font-medium text-red-700 dark:text-red-300">
+            class="flex items-center gap-1.5 px-3 py-1.5 bg-orange-50 dark:bg-orange-900/20 rounded-lg border border-orange-200 dark:border-orange-800">
+            <span class="text-xs font-medium text-orange-700 dark:text-orange-300">
               {{ selectedVideos.size }}
             </span>
             <button @click="bulkSchedule"
-              class="p-1 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/40 rounded transition-colors"
+              class="p-1 text-orange-600 hover:bg-orange-100 dark:hover:bg-orange-900/40 rounded transition-colors"
               title="Schedule">
               <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd"
@@ -605,7 +605,7 @@ const saveVideoDetails = async () => {
               </svg>
             </button>
             <button @click="bulkDelete"
-              class="p-1 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/40 rounded transition-colors"
+              class="p-1 text-orange-600 hover:bg-orange-100 dark:hover:bg-orange-900/40 rounded transition-colors"
               title="Delete">
               <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd"
@@ -618,7 +618,7 @@ const saveVideoDetails = async () => {
             <button @click="viewMode = 'grid'" :class="[
               'p-1.5 rounded transition-colors',
               viewMode === 'grid'
-                ? 'bg-white dark:bg-gray-700 text-red-600 shadow-sm'
+                ? 'bg-white dark:bg-gray-700 text-violet-600 shadow-sm'
                 : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
             ]">
               <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -629,7 +629,7 @@ const saveVideoDetails = async () => {
             <button @click="viewMode = 'list'" :class="[
               'p-1.5 rounded transition-colors',
               viewMode === 'list'
-                ? 'bg-white dark:bg-gray-700 text-red-600 shadow-sm'
+                ? 'bg-white dark:bg-gray-700 text-violet-600 shadow-sm'
                 : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
             ]">
               <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -684,7 +684,7 @@ const saveVideoDetails = async () => {
           </div>
           <div class="p-4">
             <h3
-              class="font-semibold text-gray-900 dark:text-gray-100 mb-2 truncate cursor-pointer hover:text-red-600 transition-colors"
+              class="font-semibold text-gray-900 dark:text-gray-100 mb-2 truncate cursor-pointer hover:text-violet-600 transition-colors"
               @click="router.push({ name: 'video', params: { id: video.id } })">{{ video.title }}</h3>
             <div class="flex items-center gap-2 mb-3">
               <span :class="['text-xs px-2 py-1 rounded-full font-medium', getStatusColor(video.status)]">
@@ -696,7 +696,7 @@ const saveVideoDetails = async () => {
             </div>
             <div v-if="video.status === 'uploading' && video.progress !== undefined" class="mb-3">
               <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
-                <div class="bg-red-500 h-full transition-all" :style="{ width: `${video.progress}%` }">
+                <div class="bg-violet-500 h-full transition-all" :style="{ width: `${video.progress}%` }">
                 </div>
               </div>
               <span class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ video.progress }}%</span>
@@ -771,7 +771,7 @@ const saveVideoDetails = async () => {
                         video.title }}</div>
                     <div v-if="video.status === 'uploading' && video.progress !== undefined" class="mt-1">
                       <div class="w-32 bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 overflow-hidden">
-                        <div class="bg-red-500 h-full" :style="{ width: `${video.progress}%` }">
+                        <div class="bg-violet-500 h-full" :style="{ width: `${video.progress}%` }">
                         </div>
                       </div>
                     </div>
@@ -811,14 +811,14 @@ const saveVideoDetails = async () => {
                     Add Details
                   </button>
                   <button @click="openDetailsModal(video)"
-                    class="p-1.5 text-gray-400 hover:text-red-600 transition-colors" title="Edit">
+                    class="p-1.5 text-gray-400 hover:text-violet-600 transition-colors" title="Edit">
                     <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                       <path
                         d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
                     </svg>
                   </button>
                   <button @click="deleteVideo(video.id)"
-                    class="p-1.5 text-gray-400 hover:text-red-600 transition-colors" title="Delete">
+                    class="p-1.5 text-gray-400 hover:text-violet-600 transition-colors" title="Delete">
                     <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                       <path fill-rule="evenodd"
                         d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
@@ -842,7 +842,7 @@ const saveVideoDetails = async () => {
           {{ searchQuery ? 'Try adjusting your search' : 'Get started by uploading your first video' }}
         </p>
         <button v-if="!searchQuery" @click="showUploadModal = true"
-          class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg transition-colors">
+          class="bg-violet-600 hover:bg-violet-700 text-white px-6 py-2 rounded-lg transition-colors">
           Upload Videos
         </button>
       </div>
@@ -870,7 +870,7 @@ const saveVideoDetails = async () => {
           <p class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">Drop your videos here</p>
           <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">or click to browse</p>
           <button @click.stop="triggerFileUpload"
-            class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg transition-colors font-medium">
+            class="bg-violet-600 hover:bg-violet-700 text-white px-6 py-2 rounded-lg transition-colors font-medium">
             Choose Files
           </button>
           <input id="video-file-input" type="file" multiple accept="video/*" class="hidden"
@@ -907,7 +907,7 @@ const saveVideoDetails = async () => {
               Video Title *
             </label>
             <input v-model="videoDetailsForm.title" type="text" required
-              class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+              class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
               placeholder="Enter a catchy title for your video" />
           </div>
           <div>
@@ -915,7 +915,7 @@ const saveVideoDetails = async () => {
               Description
             </label>
             <textarea v-model="videoDetailsForm.description" rows="4"
-              class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 resize-none"
+              class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 resize-none"
               placeholder="Describe your video content..."></textarea>
             <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
               {{ videoDetailsForm.description.length }} characters
@@ -926,7 +926,7 @@ const saveVideoDetails = async () => {
               Tags
             </label>
             <input v-model="videoDetailsForm.tags" type="text"
-              class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+              class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
               placeholder="e.g. tutorial, funny, cooking (comma separated)" />
             <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
               Separate tags with commas
@@ -949,7 +949,7 @@ const saveVideoDetails = async () => {
                 type="button" :class="[
                   'flex items-center gap-3 p-4 rounded-lg border-2 transition-all',
                   videoDetailsForm.platforms.includes(platform as any)
-                    ? 'border-red-500 bg-red-50 dark:bg-red-900/20'
+                    ? 'border-violet-500 bg-violet-50 dark:bg-violet-900/20'
                     : 'border-gray-300 dark:border-gray-600 hover:border-gray-400'
                 ]">
                 <div class="text-gray-600 dark:text-gray-400 w-6 h-6 flex items-center justify-center"
@@ -960,7 +960,7 @@ const saveVideoDetails = async () => {
                   <div class="text-xs text-gray-500 dark:text-gray-400">{{ getPlatformDescription(platform) }}</div>
                 </div>
                 <div v-if="videoDetailsForm.platforms.includes(platform as any)" class="ml-auto">
-                  <svg class="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                  <svg class="w-5 h-5 text-violet-500" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd"
                       d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
                       clip-rule="evenodd" />
@@ -969,7 +969,7 @@ const saveVideoDetails = async () => {
               </button>
             </div>
             <p v-if="videoDetailsForm.platforms.length === 0 && connectedPlatforms.length > 0"
-              class="text-xs text-red-500 dark:text-red-400 mt-2">
+              class="text-xs text-violet-500 dark:text-orange-400 mt-2">
               Please select at least one platform
             </p>
           </div>
@@ -1002,26 +1002,26 @@ const saveVideoDetails = async () => {
                   <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Location ID</label>
                     <input v-model="videoDetailsForm.advancedOptions.instagram.locationId" type="text"
-                      class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                      class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                       placeholder="e.g., 213385402" />
                     <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Instagram location ID for tagging</p>
                   </div>
                   <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Audio Name</label>
                     <input v-model="videoDetailsForm.advancedOptions.instagram.audioName" type="text"
-                      class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                      class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                       placeholder="Audio track name" />
                   </div>
                   <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Cover URL</label>
                     <input v-model="videoDetailsForm.advancedOptions.instagram.coverUrl" type="url"
-                      class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                      class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                       placeholder="https://example.com/cover.jpg" />
                   </div>
                   <div class="flex items-center">
                     <input v-model="videoDetailsForm.advancedOptions.instagram.shareToFeed" type="checkbox"
                       id="instagram-share-feed"
-                      class="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500" />
+                      class="w-4 h-4 text-violet-600 border-gray-300 rounded focus:ring-violet-500" />
                     <label for="instagram-share-feed" class="ml-2 text-sm text-gray-700 dark:text-gray-300">Share to
                       Feed</label>
                   </div>
@@ -1037,7 +1037,7 @@ const saveVideoDetails = async () => {
                   <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Privacy Level</label>
                     <select v-model="videoDetailsForm.advancedOptions.tiktok.privacyLevel"
-                      class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+                      class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
                       <option value="PUBLIC_TO_EVERYONE">Public</option>
                       <option value="MUTUAL_FOLLOW_FRIENDS">Friends</option>
                       <option value="SELF_ONLY">Private</option>
@@ -1047,7 +1047,7 @@ const saveVideoDetails = async () => {
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Cover Timestamp
                       (ms)</label>
                     <input v-model.number="videoDetailsForm.advancedOptions.tiktok.videoCoverTimestampMs" type="number"
-                      class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                      class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                       placeholder="1000" />
                     <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Timestamp for video cover thumbnail</p>
                   </div>
@@ -1055,21 +1055,21 @@ const saveVideoDetails = async () => {
                     <div class="flex items-center">
                       <input v-model="videoDetailsForm.advancedOptions.tiktok.disableDuet" type="checkbox"
                         id="tiktok-disable-duet"
-                        class="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500" />
+                        class="w-4 h-4 text-violet-600 border-gray-300 rounded focus:ring-violet-500" />
                       <label for="tiktok-disable-duet" class="ml-2 text-sm text-gray-700 dark:text-gray-300">Disable
                         Duet</label>
                     </div>
                     <div class="flex items-center">
                       <input v-model="videoDetailsForm.advancedOptions.tiktok.disableComment" type="checkbox"
                         id="tiktok-disable-comment"
-                        class="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500" />
+                        class="w-4 h-4 text-violet-600 border-gray-300 rounded focus:ring-violet-500" />
                       <label for="tiktok-disable-comment" class="ml-2 text-sm text-gray-700 dark:text-gray-300">Disable
                         Comments</label>
                     </div>
                     <div class="flex items-center">
                       <input v-model="videoDetailsForm.advancedOptions.tiktok.disableStitch" type="checkbox"
                         id="tiktok-disable-stitch"
-                        class="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500" />
+                        class="w-4 h-4 text-violet-600 border-gray-300 rounded focus:ring-violet-500" />
                       <label for="tiktok-disable-stitch" class="ml-2 text-sm text-gray-700 dark:text-gray-300">Disable
                         Stitch</label>
                     </div>
@@ -1087,7 +1087,7 @@ const saveVideoDetails = async () => {
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Privacy
                       Status</label>
                     <select v-model="videoDetailsForm.advancedOptions.youtube.privacyStatus"
-                      class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+                      class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
                       <option value="public">Public</option>
                       <option value="unlisted">Unlisted</option>
                       <option value="private">Private</option>
@@ -1096,7 +1096,7 @@ const saveVideoDetails = async () => {
                   <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Category ID</label>
                     <input v-model="videoDetailsForm.advancedOptions.youtube.categoryId" type="text"
-                      class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                      class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                       placeholder="22" />
                     <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">YouTube category (22 = People & Blogs)</p>
                   </div>
@@ -1104,21 +1104,21 @@ const saveVideoDetails = async () => {
                     <div class="flex items-center">
                       <input v-model="videoDetailsForm.advancedOptions.youtube.madeForKids" type="checkbox"
                         id="youtube-made-for-kids"
-                        class="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500" />
+                        class="w-4 h-4 text-violet-600 border-gray-300 rounded focus:ring-violet-500" />
                       <label for="youtube-made-for-kids" class="ml-2 text-sm text-gray-700 dark:text-gray-300">Made for
                         Kids</label>
                     </div>
                     <div class="flex items-center">
                       <input v-model="videoDetailsForm.advancedOptions.youtube.embeddable" type="checkbox"
                         id="youtube-embeddable"
-                        class="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500" />
+                        class="w-4 h-4 text-violet-600 border-gray-300 rounded focus:ring-violet-500" />
                       <label for="youtube-embeddable" class="ml-2 text-sm text-gray-700 dark:text-gray-300">Allow
                         Embedding</label>
                     </div>
                     <div class="flex items-center">
                       <input v-model="videoDetailsForm.advancedOptions.youtube.publicStatsViewable" type="checkbox"
                         id="youtube-public-stats"
-                        class="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500" />
+                        class="w-4 h-4 text-violet-600 border-gray-300 rounded focus:ring-violet-500" />
                       <label for="youtube-public-stats" class="ml-2 text-sm text-gray-700 dark:text-gray-300">Public
                         Stats Viewable</label>
                     </div>
@@ -1137,20 +1137,20 @@ const saveVideoDetails = async () => {
                       Time</label>
                     <input v-model="videoDetailsForm.advancedOptions.facebook.scheduledPublishTime"
                       type="datetime-local"
-                      class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
+                      class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
                     <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Leave empty to publish immediately</p>
                   </div>
                   <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Targeting
                       Countries</label>
                     <input v-model="videoDetailsForm.advancedOptions.facebook.targetingCountries" type="text"
-                      class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                      class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                       placeholder="US,DE,FR" />
                     <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Comma-separated country codes</p>
                   </div>
                   <div class="flex items-center">
                     <input v-model="videoDetailsForm.advancedOptions.facebook.published" type="checkbox"
-                      id="facebook-published" class="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500" />
+                      id="facebook-published" class="w-4 h-4 text-violet-600 border-gray-300 rounded focus:ring-violet-500" />
                     <label for="facebook-published" class="ml-2 text-sm text-gray-700 dark:text-gray-300">Publish
                       Immediately</label>
                   </div>
@@ -1167,7 +1167,7 @@ const saveVideoDetails = async () => {
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Reply
                       Settings</label>
                     <select v-model="videoDetailsForm.advancedOptions.x.replySettings"
-                      class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+                      class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
                       <option value="everyone">Everyone</option>
                       <option value="following">People you follow</option>
                       <option value="mentioned">Only mentioned users</option>
@@ -1175,7 +1175,7 @@ const saveVideoDetails = async () => {
                   </div>
                   <div class="flex items-center">
                     <input v-model="videoDetailsForm.advancedOptions.x.forSuperFollowersOnly" type="checkbox"
-                      id="x-super-followers" class="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500" />
+                      id="x-super-followers" class="w-4 h-4 text-violet-600 border-gray-300 rounded focus:ring-violet-500" />
                     <label for="x-super-followers" class="ml-2 text-sm text-gray-700 dark:text-gray-300">For Super
                       Followers Only</label>
                   </div>
@@ -1191,25 +1191,25 @@ const saveVideoDetails = async () => {
                   <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Subreddit *</label>
                     <input v-model="videoDetailsForm.advancedOptions.reddit.subreddit" type="text" required
-                      class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                      class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                       placeholder="e.g., videos" />
                     <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Subreddit name (without r/)</p>
                   </div>
                   <div class="space-y-2">
                     <div class="flex items-center">
                       <input v-model="videoDetailsForm.advancedOptions.reddit.nsfw" type="checkbox" id="reddit-nsfw"
-                        class="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500" />
+                        class="w-4 h-4 text-violet-600 border-gray-300 rounded focus:ring-violet-500" />
                       <label for="reddit-nsfw" class="ml-2 text-sm text-gray-700 dark:text-gray-300">NSFW (18+)</label>
                     </div>
                     <div class="flex items-center">
                       <input v-model="videoDetailsForm.advancedOptions.reddit.spoiler" type="checkbox"
-                        id="reddit-spoiler" class="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500" />
+                        id="reddit-spoiler" class="w-4 h-4 text-violet-600 border-gray-300 rounded focus:ring-violet-500" />
                       <label for="reddit-spoiler" class="ml-2 text-sm text-gray-700 dark:text-gray-300">Spoiler</label>
                     </div>
                     <div class="flex items-center">
                       <input v-model="videoDetailsForm.advancedOptions.reddit.sendReplies" type="checkbox"
                         id="reddit-send-replies"
-                        class="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500" />
+                        class="w-4 h-4 text-violet-600 border-gray-300 rounded focus:ring-violet-500" />
                       <label for="reddit-send-replies" class="ml-2 text-sm text-gray-700 dark:text-gray-300">Send Reply
                         Notifications</label>
                     </div>
@@ -1230,7 +1230,7 @@ const saveVideoDetails = async () => {
               'px-6 py-2 rounded-lg font-medium transition-colors',
               !videoDetailsForm.title || videoDetailsForm.platforms.length === 0
                 ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 cursor-not-allowed'
-                : 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white shadow-md hover:shadow-lg'
+                : 'bg-gradient-to-r from-violet-500 to-violet-600 hover:from-violet-600 hover:to-violet-700 text-white shadow-md hover:shadow-lg'
             ]">
             Save & Continue
           </button>

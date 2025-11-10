@@ -40,12 +40,12 @@
             <div class="flex items-start justify-between mb-4 pb-4 border-b border-gray-200 dark:border-gray-700">
               <div class="flex items-center gap-3">
                 <span class="inline-block w-2.5 h-2.5 rounded-full"
-                  :class="worker.status === 'online' ? 'bg-green-500 animate-pulse' : 'bg-red-500'"></span>
+                  :class="worker.status === 'online' ? 'bg-green-500 animate-pulse' : 'bg-orange-500'"></span>
                 <h3 class="font-semibold text-gray-900 dark:text-white">{{ worker.worker_name }}</h3>
               </div>
               <span class="text-xs font-semibold px-3 py-1 rounded-full transition-colors duration-200" :class="worker.status === 'online'
                 ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
-                : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'">
+                : 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400'">
                 {{ worker.status }}
               </span>
             </div>
@@ -257,7 +257,7 @@
             </button>
           </div>
           <div v-if="createError"
-            class="p-3 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 text-sm">
+            class="p-3 rounded-lg bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 text-sm">
             {{ createError }}
           </div>
           <div v-if="createSuccess"
@@ -306,7 +306,7 @@
             </button>
           </div>
           <div v-if="createError"
-            class="p-3 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 text-sm">
+            class="p-3 rounded-lg bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 text-sm">
             {{ createError }}
           </div>
           <div v-if="createSuccess"
@@ -547,12 +547,12 @@ function getJobDuration(job: Job): string {
 
 function getPlatformBadgeClass(platform: string): string {
   const classes: Record<string, string> = {
-    youtube: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400',
+    youtube: 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400',
     tiktok: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400',
     instagram: 'bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-400',
     facebook: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400',
     x: 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300',
-    reddit: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400',
+    reddit: 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400',
   }
   return classes[platform] || 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
 }
@@ -563,13 +563,13 @@ function getStatusBadgeClass(status: string): string {
     assigned: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400',
     processing: 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400',
     completed: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400',
-    failed: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400',
+    failed: 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400',
   }
   return classes[status] || 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
 }
 
 function getPriorityBadgeClass(priority: number): string {
-  if (priority >= 2) return 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
+  if (priority >= 2) return 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400'
   if (priority >= 1) return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400'
   return 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
 }

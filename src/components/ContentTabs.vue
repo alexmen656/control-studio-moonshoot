@@ -37,7 +37,7 @@ const tabContent = computed(() => ({
       :class="[
         'flex items-center gap-1.5 px-3 py-2 text-sm font-medium whitespace-nowrap transition-all rounded-md',
         activeTab === tab.id
-          ? 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 font-bold'
+          ? 'text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-900/20 font-bold'
           : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800'
       ]"
       :title="`${tab.label} (${tab.count})`">

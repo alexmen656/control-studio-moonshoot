@@ -29,7 +29,7 @@ const platforms = [
         id: 'youtube',
         name: 'YouTube',
         icon: 'fab fa-youtube',
-        color: 'from-red-600 to-red-700',
+        color: 'from-violet-600 to-violet-700',
         description: 'Shorts & Videos'
     },
     {
