@@ -72,7 +72,7 @@
                 </svg>
                 <span class="text-sm font-medium">Activity</span>
             </router-link>
-            <router-link to="/posts"
+            <router-link to="/dashboard"
                 class="flex items-center space-x-3 px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-full transition-colors"
                 active-class="bg-red-100 dark:bg-red-900/30 text-primary-900 dark:text-primary-200 hover:bg-primary-100 dark:hover:bg-red-900/40">
                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -82,16 +82,6 @@
                 </svg>
                 <span class="text-sm font-medium">My Posts</span>
             </router-link>
-            <router-link to="/dashboard"
-                class="flex items-center space-x-3 px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-full transition-colors"
-                active-class="bg-red-100 dark:bg-red-900/30 text-primary-900 dark:text-primary-200 hover:bg-primary-100 dark:hover:bg-red-900/40">
-                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                    <path
-                        d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z" />
-                </svg>
-                <span class="text-sm font-medium">My Videos</span>
-            </router-link>
-
             <!--<router-link to="/planning"
                     class="flex items-center space-x-3 px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-full transition-colors"
                     active-class="bg-red-100 dark:bg-red-900/30 text-primary-700 dark:text-primary-200 hover:bg-primary-100 dark:hover:bg-red-900/40">
@@ -103,7 +93,6 @@
                     </svg>
                     <span class="text-sm font-medium">Planning</span>
                 </router-link>-->
-
             <router-link to="/schedule"
                 class="flex items-center space-x-3 px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-full transition-colors"
                 active-class="bg-red-100 dark:bg-red-900/30 text-primary-700 dark:text-primary-200 hover:bg-primary-100 dark:hover:bg-red-900/40">
@@ -161,7 +150,8 @@
                 class="flex items-center space-x-3 px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-full transition-colors"
                 active-class="bg-red-100 dark:bg-red-900/30 text-primary-900 dark:text-primary-200 hover:bg-primary-100 dark:hover:bg-red-900/40">
                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
+                    <path
+                        d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
                 </svg>
                 <span class="text-sm font-medium">User Management</span>
             </router-link>
