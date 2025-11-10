@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import TableHeader from '@/components/TableHeader.vue'
 import StatusFilter from '@/components/StatusFilter.vue'
 import HomeHeader from '@/components/HomeHeader.vue'
+import PostTypeFilter from '@/components/PostTypeFilter.vue'
 
 const router = useRouter()
 const instance = getCurrentInstance()
@@ -71,6 +72,7 @@ const selectedVideos = ref<Set<string>>(new Set())
 const filterStatus = ref<string>('all')
 const searchQuery = ref('')
 const showUploadModal = ref(false)
+const postTypeFilter = ref<string>('all')
 //const uploadingFiles = ref<File[]>([])
 //const uploadProgress = ref<{ [key: string]: number }>({})
 const isLoading = ref(false)
@@ -347,6 +349,8 @@ const toggleVideoSelection = (id: string) => {
   }
 }
 
+
+
 const getStatusColor = (status: string) => {
   const colors = {
     ready: 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300',
@@ -566,28 +570,33 @@ const saveVideoDetails = async () => {
 <template>
   <div class="h-full flex flex-col bg-white dark:bg-gray-900">
     <div class="px-8 py-6 border-b border-gray-200 dark:border-gray-700">
-      <HomeHeader @open-upload-modal="showUploadModal = true" />
-      <div class="flex flex-wrap items-center gap-4">
-        <div class="flex-1 min-w-[200px] max-w-md">
+      <HomeHeader 
+        @open-upload-modal="showUploadModal = true" 
+      />
+    </div>
+    <div class="px-8 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+      <div class="flex flex-wrap items-center gap-3">
+        <div class="flex-1 min-w-[200px] max-w-sm">
           <div class="relative">
-            <svg class="absolute left-3 top-2.5 w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+            <svg class="absolute left-3 top-1.5 w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd"
                 d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z"
                 clip-rule="evenodd" />
             </svg>
-            <input v-model="searchQuery" type="text" placeholder="Search videos..."
-              class="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" />
+            <input v-model="searchQuery" type="text" placeholder="Search..."
+              class="w-full pl-9 pr-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" />
           </div>
         </div>
+        <PostTypeFilter v-model="postTypeFilter" />
         <StatusFilter v-model="filterStatus" />
         <div class="flex items-center gap-2 ml-auto">
           <div v-if="selectedVideos.size > 0"
-            class="flex items-center gap-2 px-4 py-2 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
-            <span class="text-sm font-medium text-red-700 dark:text-red-300">
-              {{ selectedVideos.size }} selected
+            class="flex items-center gap-1.5 px-3 py-1.5 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
+            <span class="text-xs font-medium text-red-700 dark:text-red-300">
+              {{ selectedVideos.size }}
             </span>
             <button @click="bulkSchedule"
-              class="p-1.5 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/40 rounded transition-colors"
+              class="p-1 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/40 rounded transition-colors"
               title="Schedule">
               <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd"
@@ -596,7 +605,7 @@ const saveVideoDetails = async () => {
               </svg>
             </button>
             <button @click="bulkDelete"
-              class="p-1.5 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/40 rounded transition-colors"
+              class="p-1 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/40 rounded transition-colors"
               title="Delete">
               <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd"
@@ -605,25 +614,25 @@ const saveVideoDetails = async () => {
               </svg>
             </button>
           </div>
-          <div class="flex items-center gap-1 p-1 bg-gray-100 dark:bg-gray-800 rounded-lg">
+          <div class="flex items-center gap-1 p-0.5 bg-gray-100 dark:bg-gray-800 rounded-md">
             <button @click="viewMode = 'grid'" :class="[
-              'p-2 rounded transition-colors',
+              'p-1.5 rounded transition-colors',
               viewMode === 'grid'
                 ? 'bg-white dark:bg-gray-700 text-red-600 shadow-sm'
                 : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
             ]">
-              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                 <path
                   d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
               </svg>
             </button>
             <button @click="viewMode = 'list'" :class="[
-              'p-2 rounded transition-colors',
+              'p-1.5 rounded transition-colors',
               viewMode === 'list'
                 ? 'bg-white dark:bg-gray-700 text-red-600 shadow-sm'
                 : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
             ]">
-              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd"
                   d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
                   clip-rule="evenodd" />
@@ -659,8 +668,11 @@ const saveVideoDetails = async () => {
                 </svg>
               </button>
             </div>
-            <div class="absolute top-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
-              {{ video.duration }}
+            <div class="absolute top-2 right-2 flex gap-1.5">
+              <div class="bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
+                <span>🎬</span>
+                <span>{{ video.duration }}</span>
+              </div>
             </div>
             <div class="absolute top-2 left-2">
               <label class="custom-checkbox">
