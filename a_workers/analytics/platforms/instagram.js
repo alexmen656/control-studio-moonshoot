@@ -41,13 +41,48 @@ export async function fetchInstagramAnalytics(token, metadata) {
 
     console.log('Instagram analytics data compiled:', analyticsData);
 
-    return {
-        platform: 'instagram',
-        followers: Math.floor(Math.random() * 75000),
-        total_posts: Math.floor(Math.random() * 300),
-        total_reach: Math.floor(Math.random() * 200000),
-        engagement_rate: (Math.random() * 8).toFixed(2)
-    };
+    try {
+        const { instagramUserId, accessToken } = instagramToken;
+        const apiVersion = 'v21.0';
+        const channelUrl = `https://graph.facebook.com/${apiVersion}/${instagramUserId}`;
+        const channelParams = {
+            fields: 'followers_count,biography',
+            access_token: accessToken
+        };
+        const channelResponse = await axios.get(channelUrl, { params: channelParams });
+        const followers = channelResponse.data.followers_count || 0;
+
+        return {
+            platform: 'instagram',
+            followers: followers,
+            total_posts: analyticsData.totalVideos,
+            total_views: analyticsData.totalViews,
+            total_likes: analyticsData.totalLikes,
+            total_comments: analyticsData.totalComments,
+            total_shares: analyticsData.totalShares,
+            total_reach: analyticsData.totalViews,
+            engagement_rate: analyticsData.totalVideos > 0
+                ? ((analyticsData.totalLikes + analyticsData.totalComments + analyticsData.totalShares) / (analyticsData.totalViews || 1) * 100).toFixed(2)
+                : 0,
+            videos: analyticsData.videos
+        };
+    } catch (err) {
+        console.error('Error fetching Instagram channel info:', err.message);
+        return {
+            platform: 'instagram',
+            followers: 0,
+            total_posts: analyticsData.totalVideos,
+            total_views: analyticsData.totalViews,
+            total_likes: analyticsData.totalLikes,
+            total_comments: analyticsData.totalComments,
+            total_shares: analyticsData.totalShares,
+            total_reach: analyticsData.totalViews,
+            engagement_rate: analyticsData.totalVideos > 0
+                ? ((analyticsData.totalLikes + analyticsData.totalComments + analyticsData.totalShares) / (analyticsData.totalViews || 1) * 100).toFixed(2)
+                : 0,
+            videos: analyticsData.videos
+        };
+    }
 }
 
 async function getUserMedia(token, limit = 25) {
