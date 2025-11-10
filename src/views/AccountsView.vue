@@ -42,7 +42,7 @@
                             :connected="accountDetails.youtube" :expanded="expandedPlatforms.youtube ?? false"
                             :formats="['Long Video', 'Short Video']" iconColor="bg-violet-100 dark:bg-violet-900/30"
                             iconTextColor="text-violet-600 dark:text-violet-400"
-                            buttonGradient="from-violet-500 to-violet-600 hover:from-violet-600 hover:to-violet-700"
+                            buttonGradient="from-violet-500 to-violet-600 hover:from-orange-600 hover:to-orange-700"
                             @connect="connectYouTube" @disconnect="disconnectYouTube"
                             @toggle-expand="toggleExpand('youtube')">
                             <template #icon>

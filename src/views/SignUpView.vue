@@ -161,10 +161,10 @@
                                     autocomplete="name" placeholder="John Doe" :disabled="authStore.isLoading" :class="[
                                         'w-full h-12 px-4 border-2 rounded-lg text-base transition-all',
                                         touchedFields.name && !name
-                                            ? 'border-violet-500 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20'
+                                            ? 'border-violet-500 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20'
                                             : name
                                                 ? 'border-green-500 focus:border-green-500 focus:ring-2 focus:ring-green-500/20'
-                                                : 'border-slate-300 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20',
+                                                : 'border-slate-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20',
                                         authStore.isLoading && 'opacity-50 cursor-not-allowed'
                                     ]" />
                                 <i v-if="name && !authStore.isLoading"
@@ -181,10 +181,10 @@
                                     :disabled="authStore.isLoading" :class="[
                                         'w-full h-12 px-4 border-2 rounded-lg text-base transition-all',
                                         touchedFields.email && !email
-                                            ? 'border-violet-500 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20'
+                                            ? 'border-violet-500 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20'
                                             : email
                                                 ? 'border-green-500 focus:border-green-500 focus:ring-2 focus:ring-green-500/20'
-                                                : 'border-slate-300 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20',
+                                                : 'border-slate-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20',
                                         authStore.isLoading && 'opacity-50 cursor-not-allowed'
                                     ]" />
                                 <i v-if="email && !authStore.isLoading"
@@ -204,8 +204,8 @@
                                     placeholder="Min. 8 characters" required :disabled="authStore.isLoading" :class="[
                                         'w-full h-12 px-4 pr-12 border-2 rounded-lg text-base transition-all',
                                         touchedFields.password && password.length < 8
-                                            ? 'border-violet-500 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20'
-                                            : 'border-slate-300 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20',
+                                            ? 'border-violet-500 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20'
+                                            : 'border-slate-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20',
                                         authStore.isLoading && 'opacity-50 cursor-not-allowed'
                                     ]" />
                                 <button type="button" @click="showPassword = !showPassword"
@@ -250,7 +250,7 @@
                         <div class="pt-2">
                             <label class="flex items-start gap-3 cursor-pointer">
                                 <input v-model="termsAccepted" type="checkbox" :disabled="authStore.isLoading"
-                                    class="w-4 h-4 mt-0.5 rounded border-2 border-slate-300 text-violet-600 focus:ring-2 focus:ring-violet-500/20 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed" />
+                                    class="w-4 h-4 mt-0.5 rounded border-2 border-slate-300 text-violet-600 focus:ring-2 focus:ring-orange-500/20 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed" />
                                 <span class="text-sm text-slate-600">
                                     I agree to the
                                     <a href="#" class="text-violet-600 underline hover:text-violet-700">Terms of

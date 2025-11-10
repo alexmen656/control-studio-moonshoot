@@ -189,7 +189,7 @@ const subscribeNewsletter = () => {
                         master TikTok, Instagram Reels, and YouTube Shorts</p>
                     <div class="max-w-xl mx-auto relative">
                         <input v-model="searchQuery" type="text" placeholder="Search articles..."
-                            class="w-full px-6 py-4 rounded-xl border border-slate-300 focus:border-violet-500 focus:ring-2 focus:ring-violet-200 outline-none text-slate-900 pr-12">
+                            class="w-full px-6 py-4 rounded-xl border border-slate-300 focus:border-orange-500 focus:ring-2 focus:ring-violet-200 outline-none text-slate-900 pr-12">
                         <button class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
                             <i class="fas fa-search"></i>
                         </button>

@@ -303,7 +303,7 @@ const averageEngagement = computed(() => {
                 <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">Video Not Found</h2>
                 <p class="text-gray-600 dark:text-gray-400 mb-6">The video you're looking for doesn't exist.</p>
                 <button @click="router.push({ name: 'home' })"
-                    class="bg-violet-600 hover:bg-violet-700 text-white px-6 py-2 rounded-lg transition-colors">
+                    class="bg-orange-600 hover:bg-orange-700 text-white px-6 py-2 rounded-lg transition-colors">
                     Back to Videos
                 </button>
             </div>
@@ -488,7 +488,7 @@ const averageEngagement = computed(() => {
                                         'w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium transition-colors',
                                         currentVideo.status === 'scheduled' || currentVideo.status === 'published'
                                             ? 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
-                                            : 'bg-gradient-to-r from-violet-500 to-violet-600 hover:from-violet-600 hover:to-violet-700 text-white shadow-md hover:shadow-lg'
+                                            : 'bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-md hover:shadow-lg'
                                     ]">
                                     <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd"
@@ -588,12 +588,12 @@ const averageEngagement = computed(() => {
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Date</label>
                             <input v-model="scheduleDate" type="date" required
-                                class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
+                                class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Time</label>
                             <input v-model="scheduleTime" type="time" required
-                                class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
+                                class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
                         </div>
                     </div>
                     <div>
@@ -639,7 +639,7 @@ const averageEngagement = computed(() => {
                             'px-6 py-2 rounded-lg font-medium transition-colors',
                             !scheduleDate || !scheduleTime || selectedPlatforms.length === 0
                                 ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-500 cursor-not-allowed'
-                                : 'bg-gradient-to-r from-violet-500 to-violet-600 hover:from-violet-600 hover:to-violet-700 text-white shadow-md hover:shadow-lg'
+                                : 'bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-md hover:shadow-lg'
                         ]">
                         Schedule Post
                     </button>
@@ -669,20 +669,20 @@ const averageEngagement = computed(() => {
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Video Title
                             *</label>
                         <input v-model="videoDetailsForm.title" type="text" required
-                            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                             placeholder="Enter video title" />
                     </div>
                     <div>
                         <label
                             class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Description</label>
                         <textarea v-model="videoDetailsForm.description" rows="4"
-                            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 resize-none"
+                            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 resize-none"
                             placeholder="Describe your video..."></textarea>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tags</label>
                         <input v-model="videoDetailsForm.tags" type="text"
-                            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                             placeholder="tutorial, cooking, funny (comma separated)" />
                     </div>
                     <div>
@@ -723,7 +723,7 @@ const averageEngagement = computed(() => {
                         'px-6 py-2 rounded-lg font-medium transition-colors',
                         !videoDetailsForm.title
                             ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 cursor-not-allowed'
-                            : 'bg-gradient-to-r from-violet-500 to-violet-600 hover:from-violet-600 hover:to-violet-700 text-white shadow-md hover:shadow-lg'
+                            : 'bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-md hover:shadow-lg'
                     ]">
                         Save Changes
                     </button>
