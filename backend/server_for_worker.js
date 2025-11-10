@@ -9,6 +9,7 @@ import { importPKCS8, importSPKI } from 'jose';
 import { createHash } from 'crypto';
 import { retrieveTokenByProjectID } from './utils/token_manager.js';
 import { startAnalyticsScheduler } from './utils/analytics_scheduler.js';
+import { startPublishScheduler } from './utils/publish_scheduler.js';
 
 const vpsPrivateKeyPem = fs.readFileSync('./keys/vps/vps-private.pem', 'utf8');
 const workerPublicKeyPem = fs.readFileSync('./keys/worker/worker-public.pem', 'utf8');
@@ -731,4 +732,7 @@ https.createServer(options, app).listen(3001, () => {
   startJobScheduler(30000);
   startAnalyticsScheduler(300000);
   console.log('Analytics scheduler started (5-minute intervals)');
+  
+  startPublishScheduler();
+  console.log('Publish scheduler started (30-second intervals)');
 });
