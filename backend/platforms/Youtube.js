@@ -61,9 +61,9 @@ class YouTubeManager {
 
     generateAuthUrl(projectId = this.projectId) {
         const state = crypto.randomBytes(16).toString('hex');
-        
+
         storeOAuthState('youtube', projectId, state);
-        
+
         const authUrl = this.oAuth2Client.generateAuthUrl({
             access_type: 'offline',
             prompt: 'consent',

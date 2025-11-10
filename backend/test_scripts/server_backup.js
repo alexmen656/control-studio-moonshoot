@@ -9,19 +9,19 @@ import { fileURLToPath } from 'url'
 import dotenv from 'dotenv'
 import { exec } from 'child_process'
 import { promisify } from 'util'
-import YouTubeManager from './platforms/Youtube.js'
-import InstagramManager from './platforms/Instagram.js'
-import FacebookManager from './platforms/Facebook.js'
-import TikTokManager from './platforms/Tiktok.js'
-import XManager from './platforms/X.js'
-import RedditManager from './platforms/Reddit.js'
-import * as db from './utils/db.js'
-import { storeTokenByProjectID, retrieveTokenByProjectID, removeTokenByProjectID } from './utils/token_manager.js'
-import { registerUser, loginUser, loginWithGoogle, authMiddleware, projectAccessMiddleware, getUserById } from './utils/auth.js'
-import { getAvailableRegions, getRegionById, isValidRegion, getDefaultRegion } from './utils/regions.js'
-import { storeOAuthState, retrieveOAuthState } from './utils/oauth_states.js';
-import { startJobScheduler } from './utils/job_scheduler.js';
-import { createUploadJobs } from './utils/job_creator.js';
+import YouTubeManager from '../platforms/Youtube.js'
+import InstagramManager from '../platforms/Instagram.js'
+import FacebookManager from '../platforms/Facebook.js'
+import TikTokManager from '../platforms/Tiktok.js'
+import XManager from '../platforms/X.js'
+import RedditManager from '../platforms/Reddit.js'
+import * as db from '../utils/db.js'
+import { storeTokenByProjectID, retrieveTokenByProjectID, removeTokenByProjectID } from '../utils/token_manager.js'
+import { registerUser, loginUser, loginWithGoogle, authMiddleware, projectAccessMiddleware, getUserById } from '../utils/auth.js'
+import { getAvailableRegions, getRegionById, isValidRegion, getDefaultRegion } from '../utils/regions.js'
+import { storeOAuthState, retrieveOAuthState } from '../utils/oauth_states.js';
+import { startJobScheduler } from '../utils/job_scheduler.js';
+import { createUploadJobs } from '../utils/job_creator.js';
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -152,7 +152,7 @@ app.post('/api/jobs', authMiddleware, projectAccessMiddleware, async (req, res) 
       return res.status(400).json({ error: 'video_id and platforms are required' });
     }
 
-    const { createUploadJobs } = await import('./utils/job_creator.js');
+    const { createUploadJobs } = await import('../utils/job_creator.js');
     const jobs = await createUploadJobs(video_id, platforms, req.project.id, priority || 0);
 
     res.status(201).json({
@@ -181,7 +181,7 @@ app.post('/api/analytics-jobs', authMiddleware, projectAccessMiddleware, async (
       return res.status(400).json({ error: 'platforms are required' });
     }
 
-    const { createAnalyticsJobs } = await import('./utils/job_creator.js');
+    const { createAnalyticsJobs } = await import('../utils/job_creator.js');
     const jobs = await createAnalyticsJobs(
       platforms,
       projectId,
@@ -345,14 +345,14 @@ app.post('/api/auth/login', async (req, res) => {
 
       let isValid = false;
       if (isBackupCode) {
-        const { verifyBackupCode, removeBackupCode } = await import('./utils/twoFactor.js');
+        const { verifyBackupCode, removeBackupCode } = await import('../utils/twoFactor.js');
         const codeIndex = await verifyBackupCode(twoFactorToken, user.backup_codes || []);
         if (codeIndex >= 0) {
           isValid = true;
           await removeBackupCode(user.id, codeIndex);
         }
       } else {
-        const { verifyTOTP } = await import('./utils/twoFactor.js');
+        const { verifyTOTP } = await import('../utils/twoFactor.js');
         isValid = verifyTOTP(user.totp_secret, twoFactorToken);
       }
 
@@ -366,7 +366,7 @@ app.post('/api/auth/login', async (req, res) => {
       [user.id]
     );
 
-    const { generateToken } = await import('./utils/auth.js');
+    const { generateToken } = await import('../utils/auth.js');
     const token = generateToken(user);
 
     res.json({
@@ -434,7 +434,7 @@ import {
   disable2FA,
   get2FASettings,
   removeBackupCode
-} from './utils/twoFactor.js';
+} from '../utils/twoFactor.js';
 
 import {
   generatePasskeyRegistrationOptions,
@@ -444,7 +444,7 @@ import {
   getUserPasskeys,
   deletePasskey,
   updatePasskeyName
-} from './utils/passkey.js';
+} from '../utils/passkey.js';
 
 const challenges = new Map();
 
@@ -689,7 +689,7 @@ app.post('/api/auth/passkey/authenticate/verify', async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    const { generateToken } = await import('./utils/auth.js');
+    const { generateToken } = await import('../utils/auth.js');
     const token = generateToken(user);
 
     await db.query(

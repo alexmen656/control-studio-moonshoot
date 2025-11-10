@@ -44,16 +44,16 @@ router.patch('/:id/role', authMiddleware, adminMiddleware, async (req, res) => {
         'SELECT COUNT(*) as count FROM users WHERE role = $1',
         ['admin']
       );
-      
+
       if (parseInt(adminCount.rows[0].count) <= 1) {
         const currentUser = await db.query(
           'SELECT role FROM users WHERE id = $1',
           [id]
         );
-        
+
         if (currentUser.rows[0]?.role === 'admin') {
-          return res.status(400).json({ 
-            error: 'Cannot demote the last admin. Create another admin first.' 
+          return res.status(400).json({
+            error: 'Cannot demote the last admin. Create another admin first.'
           });
         }
       }
@@ -82,16 +82,16 @@ router.delete('/:id', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
     const user = await db.query('SELECT role FROM users WHERE id = $1', [id]);
-    
+
     if (user.rows[0]?.role === 'admin') {
       const adminCount = await db.query(
         'SELECT COUNT(*) as count FROM users WHERE role = $1',
         ['admin']
       );
-      
+
       if (parseInt(adminCount.rows[0].count) <= 1) {
-        return res.status(400).json({ 
-          error: 'Cannot delete the last admin' 
+        return res.status(400).json({
+          error: 'Cannot delete the last admin'
         });
       }
     }

@@ -8,6 +8,7 @@ import dotenv from 'dotenv';
 import multer from 'multer';
 import { startJobScheduler } from './utils/job_scheduler.js';
 import * as db from './utils/db.js'
+
 // routes
 import workersRoutes from './routes/workers.js';
 import jobsRoutes from './routes/jobs.js';

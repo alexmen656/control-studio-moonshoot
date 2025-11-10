@@ -11,5 +11,3 @@ const { plaintext } = await compactDecrypt(token, workerPrivateKey);
 const decrypted = new TextDecoder().decode(plaintext);
 
 console.log("Decrypted:", decrypted);
-
-//works, yey!!!
