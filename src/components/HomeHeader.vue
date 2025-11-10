@@ -1,10 +1,7 @@
 <template>
     <div class="flex items-center justify-between">
         <div>
-            <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">My Posts</h1>
-            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                Manage and upload your content to multiple platforms
-            </p>
+            <h1 class="text-4xl font-bold text-gray-900 dark:text-gray-100">My Posts</h1>
         </div>
         <button @click="$emit('open-upload-modal')"
             class="flex items-center space-x-2 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-5 py-2.5 rounded-lg shadow-md hover:shadow-lg transition-all">
