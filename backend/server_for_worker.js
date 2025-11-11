@@ -170,6 +170,99 @@ async function storeContentAnalytics(channelAnalyticsId, projectId, platform, co
   }
 }
 
+async function storeCommentsData(resultData) {
+  const { comments_data, project_id, platform, task_type } = resultData;
+
+  if (!comments_data || !project_id || !platform) {
+    console.warn('⚠️ Missing required comments data fields');
+    return;
+  }
+
+  try {
+    const commentInsertQuery = `
+      INSERT INTO video_comments (
+        project_id, platform,
+        total_videos, total_comments,
+        metadata, collected_at
+      ) VALUES (
+        $1, $2,
+        $3, $4,
+        $5, CURRENT_TIMESTAMP
+      )
+      ON CONFLICT (project_id, platform, collected_at)
+      DO UPDATE SET
+        total_videos = EXCLUDED.total_videos,
+        total_comments = EXCLUDED.total_comments,
+        metadata = EXCLUDED.metadata
+      RETURNING id
+    `;
+
+    const commentResult = await db.query(commentInsertQuery, [
+      project_id,
+      platform,
+      comments_data.total_videos || 0,
+      comments_data.total_comments || 0,
+      JSON.stringify({
+        task_type,
+        raw_data: comments_data
+      })
+    ]);
+
+    const commentCollectionId = commentResult.rows[0].id;
+
+    // Store individual video comments
+    if (comments_data.videos && Array.isArray(comments_data.videos)) {
+      for (const video of comments_data.videos) {
+        await storeVideoComments(commentCollectionId, project_id, platform, video);
+      }
+    }
+
+    // Store individual post comments (for Facebook/Instagram)
+    if (comments_data.posts && Array.isArray(comments_data.posts)) {
+      for (const post of comments_data.posts) {
+        await storeVideoComments(commentCollectionId, project_id, platform, post);
+      }
+    }
+
+    console.log(`✅ Stored comments for project ${project_id}, platform ${platform}`);
+  } catch (error) {
+    console.error('Error storing comments data:', error);
+    throw error;
+  }
+}
+
+async function storeVideoComments(commentCollectionId, projectId, platform, videoData) {
+  try {
+    const videoCommentInsertQuery = `
+      INSERT INTO video_comment_details (
+        comment_collection_id, project_id, platform,
+        video_id, video_title, total_comments,
+        comment_data, collected_at
+      ) VALUES (
+        $1, $2, $3,
+        $4, $5, $6,
+        $7, CURRENT_TIMESTAMP
+      )
+      ON CONFLICT (project_id, platform, video_id, collected_at)
+      DO UPDATE SET
+        total_comments = EXCLUDED.total_comments,
+        comment_data = EXCLUDED.comment_data
+    `;
+
+    await db.query(videoCommentInsertQuery, [
+      commentCollectionId,
+      projectId,
+      platform,
+      videoData.videoId || videoData.postId || videoData.mediaId || '',
+      videoData.videoTitle || videoData.postTitle || videoData.mediaTitle || '',
+      videoData.commentCount || 0,
+      JSON.stringify(videoData.comments || [])
+    ]);
+  } catch (error) {
+    console.error(`Error storing video comments for ${videoData.videoId}:`, error);
+  }
+}
+
 const vpsPrivateKey = await importPKCS8(vpsPrivateKeyPem, 'ES256');
 const workerPublicKey = await importSPKI(workerPublicKeyPem, 'RSA-OAEP');
 
@@ -711,6 +804,15 @@ app.patch('/api/jobs/:jobId/status', requireWorkerCert, async (req, res) => {
       }
     }
 
+    if (status === 'completed' && result_data?.comments_data) {
+      try {
+        await storeCommentsData(result_data);
+        console.log(`✅ Comments data stored for job ${jobId}`);
+      } catch (commentsError) {
+        console.error(`❌ Error storing comments data for job ${jobId}:`, commentsError);
+      }
+    }
+
     if (['completed', 'failed'].includes(status)) {
       const { releaseWorkerFromJob } = await import('./utils/worker_selector.js');
       await releaseWorkerFromJob(workerId, jobId, status, error_message);
@@ -720,6 +822,7 @@ app.patch('/api/jobs/:jobId/status', requireWorkerCert, async (req, res) => {
       message: 'Job status updated',
       job: result.rows[0]
     });
+
   } catch (error) {
     console.error('Error updating job status:', error);
     res.status(500).json({ error: 'Failed to update job status' });
@@ -730,9 +833,9 @@ https.createServer(options, app).listen(3001, () => {
   console.log('Worker server running on :3001');
 
   startJobScheduler(30000);
-  startAnalyticsScheduler(300000);
+  //startAnalyticsScheduler(300000)
   console.log('Analytics scheduler started (5-minute intervals)');
-  
+
   startPublishScheduler();
   console.log('Publish scheduler started (30-second intervals)');
 });

@@ -167,3 +167,91 @@ export async function createAnalyticsJobs(
 
   return jobs;
 }
+
+/**
+ * Creates comments jobs for specified platforms
+ * @param {string[]} platforms - Array of platform names
+ * @param {number} project_id - Project ID
+ * @param {string} task_type - Type of comments task (default 'video_comments')
+ * @param {number} priority - Job priority (default 0)
+ * @param {object} metadata - Additional metadata
+ * @returns {Promise<Array>} Array of created jobs with status information
+ */
+export async function createCommentsJobs(
+  platforms,
+  project_id,
+  task_type = 'video_comments',
+  priority = 0,
+  metadata = {}
+) {
+  if (!platforms || platforms.length === 0) {
+    throw new Error('platforms are required');
+  }
+
+  const validTaskTypes = ['video_comments', 'post_comments', 'all_comments'];
+  if (task_type && !validTaskTypes.includes(task_type)) {
+    throw new Error(`task_type must be one of: ${validTaskTypes.join(', ')}`);
+  }
+
+  const { selectBestWorker, assignJobToWorker } = await import('./worker_selector.js');
+
+  const jobs = [];
+
+  for (const platform of platforms) {
+    const jobId = `comments-job-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+    try {
+      await db.query(
+        `INSERT INTO worker_jobs 
+         (job_id, platform, status, priority, metadata)
+         VALUES ($1, $2, $3, $4, $5)`,
+        [
+          jobId,
+          platform,
+          'pending',
+          priority,
+          JSON.stringify({
+            job_type: 'comments',
+            task_type: task_type,
+            project_id: project_id,
+            ...metadata
+          })
+        ]
+      );
+
+      try {
+        const selectedWorker = await selectBestWorker(project_id, [platform], 'comments');
+        await assignJobToWorker(selectedWorker.worker_id, jobId);
+
+        jobs.push({
+          job_id: jobId,
+          platform,
+          task_type: task_type,
+          worker: selectedWorker,
+          status: 'assigned'
+        });
+
+        console.log(`✓ Created comments job ${jobId} for ${platform} → Worker: ${selectedWorker.worker_name}`);
+      } catch (workerError) {
+        console.log(`⚠ Created comments job ${jobId} for ${platform} → Queued (no worker available: ${workerError.message})`);
+        
+        jobs.push({
+          job_id: jobId,
+          platform,
+          task_type: task_type,
+          status: 'pending',
+          message: 'Job queued - will be processed when worker becomes available'
+        });
+      }
+    } catch (error) {
+      console.error(`✗ Failed to create comments job for ${platform}:`, error.message);
+      jobs.push({
+        platform,
+        error: error.message,
+        status: 'failed_to_create'
+      });
+    }
+  }
+
+  return jobs;
+}
