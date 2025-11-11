@@ -392,4 +392,95 @@ router.post('/publish', authMiddleware, projectAccessMiddleware, async (req, res
   }
 });
 
+router.get('/:videoId/platform-id/:platform', async (req, res) => {
+  try {
+    const { videoId, platform } = req.params;
+
+    const result = await db.query(
+      `SELECT platform_id 
+       FROM upload_results 
+       WHERE video_id = $1 AND platform = $2
+       LIMIT 1`,
+      [videoId, platform]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ 
+        error: 'Platform ID not found',
+        message: `No upload found for video ${videoId} on platform ${platform}`
+      });
+    }
+
+    res.json({
+      videoId: videoId,
+      platform: platform,
+      platform_id: result.rows[0].platform_id
+    });
+  } catch (error) {
+    console.error('Error fetching platform ID:', error);
+    res.status(500).json({ error: 'Error fetching platform ID' });
+  }
+});
+
+router.get('/:videoId/comments', authMiddleware, async (req, res) => {
+  try {
+    const { videoId } = req.params;
+
+    const video = await db.getVideoById(videoId);
+    if (!video) {
+      return res.status(404).json({ error: 'Video not found' });
+    }
+
+    if (video.project_id) {
+      const accessResult = await db.query(
+        'SELECT 1 FROM project_users WHERE project_id = $1 AND user_id = $2',
+        [video.project_id, req.user.id]
+      );
+
+      if (accessResult.rows.length === 0) {
+        return res.status(403).json({ error: 'Access denied to this video' });
+      }
+    }
+
+    const uploadResults = await db.query(
+      `SELECT platform, platform_id 
+       FROM upload_results 
+       WHERE video_id = $1
+       ORDER BY platform`,
+      [videoId]
+    );
+
+    const commentsMap = {};
+    
+    for (const result of uploadResults.rows) {
+      const platform = result.platform;
+      const platform_id = result.platform_id;
+
+      const comments = await db.query(
+        `SELECT * 
+         FROM video_comment_details 
+         WHERE platform_id = $1 
+         AND platform = $2
+         ORDER BY collected_at DESC 
+         LIMIT 1`,
+        [platform_id, platform]
+      );
+
+      if (comments.rows.length > 0) {
+        commentsMap[platform] = comments.rows[0];
+      }
+    }
+
+    res.json({
+      videoId: videoId,
+      uploadResults: uploadResults.rows,
+      comments: commentsMap
+    });
+  } catch (error) {
+    console.error('Error fetching video comments:', error);
+    res.status(500).json({ error: 'Error fetching video comments' });
+  }
+});
+
 export default router;
+

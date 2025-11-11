@@ -55,7 +55,7 @@ async function getMediaComments(token, mediaId, limit = 100) {
     try {
         const { accessToken } = token;
 
-        console.log('Fetching comments for media:', mediaId);
+        //console.log('Fetching comments for media:', mediaId);
 
         const apiVersion = 'v21.0';
         const url = `https://graph.facebook.com/${apiVersion}/${mediaId}/comments`;
@@ -73,7 +73,7 @@ async function getMediaComments(token, mediaId, limit = 100) {
             }
         });
 
-        console.log('Instagram comments API response status:', response.status);
+       // console.log('Instagram comments API response status:', response.status);
 
         if (response.data.error) {
             console.warn('Instagram API returned an error:', response.data.error);
@@ -83,7 +83,7 @@ async function getMediaComments(token, mediaId, limit = 100) {
             };
         }
 
-        console.log('Comments fetched for media', mediaId, ':', response.data.data?.length || 0, 'comments');
+        //console.log('Comments fetched for media', mediaId, ':', response.data.data?.length || 0, 'comments');
 
         return {
             data: response.data.data || [],

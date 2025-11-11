@@ -245,7 +245,7 @@ async function storeUploadData(resultData) {
 }
 
 async function storeCommentsData(resultData) {
-  const { comments_data, project_id, platform, task_type } = resultData;
+  const { comments_data, project_id, platform, task_type, video_id } = resultData;
 
   if (!comments_data || !project_id || !platform) {
     console.warn('⚠️ Missing required comments data fields');
@@ -278,23 +278,24 @@ async function storeCommentsData(resultData) {
       comments_data.total_comments || 0,
       JSON.stringify({
         task_type,
-        raw_data: comments_data
+        raw_data: comments_data,
+        video_id: video_id
       })
     ]);
 
     const commentCollectionId = commentResult.rows[0].id;
 
-    // Store individual video comments
     if (comments_data.videos && Array.isArray(comments_data.videos)) {
       for (const video of comments_data.videos) {
-        await storeVideoComments(commentCollectionId, project_id, platform, video);
+        const platform_id = video.mediaId || video.id;
+        await storeVideoComments(commentCollectionId, project_id, platform, video, platform_id);
       }
     }
 
-    // Store individual post comments (for Facebook/Instagram)
     if (comments_data.posts && Array.isArray(comments_data.posts)) {
       for (const post of comments_data.posts) {
-        await storeVideoComments(commentCollectionId, project_id, platform, post);
+        const platform_id = post.mediaId || post.id || post.postId;
+        await storeVideoComments(commentCollectionId, project_id, platform, post, platform_id);
       }
     }
 
@@ -305,20 +306,21 @@ async function storeCommentsData(resultData) {
   }
 }
 
-async function storeVideoComments(commentCollectionId, projectId, platform, videoData) {
+async function storeVideoComments(commentCollectionId, projectId, platform, videoData, platform_id = null) {
   try {
     const videoCommentInsertQuery = `
       INSERT INTO video_comment_details (
         comment_collection_id, project_id, platform,
-        video_id, video_title, total_comments,
+        video_id, platform_id, video_title, total_comments,
         comment_data, collected_at
       ) VALUES (
         $1, $2, $3,
-        $4, $5, $6,
-        $7, CURRENT_TIMESTAMP
+        $4, $5, $6, $7,
+        $8, CURRENT_TIMESTAMP
       )
       ON CONFLICT (project_id, platform, video_id, collected_at)
       DO UPDATE SET
+        platform_id = EXCLUDED.platform_id,
         total_comments = EXCLUDED.total_comments,
         comment_data = EXCLUDED.comment_data
     `;
@@ -328,6 +330,7 @@ async function storeVideoComments(commentCollectionId, projectId, platform, vide
       projectId,
       platform,
       videoData.videoId || videoData.postId || videoData.mediaId || '',
+      platform_id,
       videoData.videoTitle || videoData.postTitle || videoData.mediaTitle || '',
       videoData.commentCount || 0,
       JSON.stringify(videoData.comments || [])
@@ -909,6 +912,36 @@ app.patch('/api/jobs/:jobId/status', requireWorkerCert, async (req, res) => {
   } catch (error) {
     console.error('Error updating job status:', error);
     res.status(500).json({ error: 'Failed to update job status' });
+  }
+});
+
+app.get('/api/videos/:videoId/platform-id/:platform', requireWorkerCert, async (req, res) => {
+  try {
+    const { videoId, platform } = req.params;
+
+    const result = await db.query(
+      `SELECT platform_id 
+       FROM upload_results 
+       WHERE video_id = $1 AND platform = $2
+       LIMIT 1`,
+      [videoId, platform]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ 
+        error: 'Platform ID not found',
+        message: `No upload found for video ${videoId} on platform ${platform}`
+      });
+    }
+
+    res.json({
+      videoId: videoId,
+      platform: platform,
+      platform_id: result.rows[0].platform_id
+    });
+  } catch (error) {
+    console.error('Error fetching platform ID:', error);
+    res.status(500).json({ error: 'Error fetching platform ID' });
   }
 });
 

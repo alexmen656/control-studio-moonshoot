@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS video_comment_details (
     project_id INTEGER NOT NULL,
     platform VARCHAR(50) NOT NULL,
     video_id VARCHAR(255) NOT NULL,
+    platform_id VARCHAR(255),
     video_title TEXT,
     total_comments INTEGER DEFAULT 0,
     comment_data JSONB DEFAULT '[]',
@@ -40,6 +41,9 @@ CREATE INDEX IF NOT EXISTS idx_video_comment_details_project_platform
 
 CREATE INDEX IF NOT EXISTS idx_video_comment_details_video_id 
     ON video_comment_details(video_id);
+
+CREATE INDEX IF NOT EXISTS idx_video_comment_details_platform_id 
+    ON video_comment_details(platform_id);
 
 CREATE INDEX IF NOT EXISTS idx_video_comment_details_collected_at 
     ON video_comment_details(collected_at DESC);

@@ -23,7 +23,6 @@ export async function uploadToReddit(token, job) {
     if (job.video?.subreddit && job.video.subreddit.trim() !== '') {
         options.subreddit = job.video.subreddit;
     }
-    
     if (job.video?.nsfw !== undefined && job.video.nsfw !== null) {
         options.nsfw = job.video.nsfw;
     }

@@ -253,22 +253,45 @@ class CommentsWorker {
     console.log(`   Platform: ${job.platform}`);
     console.log(`   Task Type: ${job.metadata?.task_type || 'comments_fetch'}`);
     console.log(`   Project ID: ${job.metadata.project_id}`);
+    console.log(`   Video ID: ${job.video_id}`);
 
     try {
       const taskType = job.metadata?.task_type || 'comments_fetch';
+
+      let platform_id = null;
+
+    /*  try {
+        const platformIdResponse = await axios.get(
+          `${this.backendUrl}/api/videos/${job.video_id}/platform-id/${job.platform}`,
+          { httpsAgent: this.httpsAgent }
+        );
+        console.log('data', platformIdResponse.data);
+        console.log('url', `${this.backendUrl}/api/videos/${job.video_id}/platform-id/${job.platform}`);
+
+        platform_id = platformIdResponse.data.platform_id;
+        console.log(`   Platform ID: ${platform_id}`);
+      } catch (err) {
+        console.warn(`⚠️ Could not fetch platform ID: ${err.response?.data?.message || err.message}`);
+      }*/ 
+
       console.log(`   Starting comments fetch from ${job.platform}...`);
 
       let commentsData = null;
       commentsData = await fetchVideoComments(job);
 
-
       console.log(`✅ Successfully fetched comments from ${job.platform}`);
+     // console.log('data', platform_id);
+
+      //job video id - undefined
+      //console.log('url', `${this.backendUrl}/api/videos/${job.video_id}/platform-id/${job.platform}`);
 
       await this.updateJobStatus(job.job_id, 'completed', null, {
         platform: job.platform,
+        platform_id: platform_id,
         task_type: taskType,
         fetched_at: new Date().toISOString(),
         project_id: job.metadata.project_id,
+        video_id: job.video_id,
         comments_data: commentsData
       });
 
@@ -281,6 +304,7 @@ class CommentsWorker {
         error.message,
         {
           platform: job.platform,
+          video_id: job.video_id,
           failed_at: new Date().toISOString(),
           error_details: error.stack
         }
