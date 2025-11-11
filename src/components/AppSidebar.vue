@@ -72,47 +72,81 @@
                     </svg>
                     <span class="text-sm font-medium">Channel Content</span>
                 </router-link>
+                <div class="px-2 py-4 mb-4">
+                    <div class="bg-gray-900 rounded-lg overflow-hidden relative">
+                        <div class="aspect-video bg-gray-800 relative">
+                            <img v-if="currentVideoThumbnail" :src="currentVideoThumbnail"
+                                :alt="currentVideoTitle || 'Video thumbnail'" class="w-full h-full object-cover" />
+                            <div v-else class="w-full h-full bg-gray-700 flex items-center justify-center">
+                                <svg class="w-12 h-12 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M2 6a2 2 0 012-2h6l2 2h6a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
+                                </svg>
+                            </div>
+                            <div
+                                class="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
+                                {{ currentVideoDuration || '0:00' }}
+                            </div>
+                        </div>
+                    </div>
+                    <video ref="hiddenVideo" v-if="currentVideoFilename"
+                        :src="`http://localhost:6709/uploads/${currentVideoFilename}`"
+                        @loadedmetadata="onVideoLoadedMetadata" @canplay="generateThumbnail"
+                        @durationchange="updateDuration" class="hidden" muted preload="metadata"
+                        crossorigin="anonymous"></video>
+                    <canvas ref="thumbnailCanvas" class="hidden"></canvas>
+                    <div class="mt-3">
+                        <h3 class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-1">
+                            {{ currentVideoTitle || 'Your video' }}
+                        </h3>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">
+                            {{ currentVideoSubtitle || 'No Title' }}
+                        </p>
+                    </div>
+                </div>
                 <div class="px-2 pt-2 pb-3">
                     <span class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Video Details</span>
                 </div>
-                <a href="#" @click.prevent="$router.push({ name: 'video', params: { id: route.params.id } })"
-                    class="flex items-center space-x-3 px-4 py-2.5 text-gray-900 dark:text-gray-100 bg-violet-100 dark:bg-violet-900/30 rounded-lg">
+                <router-link :to="{ name: 'video', params: { id: route.params.id } }"
+                    class="flex items-center space-x-3 px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-violet-100 dark:hover:bg-violet-900/20 rounded-lg transition-colors"
+                    active-class="bg-violet-100 dark:bg-violet-900/30 text-primary-900 dark:text-primary-200 hover:bg-primary-100 dark:hover:bg-violet-900/40">
                     <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                         <path
                             d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
                     </svg>
                     <span class="text-sm font-medium">Details</span>
-                </a>
-                <a href="#" @click.prevent="$router.push({ name: 'video-analytics', params: { id: route.params.id } })"
-                    class="flex items-center space-x-3 px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-violet-100 dark:hover:bg-violet-900/20 rounded-lg transition-colors">
+                </router-link>
+                <router-link :to="{ name: 'video-analytics', params: { id: route.params.id } }"
+                    class="flex items-center space-x-3 px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-violet-100 dark:hover:bg-violet-900/20 rounded-lg transition-colors"
+                    active-class="bg-violet-100 dark:bg-violet-900/30 text-primary-900 dark:text-primary-200 hover:bg-primary-100 dark:hover:bg-violet-900/40">
                     <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                         <path
                             d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
                     </svg>
                     <span class="text-sm font-medium">Analytics</span>
-                </a>
-                <a href="#" @click.prevent="$router.push({ name: 'video-comments', params: { id: route.params.id } })"
-                    class="flex items-center space-x-3 px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-violet-100 dark:hover:bg-violet-900/20 rounded-lg transition-colors">
+                </router-link>
+                <router-link :to="{ name: 'video-comments', params: { id: route.params.id } }"
+                    class="flex items-center space-x-3 px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-violet-100 dark:hover:bg-violet-900/20 rounded-lg transition-colors"
+                    active-class="bg-violet-100 dark:bg-violet-900/30 text-primary-900 dark:text-primary-200 hover:bg-primary-100 dark:hover:bg-violet-900/40">
                     <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd"
                             d="M18 13V5a2 2 0 00-2-2H4a2 2 0 00-2 2v8a2 2 0 002 2h3l3 3 3-3h3a2 2 0 002-2zM5 7a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1zm1 3a1 1 0 100 2h3a1 1 0 100-2H6z"
                             clip-rule="evenodd" />
                     </svg>
                     <span class="text-sm font-medium">Comments</span>
-                </a>
-
-                <a href="#"
-                    class="flex items-center space-x-3 px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-violet-100 dark:hover:bg-violet-900/20 rounded-lg transition-colors">
+                </router-link>
+                <!--<router-link :to="{ name: 'video', params: { id: route.params.id } }"
+                    class="flex items-center space-x-3 px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-violet-100 dark:hover:bg-violet-900/20 rounded-lg transition-colors"
+                    active-class="bg-violet-100 dark:bg-violet-900/30 text-primary-900 dark:text-primary-200 hover:bg-primary-100 dark:hover:bg-violet-900/40">
                     <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd"
                             d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"
                             clip-rule="evenodd" />
                     </svg>
                     <span class="text-sm font-medium">Editor</span>
-                </a>
-
-                <a href="#"
-                    class="flex items-center space-x-3 px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-violet-100 dark:hover:bg-violet-900/20 rounded-lg transition-colors">
+                </router-link>
+                <router-link :to="{ name: 'video', params: { id: route.params.id } }"
+                    class="flex items-center space-x-3 px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-violet-100 dark:hover:bg-violet-900/20 rounded-lg transition-colors"
+                    active-class="bg-violet-100 dark:bg-violet-900/30 text-primary-900 dark:text-primary-200 hover:bg-primary-100 dark:hover:bg-violet-900/40">
                     <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
                         <path fill-rule="evenodd"
@@ -120,16 +154,16 @@
                             clip-rule="evenodd" />
                     </svg>
                     <span class="text-sm font-medium">Advances Settings</span>
-                </a>
-
-                <a href="#"
-                    class="flex items-center space-x-3 px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-violet-100 dark:hover:bg-violet-900/20 rounded-lg transition-colors">
+                </router-link>
+                <router-link :to="{ name: 'video', params: { id: route.params.id } }"
+                    class="flex items-center space-x-3 px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-violet-100 dark:hover:bg-violet-900/20 rounded-lg transition-colors"
+                    active-class="bg-violet-100 dark:bg-violet-900/30 text-primary-900 dark:text-primary-200 hover:bg-primary-100 dark:hover:bg-violet-900/40">
                     <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                         <path
                             d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" />
                     </svg>
                     <span class="text-sm font-medium">Scheduling</span>
-                </a>
+                </router-link>-->
             </template>
             <template v-else>
                 <router-link to="/activity"
@@ -340,7 +374,12 @@ export default {
             totalBytes: 0,
             storagePercent: 0,
             projects: [] as Project[],
-            currentProject: null as Project | null
+            currentProject: null as Project | null,
+            currentVideoThumbnail: null as string | null,
+            currentVideoTitle: null as string | null,
+            currentVideoSubtitle: null as string | null,
+            currentVideoDuration: null as string | null,
+            currentVideoFilename: null as string | null
         };
     },
     computed: {
@@ -354,6 +393,9 @@ export default {
     created() {
         this.fetchUsedStorage();
         this.fetchProjects();
+        if (this.isVideoDetailPage) {
+            this.fetchCurrentVideoData();
+        }
     },
     mounted() {
         document.addEventListener('click', this.handleClickOutside);
@@ -495,6 +537,82 @@ export default {
                     return bytes;
             }
         },
+        async fetchCurrentVideoData() {
+            try {
+                const videoId = this.route.params.id;
+                if (!videoId) return;
+
+                const response = await (this as any).$axios.get(`/videos/${videoId}`);
+                const video = response.data;
+
+                this.currentVideoTitle = video.title || "Untitled Video";
+                this.currentVideoSubtitle = video.description || `${this.currentProject?.name || 'Project'} - ${video.filename || 'Video'}`;
+                this.currentVideoDuration = video.duration ? this.formatDuration(video.duration) : "0:00";
+                this.currentVideoThumbnail = video.thumbnail_url || null;
+                this.currentVideoFilename = video.filename || null;
+
+            } catch (error) {
+                console.error('Error fetching video data:', error);
+                this.currentVideoTitle = "Your video";
+                this.currentVideoSubtitle = "No Title";
+                this.currentVideoDuration = "0:00";
+                this.currentVideoThumbnail = null;
+                this.currentVideoFilename = null;
+            }
+        },
+        formatDuration(seconds: number | string): string {
+            const totalSeconds = typeof seconds === 'string' ? parseFloat(seconds) : seconds;
+            if (isNaN(totalSeconds)) return "0:00";
+
+            const minutes = Math.floor(totalSeconds / 60);
+            const remainingSeconds = Math.floor(totalSeconds % 60);
+
+            if (minutes >= 60) {
+                const hours = Math.floor(minutes / 60);
+                const remainingMinutes = minutes % 60;
+                return `${hours}:${remainingMinutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+            }
+
+            return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+        },
+        onVideoLoadedMetadata() {
+            const video = this.$refs.hiddenVideo as HTMLVideoElement;
+            if (video) {
+                // Seek to first frame
+                video.currentTime = 0.1;
+                this.updateDuration();
+            }
+        },
+        generateThumbnail() {
+            const video = this.$refs.hiddenVideo as HTMLVideoElement;
+            const canvas = this.$refs.thumbnailCanvas as HTMLCanvasElement;
+
+            if (!video || !canvas) return;
+
+            if (video.videoWidth > 0 && video.videoHeight > 0) {
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+
+                const ctx = canvas.getContext('2d');
+                if (ctx) {
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    this.currentVideoThumbnail = canvas.toDataURL('image/jpeg', 0.8);
+                }
+            }
+        },
+        updateDuration() {
+            const video = this.$refs.hiddenVideo as HTMLVideoElement;
+            if (video && video.duration && !isNaN(video.duration)) {
+                this.currentVideoDuration = this.formatDuration(video.duration);
+            }
+        },
+    },
+    watch: {
+        '$route'(newRoute) {
+            if (this.isVideoDetailPage) {
+                this.fetchCurrentVideoData();
+            }
+        }
     }
 }
 </script>
