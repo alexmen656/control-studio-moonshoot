@@ -3,6 +3,25 @@ import axios from "axios";
 import fs from "fs/promises";
 import FormData from 'form-data';
 
+/*
+
+Starting Facebook video upload...
+Uploading to Facebook with options: { title: 'test098765432', description: 'sfsd', published: true }
+Starting Facebook Video upload process...
+Initializing upload for page ID: 836235342899470
+Error initializing upload: {
+  error: {
+    message: 'An access token is required to request this resource.',
+    type: 'OAuthException',
+    code: 104,
+    fbtrace_id: 'ACNT7lZut_UyOCC9kRRcv3G'
+  }
+}
+Error during Facebook video upload: AxiosError: Request failed with status code 400
+
+
+*/
+
 export async function uploadToFacebook(token, job) {
     console.log('Starting Facebook video upload...');
 
@@ -23,7 +42,7 @@ export async function uploadToFacebook(token, job) {
     if (job.video?.published !== undefined && job.video.published !== null) {
         options.published = job.video.published;
     }
-    
+
     if (job.video?.scheduledPublishTime) {
         options.scheduledPublishTime = job.video.scheduledPublishTime;
     }

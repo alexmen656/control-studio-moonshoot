@@ -555,8 +555,9 @@ app.post('/api/platform-token/:platform/:projectId', requireWorkerCert, async (r
       try {
         const facebookAccounts = await retrieveTokenByProjectID('facebook_accounts', projectId);
 
+        //lol wrong format should be accessToken instead of access_token
         const token = {
-          access_token: facebookAccounts.data[0].access_token,
+          accessToken: facebookAccounts.data[0].access_token,
           pageId: facebookAccounts.data[0].id
         };
 
