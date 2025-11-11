@@ -49,13 +49,13 @@ const router = createRouter({
     {
       path: '/posts',
       name: 'posts',
-      component: () => import('../views/PostsView.vue'),
+      component: HomeView,
       meta: { requiresAuth: true },
     },
     {
       path: '/videos',
       name: 'videos',
-      component: () => import('../views/HomeView.vue'),
+      component: HomeView,
       meta: { requiresAuth: true },
     },
     {

@@ -223,10 +223,11 @@
                         <PlatformCard platform="pinterest" name="Pinterest" subtitle="Visual discovery"
                             description="Discover and save creative ideas" :connected="accountDetails.pinterest"
                             :expanded="expandedPlatforms.pinterest ?? false"
-                            :formats="['Image Pin', 'Video Pin', 'Idea Pin']" iconColor="bg-violet-100 dark:bg-violet-900/30"
-                            iconTextColor="text-violet-600 dark:text-violet-400" buttonGradient="bg-violet-600 hover:bg-violet-700"
-                            @connect="connectPinterest" @disconnect="disconnectPinterest"
-                            @toggle-expand="toggleExpand('pinterest')">
+                            :formats="['Image Pin', 'Video Pin', 'Idea Pin']"
+                            iconColor="bg-violet-100 dark:bg-violet-900/30"
+                            iconTextColor="text-violet-600 dark:text-violet-400"
+                            buttonGradient="bg-violet-600 hover:bg-violet-700" @connect="connectPinterest"
+                            @disconnect="disconnectPinterest" @toggle-expand="toggleExpand('pinterest')">
                             <template #icon>
                                 <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
                                     <path
