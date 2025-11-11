@@ -695,7 +695,7 @@ const averageEngagement = computed(() => {
                                 <div v-html="getPlatformIcon(platform)"></div>
                             </div>
                             <span class="font-medium text-gray-900 dark:text-gray-100 capitalize">{{ platform
-                                }}</span>
+                            }}</span>
                             <div v-if="selectedPlatforms.includes(platform as any)" class="ml-auto">
                                 <svg class="w-5 h-5 text-violet-600" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd"
@@ -778,7 +778,7 @@ const averageEngagement = computed(() => {
                                 <div v-html="getPlatformIcon(platform)"></div>
                             </div>
                             <span class="font-medium text-gray-900 dark:text-gray-100 capitalize">{{ platform
-                            }}</span>
+                                }}</span>
                             <div v-if="videoDetailsForm.platforms.includes(platform as any)" class="ml-auto">
                                 <svg class="w-5 h-5 text-violet-600" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd"

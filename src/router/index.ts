@@ -65,6 +65,18 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      path: '/video/:id/analytics',
+      name: 'video-analytics',
+      component: () => import('../views/VideoAnalyticsView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/video/:id/comments',
+      name: 'video-comments',
+      component: () => import('../views/VideoCommentsView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
       path: '/dashboard',
       name: 'dashboard',
       component: () => import('../views/HomeView.vue'),
@@ -141,12 +153,12 @@ router.beforeEach(async (to, from, next) => {
     next({ name: 'login' })
     return
   }
-  
+
   if (to.meta.requiresGuest && isAuthenticated) {
     next({ name: 'home' })
     return
   }
-  
+
   if (to.meta.requiresAdmin && isAuthenticated) {
     try {
       const response = await apiClient.get('/auth/check-admin')
@@ -161,7 +173,7 @@ router.beforeEach(async (to, from, next) => {
       return
     }
   }
-  
+
   next()
 })
 

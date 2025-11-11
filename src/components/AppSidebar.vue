@@ -75,7 +75,7 @@
                 <div class="px-2 pt-2 pb-3">
                     <span class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Video Details</span>
                 </div>
-                <a href="#"
+                <a href="#" @click.prevent="$router.push({ name: 'video', params: { id: route.params.id } })"
                     class="flex items-center space-x-3 px-4 py-2.5 text-gray-900 dark:text-gray-100 bg-violet-100 dark:bg-violet-900/30 rounded-lg">
                     <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                         <path
@@ -83,7 +83,7 @@
                     </svg>
                     <span class="text-sm font-medium">Details</span>
                 </a>
-                <a href="#"
+                <a href="#" @click.prevent="$router.push({ name: 'video-analytics', params: { id: route.params.id } })"
                     class="flex items-center space-x-3 px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-violet-100 dark:hover:bg-violet-900/20 rounded-lg transition-colors">
                     <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                         <path
@@ -91,7 +91,7 @@
                     </svg>
                     <span class="text-sm font-medium">Analytics</span>
                 </a>
-                <a href="#"
+                <a href="#" @click.prevent="$router.push({ name: 'video-comments', params: { id: route.params.id } })"
                     class="flex items-center space-x-3 px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-violet-100 dark:hover:bg-violet-900/20 rounded-lg transition-colors">
                     <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd"
@@ -348,7 +348,7 @@ export default {
             return this.authStore.isAdmin;
         },
         isVideoDetailPage() {
-            return this.route.name === 'video';
+            return this.route.name === 'video' || this.route.name === 'video-analytics' || this.route.name === 'video-comments';
         }
     },
     created() {
