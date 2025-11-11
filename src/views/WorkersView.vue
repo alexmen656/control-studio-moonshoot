@@ -53,7 +53,7 @@
               <div class="flex justify-between">
                 <span class="text-gray-600 dark:text-gray-400">ID:</span>
                 <span class="font-mono text-gray-900 dark:text-gray-300">{{ worker.worker_id.substring(0, 16)
-                  }}...</span>
+                }}...</span>
               </div>
               <div class="flex justify-between">
                 <span class="text-gray-600 dark:text-gray-400">Hostname:</span>
@@ -126,6 +126,10 @@
             <button @click="openCreateJobModal('analytics')"
               class="px-4 py-2 rounded-lg bg-purple-500 hover:bg-purple-600 text-white font-medium transition-colors duration-200 text-sm">
               Analytics Job
+            </button>
+            <button @click="openCreateJobModal('comments')"
+              class="px-4 py-2 rounded-lg bg-pink-500 hover:bg-pink-600 text-white font-medium transition-colors duration-200 text-sm">
+              Comments Job
             </button>
             <button @click="refreshJobs" :disabled="loading"
               class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 font-medium transition-all duration-200 text-sm">
@@ -213,7 +217,8 @@
       <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
         <div class="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
           <h2 class="text-xl font-bold text-gray-900 dark:text-white">
-            {{ jobModalType === 'upload' ? 'Create Upload Job' : 'Create Analytics Job' }}
+            {{ jobModalType === 'upload' ? 'Create Upload Job' : jobModalType === 'analytics' ? 'Create Analytics Job' :
+              'Create Comments Job' }}
           </h2>
           <button @click="showCreateJobModal = false"
             class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
@@ -314,6 +319,55 @@
             Analytics jobs created successfully!
           </div>
         </form>
+        <form v-if="jobModalType === 'comments'" @submit.prevent="createCommentsJob" class="p-6 space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Task Type *</label>
+            <select v-model="newCommentsJob.task_type" required
+              class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200">
+              <option value="video_comments">Video Comments</option>
+              <option value="post_comments">Post Comments</option>
+              <option value="all_comments">All Comments</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Platforms *</label>
+            <div class="grid grid-cols-2 gap-2">
+              <label v-for="platform in availablePlatforms" :key="platform"
+                class="flex items-center gap-2 p-2 rounded border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer transition-colors">
+                <input type="checkbox" :value="platform" v-model="newCommentsJob.platforms"
+                  class="w-4 h-4 rounded accent-blue-500" />
+                <span class="text-sm text-gray-700 dark:text-gray-300 capitalize">{{ platform }}</span>
+              </label>
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Priority</label>
+            <select v-model.number="newCommentsJob.priority"
+              class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200">
+              <option :value="0">Normal (0)</option>
+              <option :value="1">High (1)</option>
+              <option :value="2">Urgent (2)</option>
+            </select>
+          </div>
+          <div class="flex gap-3 pt-4">
+            <button type="button" @click="showCreateJobModal = false"
+              class="flex-1 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 font-medium transition-colors duration-200">
+              Cancel
+            </button>
+            <button type="submit" :disabled="submitting"
+              class="flex-1 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 disabled:bg-blue-400 text-white font-medium transition-colors duration-200">
+              {{ submitting ? 'Creating...' : 'Create' }}
+            </button>
+          </div>
+          <div v-if="createError"
+            class="p-3 rounded-lg bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 text-sm">
+            {{ createError }}
+          </div>
+          <div v-if="createSuccess"
+            class="p-3 rounded-lg bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-sm">
+            Comments jobs created successfully!
+          </div>
+        </form>
       </div>
     </div>
   </div>
@@ -370,12 +424,18 @@ interface NewAnalyticsJob {
   priority: number
 }
 
+interface NewCommentsJob {
+  task_type: string
+  platforms: string[]
+  priority: number
+}
+
 const workers = ref<Worker[]>([])
 const jobs = ref<Job[]>([])
 const loading = ref(false)
 const jobFilter = ref('all')
 const showCreateJobModal = ref(false)
-const jobModalType = ref<'upload' | 'analytics'>('upload')
+const jobModalType = ref<'upload' | 'analytics' | 'comments'>('upload')
 const submitting = ref(false)
 const createError = ref('')
 const createSuccess = ref(false)
@@ -388,6 +448,12 @@ const newUploadJob = ref<NewJob>({
 
 const newAnalyticsJob = ref<NewAnalyticsJob>({
   task_type: 'channel_analytics',
+  platforms: [],
+  priority: 0
+})
+
+const newCommentsJob = ref<NewCommentsJob>({
+  task_type: 'video_comments',
   platforms: [],
   priority: 0
 })
@@ -433,7 +499,7 @@ async function refreshJobs() {
   }
 }
 
-function openCreateJobModal(type: 'upload' | 'analytics') {
+function openCreateJobModal(type: 'upload' | 'analytics' | 'comments') {
   jobModalType.value = type
   createError.value = ''
   createSuccess.value = false
@@ -446,6 +512,12 @@ function openCreateJobModal(type: 'upload' | 'analytics') {
 
   newAnalyticsJob.value = {
     task_type: 'channel_analytics',
+    platforms: [],
+    priority: 0
+  }
+
+  newCommentsJob.value = {
+    task_type: 'video_comments',
     platforms: [],
     priority: 0
   }
@@ -515,6 +587,42 @@ async function createAnalyticsJob() {
   } catch (error: any) {
     createError.value = error.response?.data?.error || 'Failed to create analytics job'
     console.error('Error creating analytics job:', error)
+  } finally {
+    submitting.value = false
+  }
+}
+
+async function createCommentsJob() {
+  if (newCommentsJob.value.platforms.length === 0) {
+    createError.value = 'Please select at least one platform'
+    return
+  }
+
+  try {
+    submitting.value = true
+    createError.value = ''
+    createSuccess.value = false
+
+    const project_id = localStorage.getItem('currentProjectId') || 2
+
+    const payload = {
+      platforms: newCommentsJob.value.platforms,
+      task_type: newCommentsJob.value.task_type,
+      priority: newCommentsJob.value.priority
+    }
+
+    await axios.post(`/jobs/comments?project_id=${project_id}`, payload)
+    createSuccess.value = true
+
+    setTimeout(() => {
+      refreshJobs()
+      showCreateJobModal.value = false
+      createSuccess.value = false
+    }, 1500)
+
+  } catch (error: any) {
+    createError.value = error.response?.data?.error || 'Failed to create comments job'
+    console.error('Error creating comments job:', error)
   } finally {
     submitting.value = false
   }
