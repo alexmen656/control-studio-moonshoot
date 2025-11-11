@@ -1,6 +1,6 @@
 <template>
     <div class="w-64 bg-white dark:bg-gray-800 flex flex-col fixed left-0 top-15 bottom-0 sidebar">
-        <div class="px-2 pb-4 pt-2 relative">
+        <div v-if="!isVideoDetailPage" class="px-2 pb-4 pt-2 relative">
             <button @click.stop="showNewDropdown = !showNewDropdown"
                 class="flex items-center space-x-3 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 shadow-md hover:shadow-lg border border-gray-200 dark:border-gray-600 rounded-full px-6 py-3 w-full transition-all group">
                 <svg class="w-6 h-6 text-primary-600 dark:text-primary-400" fill="currentColor" viewBox="0 0 20 20">
@@ -62,27 +62,97 @@
             </div>
         </div>
         <nav class="flex-1 px-2 space-y-1 overflow-y-auto">
-            <router-link to="/activity"
-                class="flex items-center space-x-3 px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-violet-100 dark:hover:bg-violet-900/20 rounded-full transition-colors"
-                active-class="bg-violet-100 dark:bg-violet-900/30 text-primary-900 dark:text-primary-200 hover:bg-primary-100 dark:hover:bg-violet-900/40">
-                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd"
-                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                        clip-rule="evenodd" />
-                </svg>
-                <span class="text-sm font-medium">Activity</span>
-            </router-link>
-            <router-link to="/dashboard"
-                class="flex items-center space-x-3 px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-violet-100 dark:hover:bg-violet-900/20 rounded-full transition-colors"
-                active-class="bg-violet-100 dark:bg-violet-900/30 text-primary-900 dark:text-primary-200 hover:bg-primary-100 dark:hover:bg-violet-900/40">
-                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd"
-                        d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"
-                        clip-rule="evenodd" />
-                </svg>
-                <span class="text-sm font-medium">My Posts</span>
-            </router-link>
-            <!--<router-link to="/planning"
+            <template v-if="isVideoDetailPage">
+                <router-link to="/home"
+                    class="flex items-center space-x-3 px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-violet-100 dark:hover:bg-violet-900/20 rounded-lg transition-colors mb-4">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd"
+                            d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z"
+                            clip-rule="evenodd" />
+                    </svg>
+                    <span class="text-sm font-medium">Channel Content</span>
+                </router-link>
+                <div class="px-2 pt-2 pb-3">
+                    <span class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Video Details</span>
+                </div>
+                <a href="#"
+                    class="flex items-center space-x-3 px-4 py-2.5 text-gray-900 dark:text-gray-100 bg-violet-100 dark:bg-violet-900/30 rounded-lg">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path
+                            d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                    </svg>
+                    <span class="text-sm font-medium">Details</span>
+                </a>
+                <a href="#"
+                    class="flex items-center space-x-3 px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-violet-100 dark:hover:bg-violet-900/20 rounded-lg transition-colors">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path
+                            d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
+                    </svg>
+                    <span class="text-sm font-medium">Analytics</span>
+                </a>
+                <a href="#"
+                    class="flex items-center space-x-3 px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-violet-100 dark:hover:bg-violet-900/20 rounded-lg transition-colors">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd"
+                            d="M18 13V5a2 2 0 00-2-2H4a2 2 0 00-2 2v8a2 2 0 002 2h3l3 3 3-3h3a2 2 0 002-2zM5 7a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1zm1 3a1 1 0 100 2h3a1 1 0 100-2H6z"
+                            clip-rule="evenodd" />
+                    </svg>
+                    <span class="text-sm font-medium">Comments</span>
+                </a>
+
+                <a href="#"
+                    class="flex items-center space-x-3 px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-violet-100 dark:hover:bg-violet-900/20 rounded-lg transition-colors">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd"
+                            d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"
+                            clip-rule="evenodd" />
+                    </svg>
+                    <span class="text-sm font-medium">Editor</span>
+                </a>
+
+                <a href="#"
+                    class="flex items-center space-x-3 px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-violet-100 dark:hover:bg-violet-900/20 rounded-lg transition-colors">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
+                        <path fill-rule="evenodd"
+                            d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z"
+                            clip-rule="evenodd" />
+                    </svg>
+                    <span class="text-sm font-medium">Advances Settings</span>
+                </a>
+
+                <a href="#"
+                    class="flex items-center space-x-3 px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-violet-100 dark:hover:bg-violet-900/20 rounded-lg transition-colors">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path
+                            d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" />
+                    </svg>
+                    <span class="text-sm font-medium">Scheduling</span>
+                </a>
+            </template>
+            <template v-else>
+                <router-link to="/activity"
+                    class="flex items-center space-x-3 px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-violet-100 dark:hover:bg-violet-900/20 rounded-full transition-colors"
+                    active-class="bg-violet-100 dark:bg-violet-900/30 text-primary-900 dark:text-primary-200 hover:bg-primary-100 dark:hover:bg-violet-900/40">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd"
+                            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                            clip-rule="evenodd" />
+                    </svg>
+                    <span class="text-sm font-medium">Activity</span>
+                </router-link>
+                <router-link to="/dashboard"
+                    class="flex items-center space-x-3 px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-violet-100 dark:hover:bg-violet-900/20 rounded-full transition-colors"
+                    active-class="bg-violet-100 dark:bg-violet-900/30 text-primary-900 dark:text-primary-200 hover:bg-primary-100 dark:hover:bg-violet-900/40">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd"
+                            d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"
+                            clip-rule="evenodd" />
+                    </svg>
+                    <span class="text-sm font-medium">My Posts</span>
+                </router-link>
+                <!--<router-link to="/planning"
                     class="flex items-center space-x-3 px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-violet-100 dark:hover:bg-violet-900/20 rounded-full transition-colors"
                     active-class="bg-violet-100 dark:bg-violet-900/30 text-primary-700 dark:text-primary-200 hover:bg-primary-100 dark:hover:bg-violet-900/40">
                     <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -93,92 +163,93 @@
                     </svg>
                     <span class="text-sm font-medium">Planning</span>
                 </router-link>-->
-            <router-link to="/schedule"
-                class="flex items-center space-x-3 px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-violet-100 dark:hover:bg-violet-900/20 rounded-full transition-colors"
-                active-class="bg-violet-100 dark:bg-violet-900/30 text-primary-700 dark:text-primary-200 hover:bg-primary-100 dark:hover:bg-violet-900/40">
-                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd"
-                        d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
-                        clip-rule="evenodd" />
-                </svg>
-                <span class="text-sm font-medium">Schedule</span>
-            </router-link>
+                <router-link to="/schedule"
+                    class="flex items-center space-x-3 px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-violet-100 dark:hover:bg-violet-900/20 rounded-full transition-colors"
+                    active-class="bg-violet-100 dark:bg-violet-900/30 text-primary-700 dark:text-primary-200 hover:bg-primary-100 dark:hover:bg-violet-900/40">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd"
+                            d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
+                            clip-rule="evenodd" />
+                    </svg>
+                    <span class="text-sm font-medium">Schedule</span>
+                </router-link>
 
-            <router-link to="/analytics"
-                class="flex items-center space-x-3 px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-violet-100 dark:hover:bg-violet-900/20 rounded-full transition-colors"
-                active-class="bg-violet-100 dark:bg-violet-900/30 text-primary-700 dark:text-primary-200 hover:bg-primary-100 dark:hover:bg-violet-900/40">
-                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                    <path
-                        d="M3 3a1 1 0 011-1h1a1 1 0 011 1v14a1 1 0 01-1 1H4a1 1 0 01-1-1V3zm5 6a1 1 0 011-1h1a1 1 0 011 1v8a1 1 0 01-1 1H9a1 1 0 01-1-1V9zm5-4a1 1 0 011-1h1a1 1 0 011 1v12a1 1 0 01-1 1h-1a1 1 0 01-1-1V5z" />
-                </svg>
+                <router-link to="/analytics"
+                    class="flex items-center space-x-3 px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-violet-100 dark:hover:bg-violet-900/20 rounded-full transition-colors"
+                    active-class="bg-violet-100 dark:bg-violet-900/30 text-primary-700 dark:text-primary-200 hover:bg-primary-100 dark:hover:bg-violet-900/40">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path
+                            d="M3 3a1 1 0 011-1h1a1 1 0 011 1v14a1 1 0 01-1 1H4a1 1 0 01-1-1V3zm5 6a1 1 0 011-1h1a1 1 0 011 1v8a1 1 0 01-1 1H9a1 1 0 01-1-1V9zm5-4a1 1 0 011-1h1a1 1 0 011 1v12a1 1 0 01-1 1h-1a1 1 0 01-1-1V5z" />
+                    </svg>
 
-                <span class=" text-sm font-medium">Analytics</span>
-            </router-link>
-            <router-link to="/accounts"
-                class="flex items-center space-x-3 px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-violet-100 dark:hover:bg-violet-900/20 rounded-full transition-colors"
-                active-class="bg-violet-100 dark:bg-violet-900/30 text-primary-700 dark:text-primary-200 hover:bg-primary-100 dark:hover:bg-violet-900/40">
-                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
-                        clip-rule="evenodd" />
-                </svg>
-                <span class="text-sm font-medium">Accounts</span>
-            </router-link>
-            <router-link to="/project-settings"
-                class="flex items-center space-x-3 px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-violet-100 dark:hover:bg-violet-900/20 rounded-full transition-colors"
-                active-class="bg-violet-100 dark:bg-violet-900/30 text-primary-900 dark:text-primary-200 hover:bg-primary-100 dark:hover:bg-violet-900/40">
-                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd"
-                        d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z"
-                        clip-rule="evenodd" />
-                </svg>
-                <span class="text-sm font-medium">Project Settings</span>
-            </router-link>
-            <div class="border-t border-gray-200 dark:border-gray-700 my-2" v-if="isAdmin"></div>
-            <div class="px-4 pt-2" v-if="isAdmin">
-                <span class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Admin Tools</span>
-            </div>
-            <router-link to="/workers" v-if="isAdmin"
-                class="flex items-center space-x-3 px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-violet-100 dark:hover:bg-violet-900/20 rounded-full transition-colors"
-                active-class="bg-violet-100 dark:bg-violet-900/30 text-primary-900 dark:text-primary-200 hover:bg-primary-100 dark:hover:bg-violet-900/40">
-                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                    <path
-                        d="M10 2a1 1 0 011 1v1.323l3.954 1.582 1.599-.8a1 1 0 01.894 1.79l-1.233.616 1.738 5.42a1 1 0 01-.285 1.05A3.989 3.989 0 0115 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.738-5.42-1.233-.617a1 1 0 01.894-1.788l1.599.799L11 4.323V3a1 1 0 011-1zm-5 8.274l-.818 2.552c-.25.78.008 1.626.69 2.193A3.989 3.989 0 007 15a3.989 3.989 0 002.128-.981c.682-.567.94-1.413.69-2.193l-.818-2.552a1 1 0 00-1.9 0z" />
-                </svg>
-                <span class="text-sm font-medium">Workers</span>
-            </router-link>
-            <router-link to="/admin/users" v-if="isAdmin"
-                class="flex items-center space-x-3 px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-violet-100 dark:hover:bg-violet-900/20 rounded-full transition-colors"
-                active-class="bg-violet-100 dark:bg-violet-900/30 text-primary-900 dark:text-primary-200 hover:bg-primary-100 dark:hover:bg-violet-900/40">
-                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                    <path
-                        d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
-                </svg>
-                <span class="text-sm font-medium">User Management</span>
-            </router-link>
-            <div class="border-t border-gray-200 dark:border-gray-700 my-2"></div>
-            <div class="px-4 pt-2">
-                <span class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Storage</span>
-            </div>
-            <div class="px-4 py-2">
-                <div class="space-y-2">
-                    <div class="flex items-center justify-between text-sm">
-                        <span class="text-gray-600 dark:text-gray-400">{{ storageUsed }} {{ unit }} of {{
-                            storageTotal
+                    <span class=" text-sm font-medium">Analytics</span>
+                </router-link>
+                <router-link to="/accounts"
+                    class="flex items-center space-x-3 px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-violet-100 dark:hover:bg-violet-900/20 rounded-full transition-colors"
+                    active-class="bg-violet-100 dark:bg-violet-900/30 text-primary-700 dark:text-primary-200 hover:bg-primary-100 dark:hover:bg-violet-900/40">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+                            clip-rule="evenodd" />
+                    </svg>
+                    <span class="text-sm font-medium">Accounts</span>
+                </router-link>
+                <router-link to="/project-settings"
+                    class="flex items-center space-x-3 px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-violet-100 dark:hover:bg-violet-900/20 rounded-full transition-colors"
+                    active-class="bg-violet-100 dark:bg-violet-900/30 text-primary-900 dark:text-primary-200 hover:bg-primary-100 dark:hover:bg-violet-900/40">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd"
+                            d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z"
+                            clip-rule="evenodd" />
+                    </svg>
+                    <span class="text-sm font-medium">Project Settings</span>
+                </router-link>
+                <div class="border-t border-gray-200 dark:border-gray-700 my-2" v-if="isAdmin"></div>
+                <div class="px-4 pt-2" v-if="isAdmin">
+                    <span class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Admin Tools</span>
+                </div>
+                <router-link to="/workers" v-if="isAdmin"
+                    class="flex items-center space-x-3 px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-violet-100 dark:hover:bg-violet-900/20 rounded-full transition-colors"
+                    active-class="bg-violet-100 dark:bg-violet-900/30 text-primary-900 dark:text-primary-200 hover:bg-primary-100 dark:hover:bg-violet-900/40">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path
+                            d="M10 2a1 1 0 011 1v1.323l3.954 1.582 1.599-.8a1 1 0 01.894 1.79l-1.233.616 1.738 5.42a1 1 0 01-.285 1.05A3.989 3.989 0 0115 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.738-5.42-1.233-.617a1 1 0 01.894-1.788l1.599.799L11 4.323V3a1 1 0 011-1zm-5 8.274l-.818 2.552c-.25.78.008 1.626.69 2.193A3.989 3.989 0 007 15a3.989 3.989 0 002.128-.981c.682-.567.94-1.413.69-2.193l-.818-2.552a1 1 0 00-1.9 0z" />
+                    </svg>
+                    <span class="text-sm font-medium">Workers</span>
+                </router-link>
+                <router-link to="/admin/users" v-if="isAdmin"
+                    class="flex items-center space-x-3 px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-violet-100 dark:hover:bg-violet-900/20 rounded-full transition-colors"
+                    active-class="bg-violet-100 dark:bg-violet-900/30 text-primary-900 dark:text-primary-200 hover:bg-primary-100 dark:hover:bg-violet-900/40">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path
+                            d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
+                    </svg>
+                    <span class="text-sm font-medium">User Management</span>
+                </router-link>
+                <div class="border-t border-gray-200 dark:border-gray-700 my-2"></div>
+                <div class="px-4 pt-2">
+                    <span class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Storage</span>
+                </div>
+                <div class="px-4 py-2">
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between text-sm">
+                            <span class="text-gray-600 dark:text-gray-400">{{ storageUsed }} {{ unit }} of {{
+                                storageTotal
                             }}
-                            GB
-                            used</span>
-                    </div>
-                    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                        <div v-if="usedBytes" class="bg-gray-600 dark:bg-gray-400 rounded-full h-2 transition-all"
-                            :style="{ width: storagePercent > 3 ? storagePercent + '%' : '3%' }">
+                                GB
+                                used</span>
                         </div>
-                    </div>
-                    <!-- <button
+                        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                            <div v-if="usedBytes" class="bg-gray-600 dark:bg-gray-400 rounded-full h-2 transition-all"
+                                :style="{ width: storagePercent > 3 ? storagePercent + '%' : '3%' }">
+                            </div>
+                        </div>
+                        <!-- <button
                             class="text-xs text-gray-600 dark:text-gray-400 hover:text-primary-700 dark:hover:text-primary-400 font-medium hover:underline">
                             Upgrade to Pro
                         </button>-->
+                    </div>
                 </div>
-            </div>
+            </template>
         </nav>
         <div class="px-2 border-t border-gray-200 dark:border-gray-700 relative pb-2"><!--pb-4-->
             <button @click="toggleProjectDropdown"
@@ -194,7 +265,7 @@
                     </div>
                     <div class="text-left">
                         <div class="text-sm font-semibold text-gray-900 dark:text-white">{{ currentProject?.name ||
-                            'Testproject' }}</div>
+                            'Test Project' }}</div>
                         <div class="text-xs text-gray-500 dark:text-gray-400">Active workspace</div>
                     </div>
                 </div>
@@ -236,6 +307,7 @@
 </template>
 <script lang="ts">
 import { useAuthStore } from '@/stores/auth'
+import { useRoute } from 'vue-router'
 
 interface Project {
     id: number;
@@ -251,7 +323,8 @@ export default {
     name: 'AppSidebar',
     setup() {
         const authStore = useAuthStore()
-        return { authStore }
+        const route = useRoute()
+        return { authStore, route }
     },
     data() {
         return {
@@ -273,6 +346,9 @@ export default {
     computed: {
         isAdmin() {
             return this.authStore.isAdmin;
+        },
+        isVideoDetailPage() {
+            return this.route.name === 'video';
         }
     },
     created() {
