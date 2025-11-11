@@ -23,15 +23,19 @@ export async function uploadToReddit(token, job) {
     if (job.video?.subreddit && job.video.subreddit.trim() !== '') {
         options.subreddit = job.video.subreddit;
     }
+    
     if (job.video?.nsfw !== undefined && job.video.nsfw !== null) {
         options.nsfw = job.video.nsfw;
     }
+
     if (job.video?.spoiler !== undefined && job.video.spoiler !== null) {
         options.spoiler = job.video.spoiler;
     }
+
     if (job.video?.flairId && job.video.flairId.trim() !== '') {
         options.flairId = job.video.flairId;
     }
+
     if (job.video?.flairText && job.video.flairText.trim() !== '') {
         options.flairText = job.video.flairText;
     }
@@ -39,7 +43,7 @@ export async function uploadToReddit(token, job) {
     console.log('Uploading to Reddit with options:', options);
 
     try {
-        await uploadVideo(accessToken, videoFile, options);
+        const uploadResponse = await uploadVideo(accessToken, videoFile, options);
 
         console.log(`✅ Successfully uploaded to Reddit`);
 
@@ -47,7 +51,11 @@ export async function uploadToReddit(token, job) {
             platform: job.platform,
             uploaded_at: new Date().toISOString(),
             video_id: job.video_id,
-            platform_response: 'Upload successful'
+            upload_data: {
+                reddit_submission_id: uploadResponse.json?.data?.id,
+                reddit_submission_url: uploadResponse.json?.data?.url,
+                platform_response: uploadResponse
+            }
         });
     } catch (error) {
         console.error('❌ Reddit upload failed:', error.message);

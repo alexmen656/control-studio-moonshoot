@@ -20,9 +20,11 @@ export async function uploadToYouTube(token, job) {
     if (job.video?.tags && Array.isArray(job.video.tags)) {
         videoFile.tags = job.video.tags;
     }
+    
     if (job.video?.categoryId) {
         videoFile.categoryId = job.video.categoryId;
     }
+
     if (job.video?.privacyStatus) {
         videoFile.privacyStatus = job.video.privacyStatus;
     }
@@ -30,7 +32,7 @@ export async function uploadToYouTube(token, job) {
     console.log('Uploading to YouTube with options:', videoFile);
 
     try {
-        await uploadVideo(accessToken, refreshToken, videoFile);
+        const uploadResponse = await uploadVideo(accessToken, refreshToken, videoFile);
 
         console.log(`✅ Successfully uploaded to YouTube`);
 
@@ -38,7 +40,10 @@ export async function uploadToYouTube(token, job) {
             platform: job.platform,
             uploaded_at: new Date().toISOString(),
             video_id: job.video_id,
-            platform_response: 'Upload successful'
+            upload_data: {
+                youtube_video_id: uploadResponse.id,
+                platform_response: uploadResponse
+            }
         });
     } catch (error) {
         console.error('❌ YouTube upload failed:', error.message);

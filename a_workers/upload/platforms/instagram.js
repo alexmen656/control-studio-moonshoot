@@ -37,14 +37,17 @@ export async function uploadToInstagram(token, job) {
     console.log('Uploading to Instagram with options:', options);
 
     try {
-        await uploadReel(instagramToken, videoFile, options);
+        const uploadResponse = await uploadReel(instagramToken, videoFile, options);
         console.log(`✅ Successfully uploaded to Instagram`);
 
         await updateJobStatus(job.job_id, 'completed', null, {
             platform: job.platform,
             uploaded_at: new Date().toISOString(),
             video_id: job.video_id,
-            platform_response: 'Upload successful'
+            upload_data: {
+                instagram_media_id: uploadResponse.id,
+                platform_response: uploadResponse
+            }
         });
     } catch (error) {
         console.error('❌ Instagram upload failed:', error.message);

@@ -23,12 +23,15 @@ export async function uploadToFacebook(token, job) {
     if (job.video?.published !== undefined && job.video.published !== null) {
         options.published = job.video.published;
     }
+    
     if (job.video?.scheduledPublishTime) {
         options.scheduledPublishTime = job.video.scheduledPublishTime;
     }
+
     if (job.video?.targeting && typeof job.video.targeting === 'object') {
         options.targeting = job.video.targeting;
     }
+
     if (job.video?.contentCategory) {
         options.contentCategory = job.video.contentCategory;
     }
@@ -36,14 +39,17 @@ export async function uploadToFacebook(token, job) {
     console.log('Uploading to Facebook with options:', options);
 
     try {
-        await uploadVideo(facebookToken, videoFile, options);
+        const uploadResponse = await uploadVideo(facebookToken, videoFile, options);
         console.log(`✅ Successfully uploaded to Facebook`);
 
         await updateJobStatus(job.job_id, 'completed', null, {
             platform: job.platform,
             uploaded_at: new Date().toISOString(),
             video_id: job.video_id,
-            platform_response: 'Upload successful'
+            upload_data: {
+                facebook_video_id: uploadResponse.id,
+                platform_response: uploadResponse
+            }
         });
     } catch (error) {
         console.error('❌ Facebook upload failed:', error.message);

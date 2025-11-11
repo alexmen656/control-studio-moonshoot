@@ -170,6 +170,80 @@ async function storeContentAnalytics(channelAnalyticsId, projectId, platform, co
   }
 }
 
+async function storeUploadData(resultData) {
+  const { upload_data, platform, task_type, video_id } = resultData;
+
+  if (!upload_data || !platform || !video_id) {
+    console.warn('⚠️ Missing required upload data fields');
+    console.log('Received:', resultData); //project id is missing here
+    return;
+  }
+
+  try {
+    const videoResult = await db.query(
+      'SELECT project_id FROM videos WHERE id = $1',
+      [video_id]
+    );
+
+    if (videoResult.rows.length === 0) {
+      console.warn(`⚠️ Video ${video_id} not found in database`);
+      return;
+    }
+
+    const project_id = videoResult.rows[0].project_id;
+    let platform_id = null;
+
+    if (upload_data.youtube_video_id) {
+      platform_id = upload_data.youtube_video_id;
+    } else if (upload_data.tiktok_video_id) {
+      platform_id = upload_data.tiktok_video_id;
+    } else if (upload_data.instagram_media_id) {
+      platform_id = upload_data.instagram_media_id;
+    } else if (upload_data.facebook_video_id) {
+      platform_id = upload_data.facebook_video_id;
+    } else if (upload_data.x_tweet_id) {
+      platform_id = upload_data.x_tweet_id;
+    } else if (upload_data.reddit_submission_id) {
+      platform_id = upload_data.reddit_submission_id;
+    }
+
+    if (!platform_id) {
+      console.warn('⚠️ No platform ID found in upload_data');
+      return;
+    }
+
+    const uploadInsertQuery = `
+      INSERT INTO upload_results (
+        project_id, job_id, video_id, platform,
+        platform_id, platform_response, uploaded_at
+      ) VALUES (
+        $1, $2, $3, $4,
+        $5, $6, CURRENT_TIMESTAMP
+      )
+      ON CONFLICT (job_id, platform)
+      DO UPDATE SET
+        platform_id = EXCLUDED.platform_id,
+        platform_response = EXCLUDED.platform_response,
+        uploaded_at = EXCLUDED.uploaded_at
+      RETURNING id
+    `;
+
+    const result = await db.query(uploadInsertQuery, [
+      project_id,
+      resultData.job_id,
+      video_id,
+      platform,
+      platform_id,
+      JSON.stringify(upload_data.platform_response || {})
+    ]);
+  
+    console.log(`✅ Stored upload result for project ${project_id}, platform ${platform}, video ${video_id}, platform_id ${platform_id}`);
+  } catch (error) {
+    console.error('Error storing upload data:', error);
+    throw error;
+  }
+}
+
 async function storeCommentsData(resultData) {
   const { comments_data, project_id, platform, task_type } = resultData;
 
@@ -810,6 +884,15 @@ app.patch('/api/jobs/:jobId/status', requireWorkerCert, async (req, res) => {
         console.log(`✅ Comments data stored for job ${jobId}`);
       } catch (commentsError) {
         console.error(`❌ Error storing comments data for job ${jobId}:`, commentsError);
+      }
+    }
+
+    if (status === 'completed' && result_data?.upload_data) {
+      try {
+        await storeUploadData({ ...result_data, job_id: jobId });
+        console.log(`✅ Upload data stored for job ${jobId}`);
+      } catch (uploadError) {
+        console.error(`❌ Error storing upload data for job ${jobId}:`, uploadError);
       }
     }
 

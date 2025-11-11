@@ -20,9 +20,11 @@ export async function uploadToX(token, job) {
     if (job.video?.replySettings) {
         options.replySettings = job.video.replySettings;
     }
+
     if (job.video?.quoteTweetId && job.video.quoteTweetId.trim() !== '') {
         options.quoteTweetId = job.video.quoteTweetId;
     }
+
     if (job.video?.forSuperFollowersOnly !== undefined && job.video.forSuperFollowersOnly !== null) {
         options.forSuperFollowersOnly = job.video.forSuperFollowersOnly;
     }
@@ -30,7 +32,7 @@ export async function uploadToX(token, job) {
     console.log('Uploading to X with options:', options);
 
     try {
-        await uploadVideo(accessToken, videoFile, options);
+        const uploadResponse = await uploadVideo(accessToken, videoFile, options);
 
         console.log(`✅ Successfully uploaded to X`);
 
@@ -38,7 +40,10 @@ export async function uploadToX(token, job) {
             platform: job.platform,
             uploaded_at: new Date().toISOString(),
             video_id: job.video_id,
-            platform_response: 'Upload successful'
+            upload_data: {
+                x_tweet_id: uploadResponse.data.id,
+                platform_response: uploadResponse
+            }
         });
     } catch (error) {
         console.error('❌ X upload failed:', error.message);

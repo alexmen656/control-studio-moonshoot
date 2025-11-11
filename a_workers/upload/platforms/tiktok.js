@@ -21,15 +21,19 @@ export async function uploadToTikTok(token, job) {
     if (job.video?.privacyLevel) {
         options.privacyLevel = job.video.privacyLevel;
     }
+    
     if (job.video?.disableDuet !== undefined && job.video.disableDuet !== null) {
         options.disableDuet = job.video.disableDuet;
     }
+
     if (job.video?.disableComment !== undefined && job.video.disableComment !== null) {
         options.disableComment = job.video.disableComment;
     }
+
     if (job.video?.disableStitch !== undefined && job.video.disableStitch !== null) {
         options.disableStitch = job.video.disableStitch;
     }
+
     if (job.video?.videoCoverTimestampMs) {
         options.videoCoverTimestampMs = job.video.videoCoverTimestampMs;
     }
@@ -37,7 +41,7 @@ export async function uploadToTikTok(token, job) {
     console.log('Uploading to TikTok with options:', options);
 
     try {
-        await uploadVideo(accessToken, videoPath, title, description, options, this, job);
+        const uploadResponse = await uploadVideo(accessToken, videoPath, title, description, options, this, job);
 
         console.log(`✅ Successfully uploaded to TikTok`);
 
@@ -45,7 +49,10 @@ export async function uploadToTikTok(token, job) {
             platform: job.platform,
             uploaded_at: new Date().toISOString(),
             video_id: job.video_id,
-            platform_response: 'Upload successful'
+            upload_data: {
+                tiktok_video_id: uploadResponse.publish_id,
+                platform_response: uploadResponse
+            }
         });
     } catch (error) {
         console.error('❌ TikTok upload failed:', error.message);
