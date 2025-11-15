@@ -2,14 +2,19 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import axios from '@/axios'
 
 const router = useRouter()
 const authStore = useAuthStore()
 
 const currentStep = ref(1)
-const totalSteps = 4
+const totalSteps = 5
+const projectName = ref('')
 
 const selectedPlatforms = ref<string[]>([])
+const platformConnections = ref<Record<string, 'idle' | 'connecting' | 'connected' | 'failed'>>({})
+const createdProjectId = ref<number | null>(null)
+
 const platforms = [
     {
         id: 'tiktok',
@@ -47,7 +52,7 @@ const platforms = [
         description: 'Community content'
     },
     {
-        id: 'twitter',
+        id: 'x',
         name: 'X (Twitter)',
         icon: 'fab fa-x-twitter',
         color: 'from-black to-gray-900',
@@ -92,10 +97,11 @@ const progressPercentage = computed(() => {
 })
 
 const canProceed = computed(() => {
-    if (currentStep.value === 1) return selectedPlatforms.value.length > 0
-    if (currentStep.value === 2) return true // Platform auth always allows next
-    if (currentStep.value === 3) return accountType.value !== ''
-    if (currentStep.value === 4) return selectedGoals.value.length > 0
+    if (currentStep.value === 1) return projectName.value.trim().length > 0
+    if (currentStep.value === 2) return selectedPlatforms.value.length > 0
+    if (currentStep.value === 3) return true // Platform auth always allows next
+    if (currentStep.value === 4) return accountType.value !== ''
+    if (currentStep.value === 5) return selectedGoals.value.length > 0
     return false
 })
 
@@ -117,8 +123,14 @@ const toggleGoal = (goalId: string) => {
     }
 }
 
-const nextStep = () => {
-    if (canProceed.value && currentStep.value < totalSteps) {
+const nextStep = async () => {
+    if (!canProceed.value) return
+    
+    if (currentStep.value === 1 && !createdProjectId.value) {
+        await createProject()
+    }
+    
+    if (currentStep.value < totalSteps) {
         currentStep.value++
     }
 }
@@ -133,15 +145,104 @@ const skip = () => {
     router.push('/home')
 }
 
-const authenticatePlatforms = async () => {
-    console.log('Authenticating platforms:', selectedPlatforms.value)
+const createProject = async () => {
+    try {
+        const user = authStore.user
+        if (!user) {
+            throw new Error('No user found')
+        }
+
+        const initials = projectName.value.split(' ').map(word => word[0]).join('').toUpperCase().slice(0, 2)
+        const colors: [string, string][] = [
+            ['#ef4444', '#dc2626'],
+            ['#3b82f6', '#9333ea'],
+            ['#10b981', '#14b8a6'],
+            ['#f59e0b', '#ea580c'],
+            ['#8b5cf6', '#ec4899']
+        ]
+        const randomColor = colors[Math.floor(Math.random() * colors.length)] ?? colors[0]
+
+        const response = await axios.post('/projects', {
+            name: projectName.value,
+            initials: initials,
+            color1: randomColor![0],
+            color2: randomColor![1],
+            user_id: user.id
+        })
+
+        createdProjectId.value = response.data.id
+        localStorage.setItem('currentProjectId', String(response.data.id))
+    } catch (error) {
+        console.error('Error creating project:', error)
+        alert('Failed to create project. Please try again.')
+        throw error
+    }
+}
+
+const connectPlatform = async (platformId: string) => {
+    if (!createdProjectId.value) {
+        console.error('No project created yet')
+        return
+    }
+
+    try {
+        platformConnections.value[platformId] = 'connecting'
+        
+        const response = await axios.post(`/connect/${platformId}`, null, {
+            params: { project_id: createdProjectId.value }
+        })
+
+        if (response.data.authUrl) {
+            const width = 600
+            const height = 700
+            const left = window.screen.width / 2 - width / 2
+            const top = window.screen.height / 2 - height / 2
+            
+            const authWindow = window.open(
+                response.data.authUrl,
+                `${platformId}_auth`,
+                `width=${width},height=${height},left=${left},top=${top}`
+            )
+
+            const checkWindow = setInterval(() => {
+                if (authWindow?.closed) {
+                    clearInterval(checkWindow)
+                    setTimeout(() => checkPlatformConnection(platformId), 1000)
+                }
+            }, 500)
+        }
+    } catch (error) {
+        console.error(`Error connecting to ${platformId}:`, error)
+        platformConnections.value[platformId] = 'failed'
+    }
+}
+
+const checkPlatformConnection = async (platformId: string) => {
+    if (!createdProjectId.value) return
+
+    try {
+        const response = await axios.get('/connected-platforms', {
+            params: { project_id: createdProjectId.value }
+        })
+
+        if (response.data.platforms.includes(platformId)) {
+            platformConnections.value[platformId] = 'connected'
+        } else {
+            platformConnections.value[platformId] = 'idle'
+        }
+    } catch (error) {
+        console.error('Error checking platform connection:', error)
+        platformConnections.value[platformId] = 'idle'
+    }
 }
 
 const complete = async () => {
     const onboardingData = {
+        projectName: projectName.value,
         platforms: selectedPlatforms.value,
         accountType: accountType.value,
-        goals: selectedGoals.value
+        goals: selectedGoals.value,
+        projectId: createdProjectId.value
     }
     
     console.log('Onboarding completed:', onboardingData)
@@ -161,7 +262,7 @@ const complete = async () => {
 <template>
     <div class="min-h-screen bg-gradient-to-br from-violet-50 via-blue-50 to-slate-50 flex items-center justify-center px-4 py-8">
         <div class="w-full max-w-4xl">
-            <div class="text-center mb-8">
+            <div class="text-center mb-8" v-if="currentStep === 1">
                 <img src="@/assets/new_new_logo.svg" alt="Reelmia logo" class="w-10 h-10 mx-auto mb-4">
                 <h1 class="text-3xl md:text-4xl font-bold text-slate-900 mb-2">
                     Let's get you set up
@@ -186,6 +287,32 @@ const complete = async () => {
             </div>
             <div class="bg-white rounded-2xl shadow-xl border border-slate-200 p-8 md:p-12 mb-6">
                 <div v-if="currentStep === 1" class="space-y-6">
+                    <div class="text-center mb-8">
+                        <div class="w-16 h-16 bg-gradient-to-br from-violet-100 to-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-folder-plus text-2xl text-violet-600"></i>
+                        </div>
+                        <h2 class="text-2xl font-bold text-slate-900 mb-2">
+                            Name your first project
+                        </h2>
+                        <p class="text-slate-600">
+                            Choose a name that helps you organize your content
+                        </p>
+                    </div>
+                    <div class="max-w-md mx-auto">
+                        <input
+                            v-model="projectName"
+                            type="text"
+                            placeholder="e.g., My Channel, Brand Content, Personal Vlogs..."
+                            class="w-full px-4 py-3 rounded-lg border-2 border-slate-200 focus:border-violet-500 focus:outline-none text-lg transition-colors text-black"
+                            @keyup.enter="nextStep"
+                            autofocus
+                        >
+                        <p class="text-sm text-slate-500 mt-3 text-center">
+                            You can create more projects later from your dashboard
+                        </p>
+                    </div>
+                </div>
+                <div v-if="currentStep === 2" class="space-y-6">
                     <div class="text-center mb-8">
                         <div class="w-16 h-16 bg-gradient-to-br from-violet-100 to-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                             <i class="fas fa-share-alt text-2xl text-violet-600"></i>
@@ -225,7 +352,7 @@ const complete = async () => {
                         Selected {{ selectedPlatforms.length }} platform{{ selectedPlatforms.length !== 1 ? 's' : '' }}
                     </p>
                 </div>
-                <div v-if="currentStep === 2" class="space-y-6">
+                <div v-if="currentStep === 3" class="space-y-6">
                     <div class="text-center mb-8">
                         <div class="w-16 h-16 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
                             <i class="fas fa-link text-2xl text-blue-600"></i>
@@ -246,12 +373,40 @@ const complete = async () => {
                                     </div>
                                     <div class="text-left">
                                         <h3 class="font-semibold text-slate-900">{{ platform.name }}</h3>
-                                        <p class="text-xs text-slate-500">Click to authenticate</p>
+                                        <p class="text-xs text-slate-500">
+                                            <span v-if="platformConnections[platform.id] === 'connected'" class="text-green-600">
+                                                <i class="fas fa-check-circle"></i> Connected
+                                            </span>
+                                            <span v-else-if="platformConnections[platform.id] === 'connecting'" class="text-blue-600">
+                                                <i class="fas fa-spinner fa-spin"></i> Connecting...
+                                            </span>
+                                            <span v-else-if="platformConnections[platform.id] === 'failed'" class="text-red-600">
+                                                <i class="fas fa-exclamation-circle"></i> Failed
+                                            </span>
+                                            <span v-else>Click to authenticate</span>
+                                        </p>
                                     </div>
                                 </div>
                                 <button
-                                    class="px-4 py-2 bg-gradient-to-r from-violet-600 to-blue-600 text-white rounded-lg text-sm font-semibold hover:shadow-md transition-all">
-                                    Connect
+                                    @click="connectPlatform(platform.id)"
+                                    :disabled="platformConnections[platform.id] === 'connecting' || platformConnections[platform.id] === 'connected'"
+                                    :class="[
+                                        'px-4 py-2 rounded-lg text-sm font-semibold transition-all',
+                                        platformConnections[platform.id] === 'connected'
+                                            ? 'bg-green-100 text-green-700 cursor-default'
+                                            : platformConnections[platform.id] === 'connecting'
+                                            ? 'bg-blue-100 text-blue-700 cursor-wait'
+                                            : 'bg-gradient-to-r from-violet-600 to-blue-600 text-white hover:shadow-md'
+                                    ]">
+                                    <span v-if="platformConnections[platform.id] === 'connected'">
+                                        <i class="fas fa-check"></i> Connected
+                                    </span>
+                                    <span v-else-if="platformConnections[platform.id] === 'connecting'">
+                                        Connecting...
+                                    </span>
+                                    <span v-else>
+                                        Connect
+                                    </span>
                                 </button>
                             </div>
                         </div>
@@ -260,7 +415,7 @@ const complete = async () => {
                         </p>
                     </div>
                 </div>
-                <div v-if="currentStep === 3" class="space-y-6">
+                <div v-if="currentStep === 4" class="space-y-6">
                     <div class="text-center mb-8">
                         <div class="w-16 h-16 bg-gradient-to-br from-orange-100 to-pink-100 rounded-full flex items-center justify-center mx-auto mb-4">
                             <i class="fas fa-user-check text-2xl text-orange-600"></i>
@@ -297,7 +452,7 @@ const complete = async () => {
                         </button>
                     </div>
                 </div>
-                <div v-if="currentStep === 4" class="space-y-6">
+                <div v-if="currentStep === 5" class="space-y-6">
                     <div class="text-center mb-8">
                         <div class="w-16 h-16 bg-gradient-to-br from-green-100 to-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                             <i class="fas fa-bullseye text-2xl text-green-600"></i>
