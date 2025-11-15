@@ -7,7 +7,7 @@ const router = useRouter()
 const authStore = useAuthStore()
 
 const currentStep = ref(1)
-const totalSteps = 3
+const totalSteps = 4
 
 const selectedPlatforms = ref<string[]>([])
 const platforms = [
@@ -40,11 +40,11 @@ const platforms = [
         description: 'Video posts'
     },
     {
-        id: 'linkedin',
-        name: 'LinkedIn',
-        icon: 'fab fa-linkedin',
-        color: 'from-blue-700 to-blue-800',
-        description: 'Professional content'
+        id: 'reddit',
+        name: 'Reddit',
+        icon: 'fab fa-reddit',
+        color: 'from-orange-600 to-orange-700',
+        description: 'Community content'
     },
     {
         id: 'twitter',
@@ -93,8 +93,9 @@ const progressPercentage = computed(() => {
 
 const canProceed = computed(() => {
     if (currentStep.value === 1) return selectedPlatforms.value.length > 0
-    if (currentStep.value === 2) return accountType.value !== ''
-    if (currentStep.value === 3) return selectedGoals.value.length > 0
+    if (currentStep.value === 2) return true // Platform auth always allows next
+    if (currentStep.value === 3) return accountType.value !== ''
+    if (currentStep.value === 4) return selectedGoals.value.length > 0
     return false
 })
 
@@ -132,6 +133,10 @@ const skip = () => {
     router.push('/home')
 }
 
+const authenticatePlatforms = async () => {
+    console.log('Authenticating platforms:', selectedPlatforms.value)
+}
+
 const complete = async () => {
     const onboardingData = {
         platforms: selectedPlatforms.value,
@@ -157,12 +162,7 @@ const complete = async () => {
     <div class="min-h-screen bg-gradient-to-br from-violet-50 via-blue-50 to-slate-50 flex items-center justify-center px-4 py-8">
         <div class="w-full max-w-4xl">
             <div class="text-center mb-8">
-                <div class="flex items-center justify-center gap-2 mb-6">
-                    <div class="w-10 h-10 bg-gradient-to-br from-violet-600 to-blue-600 rounded-lg flex items-center justify-center text-white font-bold">
-                        R
-                    </div>
-                    <span class="text-xl font-bold bg-gradient-to-r from-violet-600 to-blue-600 bg-clip-text text-transparent">Reelmia</span>
-                </div>
+                <img src="@/assets/new_new_logo.svg" alt="Reelmia logo" class="w-10 h-10 mx-auto mb-4">
                 <h1 class="text-3xl md:text-4xl font-bold text-slate-900 mb-2">
                     Let's get you set up
                 </h1>
@@ -227,6 +227,41 @@ const complete = async () => {
                 </div>
                 <div v-if="currentStep === 2" class="space-y-6">
                     <div class="text-center mb-8">
+                        <div class="w-16 h-16 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-link text-2xl text-blue-600"></i>
+                        </div>
+                        <h2 class="text-2xl font-bold text-slate-900 mb-2">
+                            Connect your platforms
+                        </h2>
+                        <p class="text-slate-600">
+                            Let's authenticate your selected platforms so you can start posting
+                        </p>
+                    </div>
+                    <div class="max-w-2xl mx-auto">
+                        <div class="space-y-3">
+                            <div v-for="platform in platforms.filter(p => selectedPlatforms.includes(p.id))" :key="platform.id" class="p-4 rounded-lg border-2 border-slate-200 flex items-center justify-between hover:border-slate-300 hover:bg-slate-50 transition-all">
+                                <div class="flex items-center gap-3">
+                                    <div :class="`w-10 h-10 rounded-lg bg-gradient-to-br ${platform.color} flex items-center justify-center text-white`">
+                                        <i :class="platform.icon"></i>
+                                    </div>
+                                    <div class="text-left">
+                                        <h3 class="font-semibold text-slate-900">{{ platform.name }}</h3>
+                                        <p class="text-xs text-slate-500">Click to authenticate</p>
+                                    </div>
+                                </div>
+                                <button
+                                    class="px-4 py-2 bg-gradient-to-r from-violet-600 to-blue-600 text-white rounded-lg text-sm font-semibold hover:shadow-md transition-all">
+                                    Connect
+                                </button>
+                            </div>
+                        </div>
+                        <p class="text-center text-sm text-slate-500 mt-6">
+                            You can skip this and connect platforms later from your dashboard
+                        </p>
+                    </div>
+                </div>
+                <div v-if="currentStep === 3" class="space-y-6">
+                    <div class="text-center mb-8">
                         <div class="w-16 h-16 bg-gradient-to-br from-orange-100 to-pink-100 rounded-full flex items-center justify-center mx-auto mb-4">
                             <i class="fas fa-user-check text-2xl text-orange-600"></i>
                         </div>
@@ -262,7 +297,7 @@ const complete = async () => {
                         </button>
                     </div>
                 </div>
-                <div v-if="currentStep === 3" class="space-y-6">
+                <div v-if="currentStep === 4" class="space-y-6">
                     <div class="text-center mb-8">
                         <div class="w-16 h-16 bg-gradient-to-br from-green-100 to-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                             <i class="fas fa-bullseye text-2xl text-green-600"></i>

@@ -17,12 +17,12 @@ onBeforeUnmount(() => window.removeEventListener('auth-change', onAuthChange))
 
 const showHeader = computed(() => {
   if (!isAuthenticated.value) return false
-  return !['landing', 'login', 'signup', 'blog', 'undefined'].includes(route.name as string)
+  return !['landing', 'login', 'signup', 'blog', 'undefined', 'onboarding'].includes(route.name as string)
 })
 
 const showSidebar = computed(() => {
   if (!isAuthenticated.value) return false
-  return !['landing', 'login', 'signup', 'blog', 'undefined'].includes(route.name as string)
+  return !['landing', 'login', 'signup', 'blog', 'undefined', 'onboarding'].includes(route.name as string)
 })
 </script>
 

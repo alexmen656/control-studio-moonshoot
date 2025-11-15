@@ -286,34 +286,6 @@
                 </div>
             </div>
         </div>
-        <div v-if="showPasskeySetup" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 space-y-6">
-                <div class="text-center">
-                    <div class="flex justify-center mb-4">
-                        <div class="w-16 h-16 bg-violet-100 rounded-full flex items-center justify-center">
-                            <i class="fas fa-key text-2xl text-violet-600"></i>
-                        </div>
-                    </div>
-                    <h3 class="text-2xl font-bold text-slate-900 mb-2">
-                        Set up Passkey
-                    </h3>
-                    <p class="text-sm text-slate-600">
-                        Use your device's biometrics (Face ID, Touch ID, Windows Hello) for faster and more secure
-                        sign-ins.
-                    </p>
-                </div>
-                <div class="space-y-3">
-                    <button @click="setupPasskey"
-                        class="w-full py-3 px-4 bg-gradient-to-r from-violet-600 to-blue-600 text-white rounded-lg hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 font-semibold">
-                        Set up Passkey
-                    </button>
-                    <button @click="skipPasskey"
-                        class="w-full py-3 px-4 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors">
-                        Skip for now
-                    </button>
-                </div>
-            </div>
-        </div>
     </div>
 </template>
 
@@ -337,7 +309,6 @@ const password = ref('')
 const termsAccepted = ref(false)
 const showPassword = ref(false)
 const error = ref<string | null>(null)
-const showPasskeySetup = ref(false)
 const touchedFields = ref<Record<string, boolean>>({})
 
 const passwordStrength = computed(() => {
@@ -423,25 +394,10 @@ const register = async () => {
     );
 
     if (success) {
-        showPasskeySetup.value = true;
+        window.dispatchEvent(new Event('auth-change'))
+        router.push('/onboarding')
     } else {
         error.value = authStore.error || 'Registration failed';
-    }
-}
-
-const setupPasskey = async () => {
-    try {
-        const options = await authStore.getPasskeyRegistrationOptions()
-        const attResp = await startRegistration(options)
-        const deviceName = prompt('Enter a name for this device (optional):') || undefined
-        await authStore.verifyPasskeyRegistration(attResp, deviceName)
-
-        window.dispatchEvent(new Event('auth-change'))
-        router.push('/onboarding')
-    } catch (err: any) {
-        console.error('Passkey registration error:', err)
-        window.dispatchEvent(new Event('auth-change'))
-        router.push('/onboarding')
     }
 }
 
