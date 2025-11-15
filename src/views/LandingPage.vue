@@ -260,15 +260,21 @@ onMounted(() => {
                 <div class="flex flex-wrap justify-center items-center gap-8 md:gap-12">
                     <div v-for="i in 5" :key="i" class="flex items-center gap-2">
                         <div class="flex -space-x-2">
-                            <div
-                                class="w-8 h-8 rounded-full bg-gradient-to-br from-violet-400 to-blue-400 border-2 border-white">
-                            </div>
-                            <div
-                                class="w-8 h-8 rounded-full bg-gradient-to-br from-orange-400 to-pink-400 border-2 border-white">
-                            </div>
-                            <div
-                                class="w-8 h-8 rounded-full bg-gradient-to-br from-green-400 to-blue-400 border-2 border-white">
-                            </div>
+                            <a href="https://www.instagram.com/alex.polan.125/" target="_blank" rel="noopener"
+                                class="hover:scale-110 transition-transform">
+                                <img src="@/assets/profiles/alex.jpg" alt="Alex Polan"
+                                    class="w-8 h-8 rounded-full border-2 border-white object-cover" />
+                            </a>
+                            <a href="https://www.instagram.com/citytailor_app/" target="_blank" rel="noopener"
+                                class="hover:scale-110 transition-transform">
+                                <img src="@/assets/profiles/citytailor.png" alt="City Tailor"
+                                    class="w-8 h-8 rounded-full border-2 border-white object-cover" />
+                            </a>
+                            <a href="https://www.instagram.com/kalbuddy_app/" target="_blank" rel="noopener"
+                                class="hover:scale-110 transition-transform">
+                                <img src="@/assets/profiles/digmio.png" alt="Kalbuddy"
+                                    class="w-8 h-8 rounded-full border-2 border-white object-cover" />
+                            </a>
                         </div>
                         <span class="text-sm font-semibold text-slate-700">500+</span>
                         <span class="text-sm text-slate-600">Creators</span>
