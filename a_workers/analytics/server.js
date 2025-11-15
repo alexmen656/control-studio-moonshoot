@@ -175,8 +175,7 @@ class AnalyticsWorker {
 
   async updateJobStatus(jobId, status, errorMessage = null, resultData = null) {
     try {
-
-      console.log('Returning following result data:', JSON.stringify(resultData, null, 2));
+      //console.log('Returning following result data:', JSON.stringify(resultData, null, 2));
       await axios.patch(`${this.backendUrl}/api/jobs/${jobId}/status`, {
         status,
         error_message: errorMessage,

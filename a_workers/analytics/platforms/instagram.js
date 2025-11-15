@@ -9,18 +9,20 @@ export async function fetchInstagramAnalytics(token, metadata) {
     };
 
     const analyticsData = {
-        totalVideos: 0,
-        totalViews: 0,
-        totalLikes: 0,
-        totalComments: 0,
-        totalShares: 0,
+        total: {
+            videos: 0,
+            views: 0,
+            likes: 0,
+            comments: 0,
+            shares: 0
+        },
         videos: []
     };
 
     const instagramData = await getUserMedia(instagramToken);
 
     if (instagramData && instagramData.data && instagramData.data.media) {
-        analyticsData.totalVideos = instagramData.data.media.length;
+        analyticsData.total.videos = instagramData.data.media.length;
         analyticsData.videos = instagramData.data.media.map(media => ({
             platform: 'instagram',
             id: media.id,
@@ -32,14 +34,15 @@ export async function fetchInstagramAnalytics(token, metadata) {
         }));
 
         instagramData.data.media.forEach(media => {
-            analyticsData.totalViews += media.video_views || media.reach || 0;
-            analyticsData.totalLikes += media.likes || 0;
-            analyticsData.totalComments += media.comments || 0;
-            analyticsData.totalShares += media.shares || 0;
+            analyticsData.total.views += media.video_views || media.reach || 0;
+            analyticsData.total.likes += media.likes || 0;
+            analyticsData.total.comments += media.comments || 0;
+            analyticsData.total.shares += media.shares || 0;
         });
     }
 
     console.log('Instagram analytics data compiled:', analyticsData);
+    //console.log('Instagram analytics data finished');
 
     try {
         const { instagramUserId, accessToken } = instagramToken;
@@ -55,15 +58,17 @@ export async function fetchInstagramAnalytics(token, metadata) {
         return {
             platform: 'instagram',
             followers: followers,
-            total_posts: analyticsData.totalVideos,
-            total_views: analyticsData.totalViews,
-            total_likes: analyticsData.totalLikes,
-            total_comments: analyticsData.totalComments,
-            total_shares: analyticsData.totalShares,
-            total_reach: analyticsData.totalViews,
-            engagement_rate: analyticsData.totalVideos > 0
-                ? ((analyticsData.totalLikes + analyticsData.totalComments + analyticsData.totalShares) / (analyticsData.totalViews || 1) * 100).toFixed(2)
-                : 0,
+            total: {
+                posts: analyticsData.total.videos,
+                views: analyticsData.total.views,
+                likes: analyticsData.total.likes,
+                comments: analyticsData.total.comments,
+                shares: analyticsData.total.shares,
+                reach: analyticsData.total.views,
+                engagement_rate: analyticsData.total.videos > 0
+                    ? ((analyticsData.total.likes + analyticsData.total.comments + analyticsData.total.shares) / (analyticsData.total.views || 1) * 100).toFixed(2)
+                    : 0
+            },
             videos: analyticsData.videos
         };
     } catch (err) {
@@ -71,15 +76,17 @@ export async function fetchInstagramAnalytics(token, metadata) {
         return {
             platform: 'instagram',
             followers: 0,
-            total_posts: analyticsData.totalVideos,
-            total_views: analyticsData.totalViews,
-            total_likes: analyticsData.totalLikes,
-            total_comments: analyticsData.totalComments,
-            total_shares: analyticsData.totalShares,
-            total_reach: analyticsData.totalViews,
-            engagement_rate: analyticsData.totalVideos > 0
-                ? ((analyticsData.totalLikes + analyticsData.totalComments + analyticsData.totalShares) / (analyticsData.totalViews || 1) * 100).toFixed(2)
-                : 0,
+            total: {
+                posts: analyticsData.total.videos,
+                views: analyticsData.total.views,
+                likes: analyticsData.total.likes,
+                comments: analyticsData.total.comments,
+                shares: analyticsData.total.shares,
+                reach: analyticsData.total.views,
+                engagement_rate: analyticsData.total.videos > 0
+                    ? ((analyticsData.total.likes + analyticsData.total.comments + analyticsData.total.shares) / (analyticsData.total.views || 1) * 100).toFixed(2)
+                    : 0
+            },
             videos: analyticsData.videos
         };
     }
@@ -156,9 +163,9 @@ async function _getMediaInsights(mediaId, accessToken, mediaType, mediaProductTy
     };
 
     try {
-        console.log(`Fetching insights for ${mediaProductType || mediaType} (${mediaType}) media ${mediaId} with metrics: ${metrics}`);
+        //console.log(`Fetching insights for ${mediaProductType || mediaType} (${mediaType}) media ${mediaId} with metrics: ${metrics}`);
         const insightsResponse = await axios.get(insightsUrl, { params: insightsParams });
-        console.log(`Insights for media ${mediaId}:`, insightsResponse.data);
+        //console.log(`Insights for media ${mediaId}:`, insightsResponse.data);
 
         const insights = {
             impressions: 0,

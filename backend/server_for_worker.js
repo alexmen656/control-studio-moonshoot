@@ -66,25 +66,37 @@ async function storeAnalyticsData(resultData) {
       RETURNING id
     `;
 
+    const total = analytics_data.total || {};
+    const totalVideos = total.videos || 0;
+    const totalPosts = total.posts || 0;
+    const totalTweets = total.tweets || 0;
+    const totalViews = total.views || 0;
+    const totalLikes = total.likes || 0;
+    const totalComments = total.comments || 0;
+    const totalShares = total.shares || 0;
+    const totalRetweets = total.retweets || 0;
+    const totalReplies = total.replies || 0;
+    const totalUpvotes = total.upvotes || 0;
+    
     const channelResult = await db.query(channelInsertQuery, [
       project_id,
       platform,
       analytics_data.followers || analytics_data.subscribers || 0,
       analytics_data.subscribers || 0,
-      analytics_data.total_videos || 0,
-      analytics_data.total_posts || 0,
-      analytics_data.total_tweets || 0,
-      analytics_data.total_views || 0,
-      analytics_data.total_likes || 0,
-      analytics_data.total_comments || 0,
-      analytics_data.total_shares || 0,
-      analytics_data.total_retweets || 0,
-      analytics_data.total_replies || 0,
-      analytics_data.total_upvotes || 0,
+      totalVideos,
+      totalPosts,
+      totalTweets,
+      totalViews,
+      totalLikes,
+      totalComments,
+      totalShares,
+      totalRetweets,
+      totalReplies,
+      totalUpvotes,
       parseFloat(analytics_data.engagement_rate) || 0,
       parseFloat(analytics_data.average_score) || 0,
       analytics_data.karma || 0,
-      analytics_data.total_reach || 0,
+      totalViews,
       analytics_data.total_impressions || 0,
       JSON.stringify({
         task_type,
@@ -236,7 +248,7 @@ async function storeUploadData(resultData) {
       platform_id,
       JSON.stringify(upload_data.platform_response || {})
     ]);
-  
+
     console.log(`✅ Stored upload result for project ${project_id}, platform ${platform}, video ${video_id}, platform_id ${platform_id}`);
   } catch (error) {
     console.error('Error storing upload data:', error);
@@ -932,7 +944,7 @@ app.get('/api/videos/:videoId/platform-id/:platform', requireWorkerCert, async (
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         error: 'Platform ID not found',
         message: `No upload found for video ${videoId} on platform ${platform}`
       });
