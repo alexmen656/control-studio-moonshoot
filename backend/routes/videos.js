@@ -405,7 +405,7 @@ router.get('/:videoId/platform-id/:platform', async (req, res) => {
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         error: 'Platform ID not found',
         message: `No upload found for video ${videoId} on platform ${platform}`
       });
@@ -423,6 +423,27 @@ router.get('/:videoId/platform-id/:platform', async (req, res) => {
 });
 
 router.get('/:videoId/comments', authMiddleware, async (req, res) => {
+
+  /*
+                                 | 2025-11-11 23:56:29.814824 | 2025-11-11 23:56:29.814824
+ 19 |          4 | facebook  |            0 |              1 | {"raw_data": {"posts": [{"postId": "836235342899470_122108253015054455", "comments": [{"id": "122108253015054455_1339
+408743967817", "text": "dfghj", "likes": 0, "author": "KalBuddy", "createdTime": "2025-11-11T22:43:55+0000"}], "platform": "facebook", "postTitle": "sfsd", "commentCount": 1}, {"po
+stId": "836235342899470_122107539891054455", "comments": [], "platform": "facebook", "postTitle": "eqwf", "commentCount": 0}, {"postId": "836235342899470_122107539177054455", "comm
+ents": [], "platform": "facebook", "postTitle": "eqwf", "commentCount": 0}, {"postId": "836235342899470_122107538937054455", "comments": [], "platform": "facebook", "postTitle": "e
+qwf", "commentCount": 0}, {"postId": "836235342899470_122107274937054455", "comments": [], "platform": "facebook", "postTitle": "No message", "commentCount": 0}, {"postId": "836235
+342899470_122106661665054455", "comments": [], "platform": "facebook", "postTitle": "ere", "commentCount": 0}, {"postId": "836235342899470_122105299197054455", "comments": [], "pla
+tform": "facebook", "postTitle": "efercve", "commentCount": 0}, {"postId": "836235342899470_122104807797054455", "comments": [], "platform": "facebook", "postTitle": "video2", "com
+mentCount": 0}, {"postId": "836235342899470_122104807611054455", "comments": [], "platform": "facebook", "postTitle": "Download it on the App Store!", "commentCount": 0}], "platfor
+m": "facebook", "total_posts": 9, "total_comments": 1}, "video_id": null, "task_type": "video_comments"}    
+
+*/
+
+//wtf facebook id is not stored in db
+
+
+// why is one post id: 836235342899470_122108255835054455
+// and the other one: 1367739108315516
+
   try {
     const { videoId } = req.params;
 
@@ -451,7 +472,7 @@ router.get('/:videoId/comments', authMiddleware, async (req, res) => {
     );
 
     const commentsMap = {};
-    
+
     for (const result of uploadResults.rows) {
       const platform = result.platform;
       const platform_id = result.platform_id;

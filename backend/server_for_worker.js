@@ -554,11 +554,14 @@ app.post('/api/platform-token/:platform/:projectId', requireWorkerCert, async (r
     } else if (platform == 'facebook') {
       try {
         const facebookAccounts = await retrieveTokenByProjectID('facebook_accounts', projectId);
-
+        const facebookUserToken = await retrieveTokenByProjectID('facebook_token', projectId);
         //lol wrong format should be accessToken instead of access_token
         const token = {
           accessToken: facebookAccounts.data[0].access_token,
-          pageId: facebookAccounts.data[0].id
+          pageId: facebookAccounts.data[0].id,
+
+          //comments need user access token not page access token - fuck you facebook api
+          userAccessToken: facebookUserToken.access_token
         };
 
         const encryptedToken = await createEncryptedToken(token, certThumbprint);

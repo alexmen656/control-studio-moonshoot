@@ -175,7 +175,64 @@ async function _finishUpload(uploadSessionId, accessToken, pageId, options) {
 
     try {
         const response = await axios.post(url, null, { params });
-        console.log('Video published successfully with ID:', response.data.id);
+
+        //Video published successfully with ID: undefined wtf wtf wtf
+        //console.log('data', response.data);
+        //console.log('Video published successfully with ID:', response.data.id);
+
+        //ts gives us video id instead of post id wtf
+        if (response.data.success) {
+            const videosUrl = `https://graph.facebook.com/v21.0/${pageId}/videos`;
+            const videosResponse = await axios.get(videosUrl, {
+                params: {
+                    access_token: accessToken,
+                    fields: 'id,created_time,title,post',
+                    limit: 1
+                }
+            });
+
+            /*if (videosResponse.data.data && videosResponse.data.data.length > 0) {
+                return videosResponse.data.data[0];
+            }*/
+
+            //for debugging
+            console.log('Videos response data:', videosResponse.data);
+
+            if (videosResponse.data.data && videosResponse.data.data.length > 0) {
+                const video = videosResponse.data.data[0];
+                //  const postId = video.post?.id; //|| video.id;
+                const postId = await getPostIdViaPublishedPosts(pageId, accessToken) || video.id;
+                const fullPostId = postId.includes('_') ? postId : `${pageId}_${postId}`;
+
+                console.log({
+                    id: postId,
+                    fullId: fullPostId,
+                    video_id: video.id
+                });
+
+                /*
+                Looks great:
+
+                {
+                id: '856019210293622',
+                fullId: '836235342899470_856019210293622',
+                video_id: '856019210293622'
+                }
+                */
+
+                return {
+                    /*    id: postId,
+                        fullId: fullPostId,
+                        video_id: video.id*/
+                    id: fullPostId,
+                    post_id: postId,
+                    video_id: video.id
+                };
+            }
+        };
+
+        console.log('Video published response:', response.data);
+
         return response.data;
     } catch (error) {
         if (error.response?.data) {
@@ -185,4 +242,22 @@ async function _finishUpload(uploadSessionId, accessToken, pageId, options) {
         }
         throw error;
     }
+}
+
+// this finally works yupi!
+async function getPostIdViaPublishedPosts(pageId, accessToken) {
+    const url = `https://graph.facebook.com/v21.0/${pageId}/published_posts`;
+    const response = await axios.get(url, {
+        params: {
+            access_token: accessToken,
+            fields: 'id,created_time,attachments{media_type}',
+            limit: 1
+        }
+    });
+
+    if (response.data.data && response.data.data.length > 0) {
+        return response.data.data[0].id;
+    }
+
+    return null;
 }

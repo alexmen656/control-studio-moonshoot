@@ -1,11 +1,28 @@
 import axios from 'axios';
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+/*
+Fetching Facebook page posts for page: 836235342899470
+Facebook API response status: 403
+Facebook API returned an error: {
+  message: '(#200) Provide valid app ID',
+  type: 'OAuthException',
+  code: 200,
+  fbtrace_id: 'Afv1gQbUuLZFFroOLYHUR-B'
+}
+Error getting Facebook page posts: Facebook API error: (#200) Provide valid app ID
+Facebook comments data compiled: { totalComments: 0, totalPosts: 0, posts: [] }
+*/
 
 export async function fetchFacebookComments(token, metadata) {
   console.log('   Calling Facebook Comments API...');
   console.log(metadata);
 
   const facebookToken = {
-    accessToken: token.sub.access_token,
+    //accessToken: token.sub.userAccessToken,
+    accessToken: token.sub.accessToken,
     pageId: token.sub.pageId
   };
 
@@ -19,11 +36,11 @@ export async function fetchFacebookComments(token, metadata) {
 
   if (facebookData && facebookData.data && facebookData.data.posts) {
     commentsData.totalPosts = facebookData.data.posts.length;
-    
+
     for (const post of facebookData.data.posts) {
       const postComments = await getPostComments(facebookToken, post.id);
       const comments = postComments.data || [];
-      
+
       commentsData.totalComments += comments.length;
       commentsData.posts.push({
         platform: 'facebook',
@@ -62,12 +79,13 @@ async function getPostComments(token, postId, limit = 100) {
     const url = `https://graph.facebook.com/${apiVersion}/${postId}/comments`;
 
     const params = {
-      fields: 'id,message,created_time,from.fields(name),like_count',
+      fields: 'id,message,created_time,from,like_count',
+      //app_id: process.env.FACEBOOK_APP_ID,
       access_token: accessToken,
       limit: limit
     };
 
-    const response = await axios.get(url, { 
+    const response = await axios.get(url, {
       params,
       validateStatus: function (status) {
         return status < 500;
@@ -113,12 +131,27 @@ async function getPagePosts(token, limit = 25) {
     const url = `https://graph.facebook.com/${apiVersion}/${pageId}/posts`;
 
     const params = {
-      fields: 'id,message,created_time,type,permalink,reach,shares,likes.summary(true),comments.summary(true)',
+
+      /*
+      { job_type: 'comments', task_type: 'video_comments', project_id: 4 }
+Fetching Facebook page posts for page: 836235342899470
+Facebook API response status: 400
+Facebook API returned an error: {
+  message: '(#12) deprecate_post_aggregated_fields_for_attachement is deprecated for versions v3.3 and higher',
+  type: 'OAuthException',
+  code: 12,
+  fbtrace_id: 'AvAas7EbQrIW2pHJqqoVYxi'
+}
+
+*/
+      //fields errors
+      fields: 'id,message,created_time',
       access_token: accessToken,
+      //app_id: process.env.FACEBOOK_APP_ID,
       limit: limit
     };
 
-    const response = await axios.get(url, { 
+    const response = await axios.get(url, {
       params,
       validateStatus: function (status) {
         return status < 500;
