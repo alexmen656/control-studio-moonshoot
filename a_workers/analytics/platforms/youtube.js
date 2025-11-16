@@ -1,72 +1,106 @@
 import axios from 'axios';
 
-export async function fetchYouTubeAnalytics(token, metadata) {
+export async function fetchYouTubeAnalytics(token) {
   console.log('   Calling YouTube Analytics API...');
-  console.log(metadata);
 
   const youtubeToken = {
-    accessToken: token.sub.access_token,
-    channelId: token.sub.channelId
+    accessToken: token.sub.access_token || token.sub.accessToken
   };
-
+  
   const analyticsData = {
-    totalViews: 0,
-    totalLikes: 0,
-    totalComments: 0,
-    totalVideos: 0,
+    total: {
+      videos: 0,
+      views: 0,
+      likes: 0,
+      comments: 0,
+      shares: 0
+    },
     videos: []
   };
 
   const youtubeData = await getChannelVideos(youtubeToken);
 
   if (youtubeData && youtubeData.data && youtubeData.data.videos) {
-    analyticsData.totalVideos = youtubeData.data.videos.length;
+    analyticsData.total.videos = youtubeData.data.videos.length;
     analyticsData.videos = youtubeData.data.videos.map(video => ({
       platform: 'youtube',
       id: video.id,
-      title: video.title || 'No title',
-      views: video.statistics?.viewCount || 0,
-      likes: video.statistics?.likeCount || 0,
-      comments: video.statistics?.commentCount || 0,
+      title: video.snippet?.title || 'No title',
+      views: parseInt(video.statistics?.viewCount || 0),
+      likes: parseInt(video.statistics?.likeCount || 0),
+      comments: parseInt(video.statistics?.commentCount || 0),
       shares: 0
     }));
 
     youtubeData.data.videos.forEach(video => {
-      analyticsData.totalViews += parseInt(video.statistics?.viewCount || 0);
-      analyticsData.totalLikes += parseInt(video.statistics?.likeCount || 0);
-      analyticsData.totalComments += parseInt(video.statistics?.commentCount || 0);
+      analyticsData.total.views += parseInt(video.statistics?.viewCount || 0);
+      analyticsData.total.likes += parseInt(video.statistics?.likeCount || 0);
+      analyticsData.total.comments += parseInt(video.statistics?.commentCount || 0);
     });
   }
 
-  console.log('YouTube analytics data compiled:', analyticsData);
+  //console.log('YouTube analytics data compiled:', analyticsData);
 
-  return {
-    platform: 'youtube',
-    subscribers: Math.floor(Math.random() * 100000),
-    total_videos: analyticsData.totalVideos,
-    total_views: analyticsData.totalViews,
-    total_likes: analyticsData.totalLikes,
-    total_comments: analyticsData.totalComments,
-    average_view_duration: Math.floor(Math.random() * 300),
-    engagement_rate: analyticsData.totalViews > 0 
-      ? ((analyticsData.totalLikes + analyticsData.totalComments) / analyticsData.totalViews * 100).toFixed(2)
-      : '0.00',
-    videos: analyticsData.videos
-  };
+  try {
+    const { accessToken } = youtubeToken;
+    const channelResponse = await axios.get(
+      'https://www.googleapis.com/youtube/v3/channels',
+      {
+        params: {
+          part: 'statistics',
+          mine: true,
+          access_token: accessToken
+        }
+      }
+    );
+
+    const subscribers = channelResponse.data.items?.[0]?.statistics?.subscriberCount || 0;
+
+    return {
+      platform: 'youtube',
+      subscribers: parseInt(subscribers),
+      total: {
+        videos: analyticsData.total.videos,
+        views: analyticsData.total.views,
+        likes: analyticsData.total.likes,
+        comments: analyticsData.total.comments,
+        shares: analyticsData.total.shares,
+        engagement_rate: analyticsData.total.views > 0 
+          ? ((analyticsData.total.likes + analyticsData.total.comments) / analyticsData.total.views * 100).toFixed(2)
+          : '0.00'
+      },
+      videos: analyticsData.videos
+    };
+  } catch (err) {
+    console.error('Error fetching YouTube channel info:', err.message);
+    return {
+      platform: 'youtube',
+      subscribers: 0,
+      total: {
+        videos: analyticsData.total.videos,
+        views: analyticsData.total.views,
+        likes: analyticsData.total.likes,
+        comments: analyticsData.total.comments,
+        shares: analyticsData.total.shares,
+        engagement_rate: analyticsData.total.views > 0 
+          ? ((analyticsData.total.likes + analyticsData.total.comments) / analyticsData.total.views * 100).toFixed(2)
+          : '0.00'
+      },
+      videos: analyticsData.videos
+    };
+  }
 }
 
 async function getChannelVideos(token, limit = 25) {
   try {
-    const { accessToken, channelId } = token;
-
-    console.log('Fetching YouTube videos for channel:', channelId);
+    const { accessToken } = token;
 
     const channelResponse = await axios.get(
       'https://www.googleapis.com/youtube/v3/channels',
       {
         params: {
           part: 'contentDetails',
-          id: channelId,
+          mine: true,
           access_token: accessToken
         },
         validateStatus: function (status) {
@@ -78,6 +112,9 @@ async function getChannelVideos(token, limit = 25) {
     if (!channelResponse.data.items || channelResponse.data.items.length === 0) {
       throw new Error('Channel not found');
     }
+
+    const channelId = channelResponse.data.items[0].id;
+    console.log('Authenticated user channel ID:', channelId);
 
     const uploadsPlaylistId = channelResponse.data.items[0].contentDetails.relatedPlaylists.uploads;
 
@@ -95,8 +132,6 @@ async function getChannelVideos(token, limit = 25) {
         }
       }
     );
-
-    console.log('YouTube API response status:', videosResponse.status);
 
     if (videosResponse.data.error) {
       console.warn('YouTube API returned an error:', videosResponse.data.error);
@@ -124,8 +159,6 @@ async function getChannelVideos(token, limit = 25) {
         }
       }
     );
-
-    console.log('YouTube videos fetched:', statsResponse.data.items?.length || 0, 'videos');
 
     return {
       data: {

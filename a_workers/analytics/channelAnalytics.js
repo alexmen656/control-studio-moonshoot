@@ -56,7 +56,7 @@ export async function fetchChannelAnalytics(job) {
     if (payload) {
         switch (platform) {
             case 'youtube':
-                return await fetchYouTubeAnalytics(payload, job.metadata);
+                return await fetchYouTubeAnalytics(payload);
             case 'tiktok':
                 return await fetchTikTokAnalytics(payload, job.metadata);
             case 'instagram':
