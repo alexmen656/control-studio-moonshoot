@@ -2,7 +2,6 @@ import axios from 'axios';
 
 export async function fetchFacebookAnalytics(token, metadata) {
   console.log('   Calling Facebook Analytics API...');
-  console.log(metadata);
 
   const facebookToken = {
     accessToken: token.sub.accessToken,
@@ -42,17 +41,6 @@ export async function fetchFacebookAnalytics(token, metadata) {
 
   console.log('Facebook analytics data compiled:', analyticsData);
 
-  /* return {
-     platform: 'facebook',
-     page_likes: Math.floor(Math.random() * 100000),
-     total_posts: analyticsData.totalPosts,
-     total_reach: analyticsData.totalViews,
-     total_engagement: analyticsData.totalLikes + analyticsData.totalComments + analyticsData.totalShares,
-     engagement_rate: analyticsData.totalViews > 0 
-       ? ((analyticsData.totalLikes + analyticsData.totalComments + analyticsData.totalShares) / analyticsData.totalViews * 100).toFixed(2)
-       : '0.00',
-     posts: analyticsData.posts
-   };*/
   return {
     platform: 'facebook',
     //followers: followers,
@@ -74,9 +62,6 @@ export async function fetchFacebookAnalytics(token, metadata) {
 async function getPagePosts(token, limit = 25) {
   try {
     const { accessToken, pageId } = token;
-
-    console.log('Fetching Facebook page posts for page:', pageId);
-
     const apiVersion = 'v21.0';
     const url = `https://graph.facebook.com/${apiVersion}/${pageId}/posts`;
 
@@ -93,16 +78,12 @@ async function getPagePosts(token, limit = 25) {
       }
     });
 
-    console.log('Facebook API response status:', response.status);
-
     if (response.data.error) {
       console.warn('Facebook API returned an error:', response.data.error);
       if (!response.data.data || response.data.data.length === 0) {
         throw new Error(`Facebook API error: ${response.data.error.message || 'Unknown error'}`);
       }
     }
-
-    console.log('Facebook posts fetched:', response.data.data?.length || 0, 'posts');
 
     return {
       data: {
@@ -112,10 +93,12 @@ async function getPagePosts(token, limit = 25) {
     };
   } catch (error) {
     console.error('Error getting Facebook page posts:', error.message);
+    
     if (error.response) {
       console.error('Response status:', error.response.status);
       console.error('Response data:', JSON.stringify(error.response.data, null, 2));
     }
+
     return {
       data: { posts: [] },
       status: error.response?.status || 500
