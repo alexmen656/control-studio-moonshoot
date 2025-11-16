@@ -3,10 +3,6 @@ import axios from 'axios';
 export async function fetchYouTubeAnalytics(token) {
   console.log('   Calling YouTube Analytics API...');
 
-  const youtubeToken = {
-    accessToken: token.sub.access_token || token.sub.accessToken
-  };
-  
   const analyticsData = {
     total: {
       videos: 0,
@@ -18,7 +14,9 @@ export async function fetchYouTubeAnalytics(token) {
     videos: []
   };
 
-  const youtubeData = await getChannelVideos(youtubeToken);
+  const youtubeData = await getChannelVideos({
+    accessToken: token.sub.accessToken
+  });
 
   if (youtubeData && youtubeData.data && youtubeData.data.videos) {
     analyticsData.total.videos = youtubeData.data.videos.length;
@@ -42,7 +40,7 @@ export async function fetchYouTubeAnalytics(token) {
   //console.log('YouTube analytics data compiled:', analyticsData);
 
   try {
-    const { accessToken } = youtubeToken;
+    const accessToken = token.sub.accessToken;
     const channelResponse = await axios.get(
       'https://www.googleapis.com/youtube/v3/channels',
       {
@@ -54,18 +52,16 @@ export async function fetchYouTubeAnalytics(token) {
       }
     );
 
-    const subscribers = channelResponse.data.items?.[0]?.statistics?.subscriberCount || 0;
-
     return {
       platform: 'youtube',
-      subscribers: parseInt(subscribers),
+      subscribers: parseInt(channelResponse.data.items?.[0]?.statistics?.subscriberCount || 0),
       total: {
         videos: analyticsData.total.videos,
         views: analyticsData.total.views,
         likes: analyticsData.total.likes,
         comments: analyticsData.total.comments,
         shares: analyticsData.total.shares,
-        engagement_rate: analyticsData.total.views > 0 
+        engagement_rate: analyticsData.total.views > 0
           ? ((analyticsData.total.likes + analyticsData.total.comments) / analyticsData.total.views * 100).toFixed(2)
           : '0.00'
       },
@@ -82,7 +78,7 @@ export async function fetchYouTubeAnalytics(token) {
         likes: analyticsData.total.likes,
         comments: analyticsData.total.comments,
         shares: analyticsData.total.shares,
-        engagement_rate: analyticsData.total.views > 0 
+        engagement_rate: analyticsData.total.views > 0
           ? ((analyticsData.total.likes + analyticsData.total.comments) / analyticsData.total.views * 100).toFixed(2)
           : '0.00'
       },
