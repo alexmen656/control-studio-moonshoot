@@ -5,7 +5,7 @@ export async function fetchFacebookAnalytics(token, metadata) {
   console.log(metadata);
 
   const facebookToken = {
-    accessToken: token.sub.access_token,
+    accessToken: token.sub.accessToken,
     pageId: token.sub.pageId
   };
 
@@ -42,16 +42,32 @@ export async function fetchFacebookAnalytics(token, metadata) {
 
   console.log('Facebook analytics data compiled:', analyticsData);
 
+  /* return {
+     platform: 'facebook',
+     page_likes: Math.floor(Math.random() * 100000),
+     total_posts: analyticsData.totalPosts,
+     total_reach: analyticsData.totalViews,
+     total_engagement: analyticsData.totalLikes + analyticsData.totalComments + analyticsData.totalShares,
+     engagement_rate: analyticsData.totalViews > 0 
+       ? ((analyticsData.totalLikes + analyticsData.totalComments + analyticsData.totalShares) / analyticsData.totalViews * 100).toFixed(2)
+       : '0.00',
+     posts: analyticsData.posts
+   };*/
   return {
     platform: 'facebook',
-    page_likes: Math.floor(Math.random() * 100000),
-    total_posts: analyticsData.totalPosts,
-    total_reach: analyticsData.totalViews,
-    total_engagement: analyticsData.totalLikes + analyticsData.totalComments + analyticsData.totalShares,
-    engagement_rate: analyticsData.totalViews > 0 
-      ? ((analyticsData.totalLikes + analyticsData.totalComments + analyticsData.totalShares) / analyticsData.totalViews * 100).toFixed(2)
-      : '0.00',
-    posts: analyticsData.posts
+    //followers: followers,
+    total: {
+      posts: analyticsData.totalPosts,
+      views: analyticsData.totalViews,
+      likes: analyticsData.totalLikes,
+      comments: analyticsData.totalComments,
+      shares: analyticsData.totalShares,
+      reach: analyticsData.totalViews,
+      engagement_rate: analyticsData.totalPosts > 0
+        ? ((analyticsData.totalLikes + analyticsData.totalComments + analyticsData.totalShares) / (analyticsData.totalViews || 1) * 100).toFixed(2)
+        : 0
+    },
+    videos: analyticsData.posts
   };
 }
 
@@ -65,12 +81,12 @@ async function getPagePosts(token, limit = 25) {
     const url = `https://graph.facebook.com/${apiVersion}/${pageId}/posts`;
 
     const params = {
-      fields: 'id,message,created_time,type,permalink,reach,shares,likes.summary(true),comments.summary(true)',
+      fields: 'id,message,created_time,reach,shares',//type
       access_token: accessToken,
       limit: limit
     };
 
-    const response = await axios.get(url, { 
+    const response = await axios.get(url, {
       params,
       validateStatus: function (status) {
         return status < 500;
