@@ -45,24 +45,17 @@ export async function fetchChannelAnalytics(job) {
     const decrypted = new TextDecoder().decode(plaintext);
     const vpsPublicKey = await importSPKI(vpsPublicKeyPem, 'ES256');
     const { payload } = await jwtVerify(decrypted, vpsPublicKey);
-    //const useable = JSON.stringify(payload, null, 2);
-    //console.log('decrypted token payload:', useable);
-    //const accessToken = tokenResponse.data.access_token;
-
-    /*if (!tokenResponse.data || !tokenResponse.data.access_token) {
-  throw new Error(`No access token found for ${platform}`);
-  } */
 
     if (payload) {
         switch (platform) {
             case 'youtube':
                 return await fetchYouTubeAnalytics(payload);
             case 'tiktok':
-                return await fetchTikTokAnalytics(payload, job.metadata);
+                return await fetchTikTokAnalytics(payload);
             case 'instagram':
-                return await fetchInstagramAnalytics(payload, job.metadata);
+                return await fetchInstagramAnalytics(payload);
             case 'facebook':
-                return await fetchFacebookAnalytics(payload, job.metadata);
+                return await fetchFacebookAnalytics(payload);
             case 'x':
                 return await fetchXAnalytics(payload, job.metadata);
             case 'reddit':

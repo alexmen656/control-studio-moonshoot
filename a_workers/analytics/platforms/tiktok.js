@@ -1,8 +1,7 @@
 import axios from 'axios';
 
-export async function fetchTikTokAnalytics(token, metadata) {
+export async function fetchTikTokAnalytics(token) {
     console.log('   Calling TikTok Analytics API...');
-    console.log(metadata);
 
     const tiktokToken = {
         accessToken: token.sub.access_token

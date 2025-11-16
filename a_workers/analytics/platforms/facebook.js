@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-export async function fetchFacebookAnalytics(token, metadata) {
+export async function fetchFacebookAnalytics(token) {
   console.log('   Calling Facebook Analytics API...');
 
   const facebookToken = {

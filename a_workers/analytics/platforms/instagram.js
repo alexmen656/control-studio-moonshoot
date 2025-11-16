@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-export async function fetchInstagramAnalytics(token, metadata) {
+export async function fetchInstagramAnalytics(token) {
     console.log('   Calling Instagram Analytics API...');
 
     const instagramToken = {
