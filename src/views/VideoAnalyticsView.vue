@@ -203,6 +203,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import Chart from 'chart.js/auto'
+import axios from '../axios'
+import { useRoute } from 'vue-router'
 
 interface PlatformData {
     name: string
@@ -225,6 +227,8 @@ interface AnalyticsData {
     platforms: PlatformData[]
 }
 
+const route = useRoute()
+const videoId = computed(() => route.params.id as string)
 const loading = ref(false)
 const error = ref('')
 const selectedTimeRange = ref('7d')
@@ -232,68 +236,6 @@ const engagementChart = ref<HTMLCanvasElement | null>(null)
 let chartInstance: Chart | null = null
 
 const analyticsData = ref<AnalyticsData | null>(null)
-
-//mock - I dont have a video analytics API yet
-const mockAnalyticsData: AnalyticsData = {
-    totalViews: 247500,
-    totalLikes: 12450,
-    totalComments: 3820,
-    totalShares: 890,
-    viewsGrowth: 28500,
-    likesGrowth: 2100,
-    commentsGrowth: 520,
-    sharesGrowth: 145,
-    platforms: [
-        {
-            name: 'youtube',
-            views: 120000,
-            likes: 6500,
-            comments: 2100,
-            shares: 450,
-            engagementRate: 7.2
-        },
-        {
-            name: 'tiktok',
-            views: 95000,
-            likes: 4200,
-            comments: 1200,
-            shares: 300,
-            engagementRate: 5.9
-        },
-        {
-            name: 'instagram',
-            views: 18500,
-            likes: 1350,
-            comments: 380,
-            shares: 85,
-            engagementRate: 9.4
-        },
-        {
-            name: 'facebook',
-            views: 8200,
-            likes: 250,
-            comments: 120,
-            shares: 35,
-            engagementRate: 4.7
-        },
-        {
-            name: 'x',
-            views: 4500,
-            likes: 120,
-            comments: 15,
-            shares: 20,
-            engagementRate: 3.0
-        },
-        {
-            name: 'reddit',
-            views: 1300,
-            likes: 30,
-            comments: 5,
-            shares: 0,
-            engagementRate: 2.7
-        }
-    ]
-}
 
 const sortedPlatforms = computed(() => {
     if (!analyticsData.value) return []
@@ -423,15 +365,51 @@ async function fetchVideoAnalytics() {
     error.value = ''
 
     try {
-        analyticsData.value = mockAnalyticsData
+        const PROJECT_ID = localStorage.getItem('currentProjectId')
+        
+        if (!PROJECT_ID || !videoId.value) {
+            error.value = 'Project ID or Video ID not found'
+            return
+        }
 
-        await new Promise((resolve) => setTimeout(resolve, 500))
+        const response = await axios.get(
+            `http://localhost:6709/api/analytics/live/projects/${PROJECT_ID}/videos/${videoId.value}?project_id=${PROJECT_ID}`
+        )
+
+        const data = response.data
+        console.log('Video analytics response:', data)
+
+        const platformsData: PlatformData[] = data.platforms.map((platform: any) => ({
+            name: platform.platform,
+            views: platform.views,
+            likes: platform.likes,
+            comments: platform.comments,
+            shares: platform.shares,
+            engagementRate: platform.engagement_rate
+        }))
+
+        analyticsData.value = {
+            totalViews: data.total_views,
+            totalLikes: data.total_likes,
+            totalComments: data.total_comments,
+            totalShares: data.total_shares,
+            viewsGrowth: 0,
+            likesGrowth: 0,
+            commentsGrowth: 0,
+            sharesGrowth: 0,
+            platforms: platformsData
+        }
 
         setTimeout(() => {
             initEngagementChart()
         }, 100)
     } catch (err) {
+        console.error('Error fetching video analytics:', err)
         error.value = err instanceof Error ? err.message : 'Failed to load analytics'
+        
+        setTimeout(() => {
+            initEngagementChart()
+        }, 100)
     } finally {
         loading.value = false
     }

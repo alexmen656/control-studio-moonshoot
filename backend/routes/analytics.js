@@ -651,4 +651,120 @@ router.get('/live/projects/:projectId/overview', authMiddleware, projectAccessMi
   }
 });
 
+router.get('/live/projects/:projectId/videos/:videoId', authMiddleware, projectAccessMiddleware, async (req, res) => {
+  try {
+    const { projectId, videoId } = req.params;
+
+    const videoResult = await db.query(`
+      SELECT id, title
+      FROM videos
+      WHERE id = $1 AND project_id = $2
+    `, [videoId, projectId]);
+
+    if (videoResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Video not found' });
+    }
+
+    const video = videoResult.rows[0];
+
+    const uploadResults = await db.query(`
+      SELECT 
+        platform,
+        platform_id
+      FROM upload_results
+      WHERE video_id = $1 AND project_id = $2
+    `, [videoId, projectId]);
+
+    console.log('Video:', video.title);
+    console.log('Upload results:', uploadResults.rows);
+
+    const platformData = [];
+    let totalViews = 0;
+    let totalLikes = 0;
+    let totalComments = 0;
+    let totalShares = 0;
+
+    for (const uploadResult of uploadResults.rows) {
+      const { platform, platform_id } = uploadResult;
+      
+      try {
+        const analyticsResult = await db.query(`
+          SELECT 
+            platform,
+            views,
+            likes,
+            comments,
+            shares,
+            retweets,
+            collected_at
+          FROM content_analytics
+          WHERE project_id = $1 
+            AND platform = $2 
+            AND content_id = $3
+          ORDER BY collected_at DESC
+          LIMIT 1
+        `, [projectId, platform, platform_id]);
+        if (analyticsResult.rows.length > 0) {
+          const analytics = analyticsResult.rows[0];
+          const views = Number(analytics.views) || 0;
+          const likes = Number(analytics.likes) || 0;
+          const comments = Number(analytics.comments) || 0;
+          const shares = Number(analytics.shares || analytics.retweets) || 0;
+
+          totalViews += views;
+          totalLikes += likes;
+          totalComments += comments;
+          totalShares += shares;
+
+          const totalEngagements = likes + comments + shares;
+          const engagementRate = views > 0 ? ((totalEngagements / views) * 100).toFixed(1) : '0.0';
+
+          platformData.push({
+            platform,
+            post_id: platform_id,
+            views,
+            likes,
+            comments,
+            shares,
+            engagement_rate: parseFloat(engagementRate),
+            collected_at: analytics.collected_at
+          });
+
+          console.log(`Found analytics for ${platform}:`, { views, likes, comments, shares });
+        } else {
+          console.log(`No analytics found for ${platform} with platform_id: ${platform_id}`);
+          
+          platformData.push({
+            platform,
+            post_id: platform_id,
+            views: 0,
+            likes: 0,
+            comments: 0,
+            shares: 0,
+            engagement_rate: 0,
+            collected_at: null
+          });
+        }
+      } catch (err) {
+        console.error(`Error fetching analytics for ${platform}:`, err);
+      }
+    }
+
+    res.json({
+      video_id: videoId,
+      video_title: video.title,
+      project_id: parseInt(projectId),
+      total_views: totalViews,
+      total_likes: totalLikes,
+      total_comments: totalComments,
+      total_shares: totalShares,
+      platforms: platformData,
+      platform_count: platformData.length
+    });
+  } catch (error) {
+    console.error('Error fetching video analytics:', error);
+    res.status(500).json({ error: 'Failed to fetch video analytics', details: error.message });
+  }
+});
+
 export default router;
