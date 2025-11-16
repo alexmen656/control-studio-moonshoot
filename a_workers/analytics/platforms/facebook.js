@@ -25,17 +25,17 @@ export async function fetchFacebookAnalytics(token, metadata) {
       platform: 'facebook',
       id: post.id,
       title: post.message ? post.message.substring(0, 50) + '...' : 'No message',
-      views: post.reach || 0,
-      likes: post.likes?.data?.length || 0,
-      comments: post.comments?.data?.length || 0,
-      shares: post.shares || 0
+      views: post.impressions?.reach || 0,
+      likes: post.reactions?.summary?.total_count || 0,
+      comments: post.comments?.summary?.total_count || 0,
+      shares: post.shares?.count || 0
     }));
 
     facebookData.data.posts.forEach(post => {
-      analyticsData.totalViews += post.reach || 0;
-      analyticsData.totalLikes += post.likes?.data?.length || 0;
-      analyticsData.totalComments += post.comments?.data?.length || 0;
-      analyticsData.totalShares += post.shares || 0;
+      analyticsData.totalViews += post.impressions?.reach || 0;
+      analyticsData.totalLikes += post.reactions?.summary?.total_count || 0;
+      analyticsData.totalComments += post.comments?.summary?.total_count || 0;
+      analyticsData.totalShares += post.shares?.count || 0;
     });
   }
 
@@ -43,7 +43,6 @@ export async function fetchFacebookAnalytics(token, metadata) {
 
   return {
     platform: 'facebook',
-    //followers: followers,
     total: {
       posts: analyticsData.totalPosts,
       views: analyticsData.totalViews,
@@ -62,11 +61,11 @@ export async function fetchFacebookAnalytics(token, metadata) {
 async function getPagePosts(token, limit = 25) {
   try {
     const { accessToken, pageId } = token;
-    const apiVersion = 'v21.0';
+    const apiVersion = 'v24.0';
     const url = `https://graph.facebook.com/${apiVersion}/${pageId}/posts`;
 
     const params = {
-      fields: 'id,message,created_time,reach,shares',//type
+      fields: 'id,message,created_time,shares,reactions.summary(total_count),comments.summary(total_count)',
       access_token: accessToken,
       limit: limit
     };
@@ -78,6 +77,8 @@ async function getPagePosts(token, limit = 25) {
       }
     });
 
+    console.log('Facebook API Response status:', response.status);
+    
     if (response.data.error) {
       console.warn('Facebook API returned an error:', response.data.error);
       if (!response.data.data || response.data.data.length === 0) {
@@ -85,15 +86,25 @@ async function getPagePosts(token, limit = 25) {
       }
     }
 
+    const postsWithData = await Promise.all(
+      (response.data.data || []).map(async (post) => {
+        const impressions = await getPostImpressions(post.id, accessToken, apiVersion);
+        return {
+          ...post,
+          impressions: impressions
+        };
+      })
+    );
+
     return {
       data: {
-        posts: response.data.data || []
+        posts: postsWithData
       },
       status: response.status
     };
   } catch (error) {
     console.error('Error getting Facebook page posts:', error.message);
-    
+
     if (error.response) {
       console.error('Response status:', error.response.status);
       console.error('Response data:', JSON.stringify(error.response.data, null, 2));
@@ -103,5 +114,40 @@ async function getPagePosts(token, limit = 25) {
       data: { posts: [] },
       status: error.response?.status || 500
     };
+  }
+}
+
+async function getPostImpressions(postId, accessToken, apiVersion) {
+  try {
+    const url = `https://graph.facebook.com/${apiVersion}/${postId}/insights`;
+    const params = {
+      metric: 'post_impressions_unique',
+      access_token: accessToken
+    };
+
+    const response = await axios.get(url, {
+      params,
+      validateStatus: function (status) {
+        return status < 500;
+      }
+    });
+
+    const insightsData = {
+      reach: 0,
+      shares: 0
+    };
+
+    if (response.data?.data) {
+      response.data.data.forEach(metric => {
+        if (metric.name === 'post_impressions_unique') {
+          insightsData.reach = metric.values?.[0]?.value || 0;
+        }
+      });
+    }
+
+    return insightsData;
+  } catch (error) {
+    console.error(`Error getting impressions for post ${postId}:`, error.message);
+    return { reach: 0, shares: 0 };
   }
 }
