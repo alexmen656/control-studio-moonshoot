@@ -178,7 +178,7 @@ app.get('/api/activity', authMiddleware, projectAccessMiddleware, async (req, re
         title: `Video uploaded: ${video.title}`,
         description: 'New video uploaded successfully',
         timestamp: video.upload_date,
-        thumbnail: video.thumbnail,
+        thumbnail: video.filename,
         status: 'success',
         videoId: video.id
       });
@@ -190,7 +190,7 @@ app.get('/api/activity', authMiddleware, projectAccessMiddleware, async (req, re
           title: `Video scheduled: ${video.title}`,
           description: `Scheduled for ${new Date(video.scheduled_date).toLocaleString('de-DE')}`,
           timestamp: video.upload_date,
-          thumbnail: video.thumbnail,
+          thumbnail: video.filename,
           status: 'pending',
           videoId: video.id
         });
@@ -203,7 +203,7 @@ app.get('/api/activity', authMiddleware, projectAccessMiddleware, async (req, re
           title: `Video published: ${video.title}`,
           description: 'Your video is now live',
           timestamp: video.published_at,
-          thumbnail: video.thumbnail,
+          thumbnail: video.filename,
           status: 'success',
           videoId: video.id
         });
@@ -216,7 +216,7 @@ app.get('/api/activity', authMiddleware, projectAccessMiddleware, async (req, re
           title: `Video updated: ${video.title}`,
           description: 'Video metadata or details updated',
           timestamp: video.updated_at,
-          thumbnail: video.thumbnail,
+          thumbnail: video.filename,
           status: 'success',
           videoId: video.id
         });
@@ -235,7 +235,7 @@ app.get('/api/activity', authMiddleware, projectAccessMiddleware, async (req, re
           description: `Video: ${videoTitle}${job.worker_name ? ` (Worker: ${job.worker_name})` : ''}`,
           timestamp: job.started_at || job.created_at,
           platforms: [job.platform],
-          thumbnail: video?.thumbnail,
+          thumbnail: video?.filename,
           status: 'pending',
           videoId: job.video_id,
           jobId: job.job_id
@@ -248,7 +248,7 @@ app.get('/api/activity', authMiddleware, projectAccessMiddleware, async (req, re
           description: `Video: ${videoTitle}`,
           timestamp: job.completed_at || job.created_at,
           platforms: [job.platform],
-          thumbnail: video?.thumbnail,
+          thumbnail: video?.filename,
           status: 'success',
           videoId: job.video_id,
           jobId: job.job_id
@@ -256,12 +256,12 @@ app.get('/api/activity', authMiddleware, projectAccessMiddleware, async (req, re
       } else if (job.status === 'failed') {
         activities.push({
           id: `job-failed-${job.job_id}`,
-          type: 'published',
+          type: 'failed',
           title: `Failed on ${job.platform}`,
           description: job.error_message || `Video: ${videoTitle}`,
           timestamp: job.completed_at || job.created_at,
           platforms: [job.platform],
-          thumbnail: video?.thumbnail,
+          thumbnail: video?.filename,
           status: 'failed',
           videoId: job.video_id,
           jobId: job.job_id
