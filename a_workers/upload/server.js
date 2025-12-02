@@ -1,5 +1,6 @@
 import axios from 'axios';
 import os from 'os';
+import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import { compactDecrypt } from 'jose';
 import { jwtVerify } from 'jose';
@@ -7,6 +8,7 @@ import { importPKCS8, importSPKI } from 'jose';
 import dotenv from 'dotenv';
 import https from 'https';
 import fs from 'fs';
+import { pipeline } from 'stream/promises';
 
 //platforms
 import { uploadToTikTok } from './platforms/tiktok.js';
@@ -20,6 +22,11 @@ import { uploadToReddit } from './platforms/reddit.js';
 import { getCPUUsage, getMemoryUsage, getSystemMetadata } from './utils/systemMetrics.js';
 
 dotenv.config();
+
+const DOWNLOADS_DIR = path.join(process.cwd(), 'downloads');
+if (!fs.existsSync(DOWNLOADS_DIR)) {
+  fs.mkdirSync(DOWNLOADS_DIR, { recursive: true });
+}
 
 class UploadWorker {
   constructor() {
@@ -205,6 +212,48 @@ class UploadWorker {
     }
   }
 
+  async downloadVideo(videoId, jobId) {
+    const localPath = path.join(DOWNLOADS_DIR, `${jobId}-${videoId}.mp4`);
+
+    console.log(`Downloading video ${videoId} for job ${jobId}...`);
+
+    try {
+      const response = await axios({
+        method: 'GET',
+        url: `${this.backendUrl}/api/videos/${videoId}/download`,
+        httpsAgent: this.httpsAgent,
+        responseType: 'stream'
+      });
+
+      const writer = fs.createWriteStream(localPath);
+      await pipeline(response.data, writer);
+
+      const stats = fs.statSync(localPath);
+      console.log(`Video downloaded successfully: ${localPath} (${(stats.size / 1024 / 1024).toFixed(2)} MB)`);
+
+      return localPath;
+    } catch (error) {
+      console.error(`Failed to download video ${videoId}:`, error.message);
+
+      if (fs.existsSync(localPath)) {
+        fs.unlinkSync(localPath);
+      }
+
+      throw new Error(`Failed to download video: ${error.message}`);
+    }
+  }
+
+  cleanupVideoFile(filePath) {
+    try {
+      if (filePath && fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+        console.log(`Cleaned up temporary video file: ${filePath}`);
+      }
+    } catch (error) {
+      console.error(`Failed to cleanup video file ${filePath}:`, error.message);
+    }
+  }
+
   async unregister() {
     try {
       console.log(`🔄 Unregistering worker ${this.workerId}...`);
@@ -272,13 +321,16 @@ class UploadWorker {
     console.log(`   Platform: ${job.platform}`);
     console.log(`   Video: ${job.metadata?.video_title || job.video_id}`);
 
-    try {
-      console.log(`   Starting upload to ${job.platform}...`);
-      const uploadTime = 2000 + Math.random() * 3000;
-      await new Promise(resolve => setTimeout(resolve, uploadTime));
+    let videoFilePath = null;
 
+    try {
       const platform = job.platform;
       const projectId = job.metadata.project_id;
+
+      console.log(`Downloading video from backend...`);
+      videoFilePath = await this.downloadVideo(job.video_id, job.job_id);
+
+      job.videoFilePath = videoFilePath;
 
       const tokenResponse = await axios.post(
         `${this.backendUrl}/api/platform-token/${platform}/${projectId}`,
@@ -293,16 +345,8 @@ class UploadWorker {
       const { payload } = await jwtVerify(decrypted, vpsPublicKey);
 
       if (payload) {
-        console.log(job.video_id);
-        console.log("Raw job:", job);
-
-        // Include video directly in job object
-        
-       /* const getData = await axios.get(`${this.backendUrl}/api/videos/${job.video_id}`, {
-          httpsAgent: this.httpsAgent,
-        });
-
-        const videoData = getData.data;*/
+        console.log(`Video ID: ${job.video_id}`);
+        console.log(`Video file: ${videoFilePath}`);
 
         switch (platform) {
           case 'youtube':
@@ -323,7 +367,7 @@ class UploadWorker {
       }
 
     } catch (error) {
-      console.error(`❌ Failed to process job ${job.job_id}:`, error.message);
+      console.error(`Failed to process job ${job.job_id}:`, error.message);
 
       await this.updateJobStatus(
         job.job_id,
@@ -332,6 +376,10 @@ class UploadWorker {
         { platform: job.platform, failed_at: new Date().toISOString() }
       );
     } finally {
+      if (videoFilePath) {
+        this.cleanupVideoFile(videoFilePath);
+      }
+
       this.activeJobs.delete(job.job_id);
       this.currentLoad = Math.max(0, this.currentLoad - 1);
       console.log(`📊 Current load: ${this.currentLoad}/${this.maxConcurrentTasks}\n`);

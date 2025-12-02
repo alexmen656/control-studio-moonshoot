@@ -6,7 +6,7 @@ export async function uploadToTikTok(token, job) {
     console.log('Starting TikTok video upload...');
 
     const accessToken = token.sub.access_token;
-    const videoPath = 'test.mp4';
+    const videoPath = job.videoFilePath;
     const title = job.video.title || 'Uploaded via Reelmia.com';
     const description = job.video.description || '';
     

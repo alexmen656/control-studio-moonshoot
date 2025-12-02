@@ -9,7 +9,7 @@ export async function uploadToYouTube(token, job) {
     const refreshToken = token.sub.refresh_token;
 
     const videoFile = {
-        path: 'test.mp4',
+        path: job.videoFilePath,
         title: job.video.title || 'Uploaded via Reelmia.com',
         description: job.video.description || '',
         tags: [],

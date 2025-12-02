@@ -11,7 +11,7 @@ export async function uploadToInstagram(token, job) {
     };
 
     const videoFile = {
-        path: 'test.mp4'
+        path: job.videoFilePath
     };
 
     const options = {

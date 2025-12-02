@@ -9,8 +9,8 @@ export async function uploadToReddit(token, job) {
     const accessToken = token.sub.access_token;
 
     const videoFile = {
-        path: 'test.mp4',
-        originalname: 'video.mp4'
+        path: job.videoFilePath,
+        originalname: job.video?.originalName || 'video.mp4'
     };
 
     const options = {

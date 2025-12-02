@@ -77,7 +77,7 @@ async function storeAnalyticsData(resultData) {
     const totalRetweets = total.retweets || 0;
     const totalReplies = total.replies || 0;
     const totalUpvotes = total.upvotes || 0;
-    
+
     const channelResult = await db.query(channelInsertQuery, [
       project_id,
       platform,
@@ -958,6 +958,52 @@ app.get('/api/videos/:videoId/platform-id/:platform', requireWorkerCert, async (
   } catch (error) {
     console.error('Error fetching platform ID:', error);
     res.status(500).json({ error: 'Error fetching platform ID' });
+  }
+});
+
+app.get('/api/videos/:videoId/download', requireWorkerCert, async (req, res) => {
+  try {
+    const { videoId } = req.params;
+    const video = await db.getVideoById(videoId);
+
+    if (!video) {
+      return res.status(404).json({ error: 'Video not found' });
+    }
+
+    const videoPath = video.path;
+
+    if (!videoPath || !fs.existsSync(videoPath)) {
+      console.error(`Video file not found at path: ${videoPath}`);
+      return res.status(404).json({
+        error: 'Video file not found',
+        message: `File does not exist at: ${videoPath}`
+      });
+    }
+
+    const stat = fs.statSync(videoPath);
+    const fileSize = stat.size;
+    const filename = video.filename || `video-${videoId}.mp4`;
+
+    res.setHeader('Content-Type', 'video/mp4');
+    res.setHeader('Content-Length', fileSize);
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('X-Video-Id', videoId);
+    res.setHeader('X-Original-Filename', video.originalName || filename);
+
+    const fileStream = fs.createReadStream(videoPath);
+    fileStream.pipe(res);
+
+    fileStream.on('error', (err) => {
+      console.error('Error streaming video file:', err);
+      if (!res.headersSent) {
+        res.status(500).json({ error: 'Error streaming video file' });
+      }
+    });
+
+    console.log(`📹 Streaming video ${videoId} (${(fileSize / 1024 / 1024).toFixed(2)} MB) to worker`);
+  } catch (error) {
+    console.error('Error downloading video:', error);
+    res.status(500).json({ error: 'Error downloading video' });
   }
 });
 

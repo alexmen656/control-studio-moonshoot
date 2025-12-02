@@ -9,7 +9,7 @@ export async function uploadToX(token, job) {
     const accessToken = token.sub.access_token;
 
     const videoFile = {
-        path: 'test.mp4'
+        path: job.videoFilePath
     };
 
     const options = {
