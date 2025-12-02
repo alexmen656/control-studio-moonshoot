@@ -14,7 +14,7 @@ onMounted(() => {
   if (savedTheme) {
     themeMode.value = savedTheme
   }
-  
+
   const savedLanguage = localStorage.getItem('language') as Language
   if (savedLanguage) {
     language.value = savedLanguage
@@ -35,7 +35,7 @@ const setThemeMode = (mode: ThemeMode) => {
 
 const applyTheme = (mode: ThemeMode) => {
   const html = document.documentElement
-  
+
   if (mode === 'dark') {
     html.classList.add('dark')
   } else if (mode === 'light') {
@@ -112,11 +112,15 @@ const getFlagIcon = (lang: Language) => {
             </div>
           </div>
         </div>
-        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+
+
+        <!--  <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
           <div class="flex items-center gap-3 mb-6">
             <div class="p-2 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
-              <svg class="w-6 h-6 text-violet-600 dark:text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+              <svg class="w-6 h-6 text-violet-600 dark:text-violet-400" fill="none" stroke="currentColor"
+                viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
               </svg>
             </div>
             <div>
@@ -125,15 +129,12 @@ const getFlagIcon = (lang: Language) => {
             </div>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <button
-              @click="setThemeMode('system')"
-              :class="[
-                'flex flex-col items-center gap-3 p-6 rounded-xl border-2 transition-all',
-                themeMode === 'system'
-                  ? 'border-violet-500 bg-violet-50 dark:bg-violet-900/20 shadow-md'
-                  : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
-              ]"
-            >
+            <button @click="setThemeMode('system')" :class="[
+              'flex flex-col items-center gap-3 p-6 rounded-xl border-2 transition-all',
+              themeMode === 'system'
+                ? 'border-violet-500 bg-violet-50 dark:bg-violet-900/20 shadow-md'
+                : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
+            ]">
               <div class="p-3 bg-white dark:bg-gray-700 rounded-lg" v-html="getThemeIcon('system')"></div>
               <div class="text-center">
                 <div class="font-semibold text-gray-900 dark:text-gray-100">System</div>
@@ -141,39 +142,38 @@ const getFlagIcon = (lang: Language) => {
               </div>
               <div v-if="themeMode === 'system'" class="mt-2">
                 <svg class="w-6 h-6 text-violet-500" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                  <path fill-rule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                    clip-rule="evenodd" />
                 </svg>
               </div>
             </button>
-            <button
-              @click="setThemeMode('light')"
-              :class="[
-                'flex flex-col items-center gap-3 p-6 rounded-xl border-2 transition-all',
-                themeMode === 'light'
-                  ? 'border-violet-500 bg-violet-50 dark:bg-violet-900/20 shadow-md'
-                  : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
-              ]"
-            >
-              <div class="p-3 bg-white dark:bg-gray-700 rounded-lg text-yellow-500" v-html="getThemeIcon('light')"></div>
+            <button @click="setThemeMode('light')" :class="[
+              'flex flex-col items-center gap-3 p-6 rounded-xl border-2 transition-all',
+              themeMode === 'light'
+                ? 'border-violet-500 bg-violet-50 dark:bg-violet-900/20 shadow-md'
+                : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
+            ]">
+              <div class="p-3 bg-white dark:bg-gray-700 rounded-lg text-yellow-500" v-html="getThemeIcon('light')">
+              </div>
               <div class="text-center">
                 <div class="font-semibold text-gray-900 dark:text-gray-100">Light</div>
                 <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">Light appearance</div>
               </div>
               <div v-if="themeMode === 'light'" class="mt-2">
                 <svg class="w-6 h-6 text-violet-500" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                  <path fill-rule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                    clip-rule="evenodd" />
                 </svg>
               </div>
             </button>
-            <button
-              @click="setThemeMode('dark')"
-              :class="[
-                'flex flex-col items-center gap-3 p-6 rounded-xl border-2 transition-all',
-                themeMode === 'dark'
-                  ? 'border-violet-500 bg-violet-50 dark:bg-violet-900/20 shadow-md'
-                  : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
-              ]"
-            >
+            <button @click="setThemeMode('dark')" :class="[
+              'flex flex-col items-center gap-3 p-6 rounded-xl border-2 transition-all',
+              themeMode === 'dark'
+                ? 'border-violet-500 bg-violet-50 dark:bg-violet-900/20 shadow-md'
+                : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
+            ]">
               <div class="p-3 bg-white dark:bg-gray-700 rounded-lg text-blue-500" v-html="getThemeIcon('dark')"></div>
               <div class="text-center">
                 <div class="font-semibold text-gray-900 dark:text-gray-100">Dark</div>
@@ -181,12 +181,16 @@ const getFlagIcon = (lang: Language) => {
               </div>
               <div v-if="themeMode === 'dark'" class="mt-2">
                 <svg class="w-6 h-6 text-violet-500" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                  <path fill-rule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                    clip-rule="evenodd" />
                 </svg>
               </div>
             </button>
           </div>
-        </div>
+        </div>-->
+
+        <!--
         <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
           <div class="flex items-center gap-3 mb-6">
             <div class="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
@@ -241,7 +245,9 @@ const getFlagIcon = (lang: Language) => {
               </div>
             </button>
           </div>
-        </div>
+        </div>-->
+
+
       </div>
     </div>
   </div>
