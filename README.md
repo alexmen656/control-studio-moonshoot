@@ -1,6 +1,59 @@
-# social-media-manager
+# Reelmia
+Reelmia is tool for managing social media accounts.
 
-This template should help get you started developing with Vue 3 in Vite.
+Currently supported platforms:
+- Instagram
+- Facebook
+- YouTube
+- TitTok
+
+WIP:
+- X
+- Reddit
+
+## Demo
+- Website: reelmia.com
+- Youtube: <ypoutube link later>
+
+Disclaimer
+Because of the complexness of the project I had to scrape many features.
+
+## Setup
+
+The project is splitted up in 3 main parts:
+
+- Frontend
+- Backend
+- Workers:
+  - Upload Worker
+  - Analytics Worker
+  - Comments Worker
+
+## How to setup frontend?
+
+npm run dev for dev mode
+npm run build
+
+## How to setup backend?
+
+cd backend
+configure .env
+node server.js
+node server_for_worker.js
+
+## How to setup workers?
+
+cd a_workers
+
+cd analytics
+configure .env
+npm start / docker compose up
+cd upload
+configure .env
+npm start / docker compose up
+cd comments
+configure .env
+npm start / docker compose up
 
 ## Recommended IDE Setup
 
@@ -9,7 +62,7 @@ This template should help get you started developing with Vue 3 in Vite.
 ## Recommended Browser Setup
 
 - Chromium-based browsers (Chrome, Edge, Brave, etc.):
-  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd) 
+  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd)
   - [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
 - Firefox:
   - [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
