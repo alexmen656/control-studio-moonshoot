@@ -308,7 +308,7 @@ const averageEngagement = computed(() => {
                 </button>
             </div>
         </div>
-        <div v-else class="flex-1 overflow-y-auto">
+        <div v-else class="overflow-y-auto"><!--flex-1 -->
             <div class="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-8 py-4">
                 <!-- <div class="flex items-center gap-4 mb-4">
                     <button @click="router.push({ name: 'home' })"
@@ -332,13 +332,13 @@ const averageEngagement = computed(() => {
                             class="px-5 py-2 text-sm font-medium text-white bg-gradient-to-r from-orange-500 to-violet-600 hover:from-orange-600 hover:to-violet-700 rounded-lg transition-all shadow-md hover:shadow-lg">
                             Publish
                         </button>
-                        <button
+                        <!--<button
                             class="p-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 transition-colors">
                             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                 <path
                                     d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
                             </svg>
-                        </button>
+                        </button>-->
                     </div>
                 </div>
             </div>
@@ -349,11 +349,11 @@ const averageEngagement = computed(() => {
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                             Title (Required)
-                            <svg class="w-4 h-4 inline ml-1 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                            <!--<svg class="w-4 h-4 inline ml-1 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd"
                                     d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
                                     clip-rule="evenodd" />
-                            </svg>
+                            </svg>-->
                         </label>
                         <input v-model="videoDetailsForm.title" type="text"
                             class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 dark:focus:ring-violet-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
@@ -362,17 +362,17 @@ const averageEngagement = computed(() => {
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                             Description
-                            <svg class="w-4 h-4 inline ml-1 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                            <!--<svg class="w-4 h-4 inline ml-1 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd"
                                     d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
                                     clip-rule="evenodd" />
-                            </svg>
+                            </svg>-->
                         </label>
                         <textarea v-model="videoDetailsForm.description" rows="5"
                             class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 dark:focus:ring-violet-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 resize-none"
                             :placeholder="currentVideo?.description || 'Tell viewers about your video'"></textarea>
                     </div>
-                    <div>
+                    <!---<div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                             Thumbnail
                         </label>
@@ -441,7 +441,7 @@ const averageEngagement = computed(() => {
                                     made for children?</a>
                             </p>
                         </div>
-                    </div>
+                    </div>-->
                     <div v-if="platformAnalytics.length > 0 && false" class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200
                             dark:border-gray-700 p-6"><!-- Temporarily disable analytics
                             display because I had no time to finish it-->
@@ -563,18 +563,18 @@ const averageEngagement = computed(() => {
                                 <p class="text-sm text-gray-900 dark:text-gray-100">{{ currentVideo?.originalName ||
                                     'w7.mp4' }}</p>
                             </div>
-                            <div class="flex gap-2">
+                            <!-- <div class="flex gap-2">
                                 <span
                                     class="px-2 py-1 text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded">SD</span>
                                 <span
                                     class="px-2 py-1 text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded">HD</span>
-                            </div>
+                            </div>-->
                         </div>
                     </div>
 
-                    <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+                    <!---     <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
                         <div class="flex items-start justify-between mb-2">
-                            <div>
+                          <div>
                                 <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300">Visibility</h3>
                                 <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
                                     <span :class="[
@@ -640,7 +640,7 @@ const averageEngagement = computed(() => {
                                 Add
                             </button>
                         </div>
-                    </div>
+                    </div>-->
                 </div>
             </div>
         </div>
@@ -695,7 +695,7 @@ const averageEngagement = computed(() => {
                                 <div v-html="getPlatformIcon(platform)"></div>
                             </div>
                             <span class="font-medium text-gray-900 dark:text-gray-100 capitalize">{{ platform
-                            }}</span>
+                                }}</span>
                             <div v-if="selectedPlatforms.includes(platform as any)" class="ml-auto">
                                 <svg class="w-5 h-5 text-violet-600" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd"
@@ -778,7 +778,7 @@ const averageEngagement = computed(() => {
                                 <div v-html="getPlatformIcon(platform)"></div>
                             </div>
                             <span class="font-medium text-gray-900 dark:text-gray-100 capitalize">{{ platform
-                                }}</span>
+                            }}</span>
                             <div v-if="videoDetailsForm.platforms.includes(platform as any)" class="ml-auto">
                                 <svg class="w-5 h-5 text-violet-600" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd"

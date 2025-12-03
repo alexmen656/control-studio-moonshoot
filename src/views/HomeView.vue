@@ -570,9 +570,7 @@ const saveVideoDetails = async () => {
 <template>
   <div class="h-full flex flex-col bg-white dark:bg-gray-900">
     <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-      <HomeHeader 
-        @open-upload-modal="showUploadModal = true" 
-      />
+      <HomeHeader @open-upload-modal="showUploadModal = true" />
     </div>
     <div class="px-8 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
       <div class="flex flex-wrap items-center gap-3">
@@ -587,7 +585,7 @@ const saveVideoDetails = async () => {
               class="w-full pl-9 pr-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" />
           </div>
         </div>
-        <PostTypeFilter v-model="postTypeFilter" />
+        <!--<PostTypeFilter v-model="postTypeFilter" />-->
         <StatusFilter v-model="filterStatus" />
         <div class="flex items-center gap-2 ml-auto">
           <div v-if="selectedVideos.size > 0"
@@ -670,7 +668,7 @@ const saveVideoDetails = async () => {
             </div>
             <div class="absolute top-2 right-2 flex gap-1.5">
               <div class="bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
-                <span>🎬</span>
+                <!--<span>🎬</span>-->
                 <span>{{ video.duration }}</span>
               </div>
             </div>
@@ -1150,7 +1148,8 @@ const saveVideoDetails = async () => {
                   </div>
                   <div class="flex items-center">
                     <input v-model="videoDetailsForm.advancedOptions.facebook.published" type="checkbox"
-                      id="facebook-published" class="w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500" />
+                      id="facebook-published"
+                      class="w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500" />
                     <label for="facebook-published" class="ml-2 text-sm text-gray-700 dark:text-gray-300">Publish
                       Immediately</label>
                   </div>
@@ -1175,7 +1174,8 @@ const saveVideoDetails = async () => {
                   </div>
                   <div class="flex items-center">
                     <input v-model="videoDetailsForm.advancedOptions.x.forSuperFollowersOnly" type="checkbox"
-                      id="x-super-followers" class="w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500" />
+                      id="x-super-followers"
+                      class="w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500" />
                     <label for="x-super-followers" class="ml-2 text-sm text-gray-700 dark:text-gray-300">For Super
                       Followers Only</label>
                   </div>
@@ -1203,7 +1203,8 @@ const saveVideoDetails = async () => {
                     </div>
                     <div class="flex items-center">
                       <input v-model="videoDetailsForm.advancedOptions.reddit.spoiler" type="checkbox"
-                        id="reddit-spoiler" class="w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500" />
+                        id="reddit-spoiler"
+                        class="w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500" />
                       <label for="reddit-spoiler" class="ml-2 text-sm text-gray-700 dark:text-gray-300">Spoiler</label>
                     </div>
                     <div class="flex items-center">
