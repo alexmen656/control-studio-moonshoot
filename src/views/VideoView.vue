@@ -6,6 +6,8 @@ const route = useRoute()
 const router = useRouter()
 const API_URL = 'http://localhost:6709/api'
 
+const link = window.location.href
+
 const instance = getCurrentInstance()
 const axios = instance?.appContext.config.globalProperties.$axios
 
@@ -546,16 +548,16 @@ const averageEngagement = computed(() => {
                                 <div class="flex items-center gap-2">
                                     <a href="#"
                                         class="text-sm text-blue-600 dark:text-blue-400 hover:underline truncate">
-                                        https://youtu.be/zIHvrtEBCW9w
+                                        {{ link }}
                                     </a>
-                                    <button
+                                    <!-- <button
                                         class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 flex-shrink-0">
                                         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                             <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
                                             <path
                                                 d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
                                         </svg>
-                                    </button>
+                                    </button>-->
                                 </div>
                             </div>
                             <div>
@@ -695,7 +697,7 @@ const averageEngagement = computed(() => {
                                 <div v-html="getPlatformIcon(platform)"></div>
                             </div>
                             <span class="font-medium text-gray-900 dark:text-gray-100 capitalize">{{ platform
-                                }}</span>
+                            }}</span>
                             <div v-if="selectedPlatforms.includes(platform as any)" class="ml-auto">
                                 <svg class="w-5 h-5 text-violet-600" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd"
@@ -778,7 +780,7 @@ const averageEngagement = computed(() => {
                                 <div v-html="getPlatformIcon(platform)"></div>
                             </div>
                             <span class="font-medium text-gray-900 dark:text-gray-100 capitalize">{{ platform
-                            }}</span>
+                                }}</span>
                             <div v-if="videoDetailsForm.platforms.includes(platform as any)" class="ml-auto">
                                 <svg class="w-5 h-5 text-violet-600" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd"
