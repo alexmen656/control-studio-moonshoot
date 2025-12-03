@@ -1,7 +1,7 @@
 <template>
     <div class="w-64 bg-white dark:bg-gray-800 flex flex-col fixed left-0 top-15 bottom-0 sidebar">
-        <div v-if="!isVideoDetailPage" class="px-2 pb-4 pt-2 relative">
-            <button @click.stop="showNewDropdown = !showNewDropdown"
+     <div v-if="!isVideoDetailPage" class="px-2 pt-2 relative"></div>
+         <!--     <button @click.stop="showNewDropdown = !showNewDropdown"
                 class="flex items-center space-x-3 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 shadow-md hover:shadow-lg border border-gray-200 dark:border-gray-600 rounded-full px-6 py-3 w-full transition-all group">
                 <svg class="w-6 h-6 text-primary-600 dark:text-primary-400" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd"
@@ -12,7 +12,7 @@
             </button>
             <div v-if="showNewDropdown" @click.stop
                 class="absolute left-2 w-60 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 py-2 z-50">
-                <!--<button @click="createNewFolder"
+                <!-<button @click="createNewFolder"
                     class="w-full text-left px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center space-x-3 transition-colors">
                     <svg class="w-5 h-5 text-gray-600 dark:text-gray-400" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
@@ -21,7 +21,7 @@
                         <div class="text-sm font-medium text-gray-900 dark:text-gray-100">New Post</div>
                         <div class="text-xs text-gray-500 dark:text-gray-400">Create a new post (coming soon)</div>
                     </div>
-                </button>-->
+                </button>--
                 <button @click="triggerVideoUpload"
                     class="w-full text-left px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center space-x-3 transition-colors">
                     <svg class="w-5 h-5 text-gray-600 dark:text-gray-400" fill="currentColor" viewBox="0 0 20 20">
@@ -60,7 +60,7 @@
                     </div>
                 </button>
             </div>
-        </div>
+        </div>-->
         <nav class="flex-1 px-2 space-y-1 overflow-y-auto">
             <template v-if="isVideoDetailPage">
                 <router-link to="/home"

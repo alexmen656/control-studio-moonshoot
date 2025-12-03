@@ -278,10 +278,10 @@ onMounted(() => {
                     </p>
                 </div>
                 <div class="flex items-center gap-3">
-                    <button @click="today"
+                   <!-- <button @click="today"
                         class="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors font-medium">
                         Today
-                    </button>
+                    </button>-->
                     <div class="flex items-center gap-1 p-1 bg-gray-100 dark:bg-gray-800 rounded-lg">
                         <button @click="viewMode = 'calendar'" :class="[
                             'px-4 py-2 rounded transition-colors font-medium text-sm',

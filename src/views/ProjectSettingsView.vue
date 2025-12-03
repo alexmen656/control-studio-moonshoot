@@ -94,7 +94,7 @@
                     </div>
                 </div>
             </div>
-            <div
+            <!---<div
                 class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 mt-6">
                 <div class="p-6 border-b border-gray-200 dark:border-gray-700">
                     <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Upload Machine Region</h3>
@@ -148,7 +148,7 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </div>-->
         </div>
         <div v-if="showEditProjectModal" @click="showEditProjectModal = false"
             class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
