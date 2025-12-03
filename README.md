@@ -11,6 +11,8 @@ WIP:
 - X
 - Reddit
 
+The core of Reelmia is the worker system, every worker is a own docker containe, so Reelmia is easily scalable, if tyou need more capacity just start up some more containers, and done!
+
 ## Demo
 - Website: reelmia.com
 - Youtube: <ypoutube link later>

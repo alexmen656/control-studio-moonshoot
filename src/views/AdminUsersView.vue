@@ -1,8 +1,7 @@
 <template>
-    <div class="min-h-screen bg-gray-50 dark:bg-gray-900 pt-15">
+    <div class="min-h-screen bg-gray-50 dark:bg-gray-900"><!--pt-15-->
         <div class="p-8">
             <div class="max-w-7xl mx-auto">
-                <!-- Header -->
                 <div class="mb-8">
                     <h1 class="text-3xl font-bold text-gray-900 dark:text-white">User Management</h1>
                     <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">

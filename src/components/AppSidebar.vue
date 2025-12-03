@@ -1,7 +1,7 @@
 <template>
     <div class="w-64 bg-white dark:bg-gray-800 flex flex-col fixed left-0 top-15 bottom-0 sidebar">
-     <div v-if="!isVideoDetailPage" class="px-2 pt-2 relative"></div>
-         <!--     <button @click.stop="showNewDropdown = !showNewDropdown"
+        <div v-if="!isVideoDetailPage" class="px-2 pt-2 relative"></div>
+        <!--     <button @click.stop="showNewDropdown = !showNewDropdown"
                 class="flex items-center space-x-3 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 shadow-md hover:shadow-lg border border-gray-200 dark:border-gray-600 rounded-full px-6 py-3 w-full transition-all group">
                 <svg class="w-6 h-6 text-primary-600 dark:text-primary-400" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd"
@@ -244,10 +244,16 @@
                 <router-link to="/workers" v-if="isAdmin"
                     class="flex items-center space-x-3 px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-violet-100 dark:hover:bg-violet-900/20 rounded-full transition-colors"
                     active-class="bg-violet-100 dark:bg-violet-900/30 text-primary-900 dark:text-primary-200 hover:bg-primary-100 dark:hover:bg-violet-900/40">
-                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <!--<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                         <path
                             d="M10 2a1 1 0 011 1v1.323l3.954 1.582 1.599-.8a1 1 0 01.894 1.79l-1.233.616 1.738 5.42a1 1 0 01-.285 1.05A3.989 3.989 0 0115 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.738-5.42-1.233-.617a1 1 0 01.894-1.788l1.599.799L11 4.323V3a1 1 0 011-1zm-5 8.274l-.818 2.552c-.25.78.008 1.626.69 2.193A3.989 3.989 0 007 15a3.989 3.989 0 002.128-.981c.682-.567.94-1.413.69-2.193l-.818-2.552a1 1 0 00-1.9 0z" />
+                    </svg>-->
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                        stroke="currentColor" class="w-5 h-5">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M5.25 14.25h13.5m-13.5 0a3 3 0 0 1-3-3m3 3a3 3 0 1 0 0 6h13.5a3 3 0 1 0 0-6m-16.5-3a3 3 0 0 1 3-3h13.5a3 3 0 0 1 3 3m-19.5 0a4.5 4.5 0 0 1 .9-2.7L5.737 5.1a3.375 3.375 0 0 1 2.7-1.35h7.126c1.062 0 2.062.5 2.7 1.35l2.587 3.45a4.5 4.5 0 0 1 .9 2.7m0 0a3 3 0 0 1-3 3m0 3h.008v.008h-.008v-.008Zm0-6h.008v.008h-.008v-.008Zm-3 6h.008v.008h-.008v-.008Zm0-6h.008v.008h-.008v-.008Z" />
                     </svg>
+
                     <span class="text-sm font-medium">Workers</span>
                 </router-link>
                 <router-link to="/admin/users" v-if="isAdmin"
@@ -268,7 +274,7 @@
                         <div class="flex items-center justify-between text-sm">
                             <span class="text-gray-600 dark:text-gray-400">{{ storageUsed }} {{ unit }} of {{
                                 storageTotal
-                            }}
+                                }}
                                 GB
                                 used</span>
                         </div>
