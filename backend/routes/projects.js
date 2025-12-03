@@ -13,13 +13,13 @@ router.get('/', async (req, res) => {
     }
 
     const query = `
-      SELECT 
+      SELECT DISTINCT
         p.*,
-        COUNT(v.id) as video_count
+        (SELECT COUNT(*) FROM videos WHERE project_id = p.id) as video_count,
+        CASE WHEN p.user_id = $1 THEN true ELSE false END as is_owner
       FROM projects p
-      LEFT JOIN videos v ON v.project_id = p.id
-      WHERE p.user_id = $1
-      GROUP BY p.id
+      INNER JOIN project_users pu ON pu.project_id = p.id
+      WHERE pu.user_id = $1
       ORDER BY p.created_at DESC
     `;
 
