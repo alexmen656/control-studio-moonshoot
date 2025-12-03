@@ -1,19 +1,26 @@
 # Reelmia
+
 Reelmia is tool for managing social media accounts.
 
 Currently supported platforms:
+
 - Instagram
 - Facebook
 - YouTube
 - TitTok
 
 WIP:
+
 - X
 - Reddit
 
 The core of Reelmia is the worker system, every worker is a own docker containe, so Reelmia is easily scalable, if tyou need more capacity just start up some more containers, and done!
 
+Reelmia is a social media management platform. I originally had big ambitions for it, but since working with many different social media APIs is quite complex, only part of the functionality has been implemented so far.
+Currently, Reelmia supports video uploads, post scheduling, team collaboration features, and provides channel analytics for Facebook, Instagram, YouTube, and TikTok.
+
 ## Demo
+
 - Website: reelmia.com
 - Youtube: <ypoutube link later>
 
