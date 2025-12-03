@@ -548,14 +548,26 @@ export default {
                 const videoId = this.route.params.id;
                 if (!videoId) return;
 
+                const previousThumbnail = this.currentVideoThumbnail;
+                const previousFilename = this.currentVideoFilename;
+
                 const response = await (this as any).$axios.get(`/videos/${videoId}`);
                 const video = response.data;
 
                 this.currentVideoTitle = video.title || "Untitled Video";
                 this.currentVideoSubtitle = video.description || `${this.currentProject?.name || 'Project'} - ${video.filename || 'Video'}`;
                 this.currentVideoDuration = video.duration ? this.formatDuration(video.duration) : "0:00";
-                this.currentVideoThumbnail = video.thumbnail_url || null;
                 this.currentVideoFilename = video.filename || null;
+
+                if (video.thumbnail_url) {
+                    this.currentVideoThumbnail = video.thumbnail_url;
+                } else if (video.filename !== previousFilename) {
+                    this.currentVideoThumbnail = null;
+                } else if (previousThumbnail && previousThumbnail.startsWith('data:')) {
+                    this.currentVideoThumbnail = previousThumbnail;
+                } else {
+                    this.currentVideoThumbnail = null;
+                }
 
             } catch (error) {
                 console.error('Error fetching video data:', error);
@@ -614,10 +626,25 @@ export default {
         },
     },
     watch: {
-        '$route'(newRoute) {
-            if (this.isVideoDetailPage) {
-                this.fetchCurrentVideoData();
-            }
+        '$route': {
+            handler(newRoute, oldRoute) {
+                if (this.isVideoDetailPage) {
+                    const newId = newRoute.params?.id;
+                    const oldId = oldRoute?.params?.id;
+                    if (newId !== oldId || !oldRoute?.name?.toString().startsWith('video')) {
+                        this.fetchCurrentVideoData();
+                    }
+                }
+            },
+            immediate: false
+        },
+        'route.params.id': {
+            handler(newId, oldId) {
+                if (this.isVideoDetailPage && newId && newId !== oldId) {
+                    this.fetchCurrentVideoData();
+                }
+            },
+            immediate: true
         }
     }
 }
