@@ -164,6 +164,7 @@ app.get('/api/activity', authMiddleware, projectAccessMiddleware, async (req, re
       FROM worker_jobs j
       LEFT JOIN workers w ON j.worker_id = w.worker_id
       WHERE j.metadata->>'project_id' = $1
+        AND (j.metadata->>'job_type' = 'upload' OR j.metadata->>'job_type' IS NULL)
       ORDER BY j.created_at DESC
       LIMIT 100
     `;
