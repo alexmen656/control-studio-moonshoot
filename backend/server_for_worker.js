@@ -250,9 +250,65 @@ async function storeUploadData(resultData) {
     ]);
 
     console.log(`✅ Stored upload result for project ${project_id}, platform ${platform}, video ${video_id}, platform_id ${platform_id}`);
+
+    const publishedAt = new Date().toISOString();
+    await db.query(`
+      INSERT INTO publish_status (video_id, platform, status, published_at, updated_at)
+      VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP)
+      ON CONFLICT (video_id, platform) 
+      DO UPDATE SET status = $3, published_at = $4, updated_at = CURRENT_TIMESTAMP
+    `, [video_id, platform, publishedAt, publishedAt]);
+
+    console.log(`✅ Updated publish_status for video ${video_id}, platform ${platform}`);
+
+    await updateVideoStatusFromPublishStatus(video_id);
+
   } catch (error) {
     console.error('Error storing upload data:', error);
     throw error;
+  }
+}
+
+async function updateVideoStatusFromPublishStatus(video_id) {
+  try {
+    const platformsResult = await db.query(
+      'SELECT platform FROM video_platforms WHERE video_id = $1',
+      [video_id]
+    );
+    const targetPlatforms = platformsResult.rows.map(r => r.platform);
+
+    if (targetPlatforms.length === 0) {
+      console.log(`No target platforms for video ${video_id}`);
+      return;
+    }
+
+    const statusResult = await db.query(
+      'SELECT platform, status FROM publish_status WHERE video_id = $1',
+      [video_id]
+    );
+
+    const publishedPlatforms = statusResult.rows.filter(r => r.status !== 'failed').map(r => r.platform);
+    const failedPlatforms = statusResult.rows.filter(r => r.status === 'failed').map(r => r.platform);
+
+    let newStatus;
+    if (publishedPlatforms.length === 0 && failedPlatforms.length > 0) {
+      newStatus = 'failed';
+    } else if (publishedPlatforms.length >= targetPlatforms.length) {
+      newStatus = 'published';
+    } else if (publishedPlatforms.length > 0) {
+      newStatus = 'partially-published';
+    } else {
+      return;
+    }
+
+    await db.query(
+      'UPDATE videos SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2',
+      [newStatus, video_id]
+    );
+
+    //console.log(`✅ Updated video ${video_id} status to '${newStatus}' (${publishedPlatforms.length}/${targetPlatforms.length} platforms)`);
+  } catch (error) {
+    console.error(`Error updating video status for ${video_id}:`, error);
   }
 }
 
@@ -322,7 +378,7 @@ async function storeVideoComments(commentCollectionId, projectId, platform, vide
   try {
     const resolvedPlatformId = platform_id || videoData.videoId || videoData.postId || videoData.mediaId || '';
     const resolvedVideoId = videoData.videoId || videoData.postId || videoData.mediaId || '';
-    
+
     const videoCommentInsertQuery = `
       INSERT INTO video_comment_details (
         comment_collection_id, project_id, platform,
@@ -915,6 +971,31 @@ app.patch('/api/jobs/:jobId/status', requireWorkerCert, async (req, res) => {
         console.log(`✅ Upload data stored for job ${jobId}`);
       } catch (uploadError) {
         console.error(`❌ Error storing upload data for job ${jobId}:`, uploadError);
+      }
+    }
+
+    if (status === 'failed') {
+      try {
+        const jobDetails = await db.query(
+          'SELECT video_id, platform FROM worker_jobs WHERE job_id = $1',
+          [jobId]
+        );
+
+        if (jobDetails.rows.length > 0 && jobDetails.rows[0].video_id && jobDetails.rows[0].platform) {
+          const { video_id, platform } = jobDetails.rows[0];
+
+          await db.query(`
+            INSERT INTO publish_status (video_id, platform, status, updated_at)
+            VALUES ($1, $2, 'failed', CURRENT_TIMESTAMP)
+            ON CONFLICT (video_id, platform) 
+            DO UPDATE SET status = 'failed', updated_at = CURRENT_TIMESTAMP
+          `, [video_id, platform]);
+
+          //console.log(`✅ Marked publish_status as failed for video ${video_id}, platform ${platform}`);
+          await updateVideoStatusFromPublishStatus(video_id);
+        }
+      } catch (failedUploadError) {
+        console.error(`❌ Error handling failed upload for job ${jobId}:`, failedUploadError);
       }
     }
 
