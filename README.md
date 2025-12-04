@@ -47,16 +47,16 @@ Reelmia uses a modern, scalable architecture with three main components:
 │   (Port 6709)   │
 └────────┬────────┘
          │
-    ┌────┴──────────────────┐
-    │                       │
-┌───▼────┐     ┌───────────▼────┐
-│Database │     │  Worker Pool   │
-│(PostgreSQL) │     (Docker)     │
-└────────┘     └─────────────────┘
-               │    ├─ Upload Worker
-               │    ├─ Analytics Worker
-               │    └─ Comments Worker
-               └─────────────────
+    ┌────┴───────────────────┐
+    │                        │
+┌───▼─────────┐     ┌────────▼───────┐
+│ Database    │     │  Worker Pool   │
+│(PostgreSQL) │     │  (Docker)      │
+└─────────────┘     └────────────────┘
+                    │ ├─ Upload Worker
+                    │ ├─ Analytics Worker
+                    │ └─ Comments Worker
+                    └─────────────────
 ```
 
 ### Worker System
