@@ -71,9 +71,9 @@ const selectedVideos = ref<Set<string>>(new Set())
 const filterStatus = ref<string>('all')
 const searchQuery = ref('')
 const showUploadModal = ref(false)
-const postTypeFilter = ref<string>('all')
-//const uploadingFiles = ref<File[]>([])
-//const uploadProgress = ref<{ [key: string]: number }>({})
+//const postTypeFilter = ref<string>('all')
+const isUploading = ref(false)
+const uploadingCount = ref(0)
 const isLoading = ref(false)
 const showDetailsModal = ref(false)
 const selectedVideoForDetails = ref<Video | null>(null)
@@ -165,8 +165,24 @@ const handleFileSelect = async (event: Event) => {
   await uploadFiles(files)
 }
 
+const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+  if (isUploading.value) {
+    e.preventDefault()
+    e.returnValue = 'Upload läuft noch. Bist du sicher, dass du die Seite verlassen willst?'
+    return e.returnValue
+  }
+}
+
 const uploadFiles = async (files: File[]) => {
+  showUploadModal.value = false
+  isUploading.value = true
+  uploadingCount.value = files.length
+
+  window.addEventListener('beforeunload', handleBeforeUnload)
+
   for (const file of files) {
+    const tempId = `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+
     try {
       const formData = new FormData()
       formData.append('video', file)
@@ -177,7 +193,6 @@ const uploadFiles = async (files: File[]) => {
         formData.append('project_id', PROJECT_ID)
       }
 
-      const tempId = `temp-${Date.now()}`
       videos.value.unshift({
         id: tempId,
         title: file.name.replace(/\.[^/.]+$/, ''),
@@ -191,8 +206,17 @@ const uploadFiles = async (files: File[]) => {
         views: 0
       })
 
-      //shitty as fuck since we alreday have project id in form data but I dont want to edit the auth backend
-      const response = await axios.post(`/upload?project_id=${PROJECT_ID}`, formData)
+      const response = await axios.post(`/upload?project_id=${PROJECT_ID}`, formData, {
+        onUploadProgress: (progressEvent: { loaded: number; total?: number }) => {
+          if (progressEvent.total) {
+            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total)
+            const index = videos.value.findIndex(v => v.id === tempId)
+            if (index !== -1 && videos.value[index]) {
+              videos.value[index].progress = percentCompleted
+            }
+          }
+        }
+      })
 
       if (response.status === 200 || response.status === 201) {
         const result = response.data
@@ -213,10 +237,17 @@ const uploadFiles = async (files: File[]) => {
       }
     } catch (error) {
       console.error('Error uploading file:', error)
+      const index = videos.value.findIndex(v => v.id === tempId)
+      if (index !== -1 && videos.value[index]) {
+        videos.value[index].status = 'failed'
+      }
     }
+
+    uploadingCount.value--
   }
 
-  showUploadModal.value = false
+  isUploading.value = false
+  window.removeEventListener('beforeunload', handleBeforeUnload)
 }
 
 const triggerFileUpload = () => {
@@ -610,13 +641,9 @@ const saveVideoDetails = async () => {
         <div v-for="video in filteredVideos" :key="video.id"
           class="group bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-lg border border-gray-200 dark:border-gray-700 transition-all overflow-hidden">
           <div class="relative aspect-video bg-gray-200 dark:bg-gray-700 overflow-hidden">
-            <!-- Use generated thumbnail image if available, fallback to video preview -->
-            <img v-if="video.thumbnail && !video.thumbnail.startsWith('http')" 
-              :src="`${uploadURL}/thumbnails/${video.thumbnail}`"
-              class="w-full h-full object-cover"
-              :alt="video.title"
-              loading="lazy"
-            />
+            <img v-if="video.thumbnail && !video.thumbnail.startsWith('http')"
+              :src="`${uploadURL}/thumbnails/${video.thumbnail}`" class="w-full h-full object-cover" :alt="video.title"
+              loading="lazy" />
             <video v-else-if="video.filename" class="w-full h-full object-cover" muted preload="metadata"
               :src="`${uploadURL}/uploads/${video.filename}#t=0.1`">
             </video>
@@ -720,13 +747,9 @@ const saveVideoDetails = async () => {
               <td class="px-6 py-4">
                 <div class="flex items-center gap-3">
                   <div class="relative w-20 h-12 bg-gray-200 dark:bg-gray-700 rounded overflow-hidden flex-shrink-0">
-                    <!-- Use generated thumbnail image if available, fallback to video preview -->
-                    <img v-if="video.thumbnail && !video.thumbnail.startsWith('http')" 
-                      :src="`${uploadURL}/thumbnails/${video.thumbnail}`"
-                      class="w-full h-full object-cover"
-                      :alt="video.title"
-                      loading="lazy"
-                    />
+                    <img v-if="video.thumbnail && !video.thumbnail.startsWith('http')"
+                      :src="`${uploadURL}/thumbnails/${video.thumbnail}`" class="w-full h-full object-cover"
+                      :alt="video.title" loading="lazy" />
                     <video v-else-if="video.filename" class="w-full h-full object-cover" muted>
                       <source :src="`${uploadURL}/uploads/${video.filename}`" type="video/mp4">
                     </video>
@@ -824,6 +847,22 @@ const saveVideoDetails = async () => {
         </button>
       </div>
     </div>
+    <Transition name="slide-down">
+      <div v-if="isUploading" class="fixed top-0 left-0 right-0 z-50 bg-amber-500 text-white px-4 py-3 shadow-lg">
+        <div class="max-w-4xl mx-auto flex items-center justify-center gap-3">
+          <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+            </path>
+          </svg>
+          <span class="font-medium">
+            Upload läuft ({{ uploadingCount }} {{ uploadingCount === 1 ? 'Datei' : 'Dateien' }}) – Bitte die Seite nicht
+            verlassen oder neu laden!
+          </span>
+        </div>
+      </div>
+    </Transition>
     <div v-if="showUploadModal"
       class="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4"
       @click="showUploadModal = false">
@@ -853,6 +892,14 @@ const saveVideoDetails = async () => {
           <input id="video-file-input" type="file" multiple accept="video/*" class="hidden"
             @change="handleFileSelect" />
         </div>
+        <p class="text-xs text-gray-500 dark:text-gray-400 mt-4 text-center">
+          <svg class="w-4 h-4 inline-block mr-1" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd"
+              d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+              clip-rule="evenodd" />
+          </svg>
+          Nach dem Upload nicht die Seite verlassen, bis alle Dateien hochgeladen sind.
+        </p>
       </div>
     </div>
     <div v-if="showDetailsModal"
@@ -1308,5 +1355,16 @@ const saveVideoDetails = async () => {
 
 .custom-checkbox input:checked~.checkmark:after {
   display: block;
+}
+
+.slide-down-enter-active,
+.slide-down-leave-active {
+  transition: all 0.3s ease;
+}
+
+.slide-down-enter-from,
+.slide-down-leave-to {
+  transform: translateY(-100%);
+  opacity: 0;
 }
 </style>
