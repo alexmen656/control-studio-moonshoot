@@ -258,32 +258,14 @@ class CommentsWorker {
     try {
       const taskType = job.metadata?.task_type || 'comments_fetch';
 
-      let platform_id = null;
-
-    /*  try {
-        const platformIdResponse = await axios.get(
-          `${this.backendUrl}/api/videos/${job.video_id}/platform-id/${job.platform}`,
-          { httpsAgent: this.httpsAgent }
-        );
-        console.log('data', platformIdResponse.data);
-        console.log('url', `${this.backendUrl}/api/videos/${job.video_id}/platform-id/${job.platform}`);
-
-        platform_id = platformIdResponse.data.platform_id;
-        console.log(`   Platform ID: ${platform_id}`);
-      } catch (err) {
-        console.warn(`⚠️ Could not fetch platform ID: ${err.response?.data?.message || err.message}`);
-      }*/ 
-
       console.log(`   Starting comments fetch from ${job.platform}...`);
 
       let commentsData = null;
       commentsData = await fetchVideoComments(job);
 
       console.log(`✅ Successfully fetched comments from ${job.platform}`);
-     // console.log('data', platform_id);
 
-      //job video id - undefined
-      //console.log('url', `${this.backendUrl}/api/videos/${job.video_id}/platform-id/${job.platform}`);
+      const platform_id = commentsData?.platform_id || null;
 
       await this.updateJobStatus(job.job_id, 'completed', null, {
         platform: job.platform,

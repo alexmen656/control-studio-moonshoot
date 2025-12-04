@@ -299,14 +299,14 @@ async function storeCommentsData(resultData) {
 
     if (comments_data.videos && Array.isArray(comments_data.videos)) {
       for (const video of comments_data.videos) {
-        const platform_id = video.mediaId || video.id;
+        const platform_id = video.videoId || video.mediaId || video.id;
         await storeVideoComments(commentCollectionId, project_id, platform, video, platform_id);
       }
     }
 
     if (comments_data.posts && Array.isArray(comments_data.posts)) {
       for (const post of comments_data.posts) {
-        const platform_id = post.mediaId || post.id || post.postId;
+        const platform_id = post.postId || post.mediaId || post.id;
         await storeVideoComments(commentCollectionId, project_id, platform, post, platform_id);
       }
     }
@@ -320,6 +320,9 @@ async function storeCommentsData(resultData) {
 
 async function storeVideoComments(commentCollectionId, projectId, platform, videoData, platform_id = null) {
   try {
+    const resolvedPlatformId = platform_id || videoData.videoId || videoData.postId || videoData.mediaId || '';
+    const resolvedVideoId = videoData.videoId || videoData.postId || videoData.mediaId || '';
+    
     const videoCommentInsertQuery = `
       INSERT INTO video_comment_details (
         comment_collection_id, project_id, platform,
@@ -341,8 +344,8 @@ async function storeVideoComments(commentCollectionId, projectId, platform, vide
       commentCollectionId,
       projectId,
       platform,
-      videoData.videoId || videoData.postId || videoData.mediaId || '',
-      platform_id,
+      resolvedVideoId,
+      resolvedPlatformId,
       videoData.videoTitle || videoData.postTitle || videoData.mediaTitle || '',
       videoData.commentCount || 0,
       JSON.stringify(videoData.comments || [])

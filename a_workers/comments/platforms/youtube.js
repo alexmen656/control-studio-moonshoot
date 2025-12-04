@@ -1,13 +1,32 @@
-import axios from 'axios';
+import { google } from 'googleapis';
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+function createOAuth2Client(accessToken, refreshToken) {
+  const oauth2Client = new google.auth.OAuth2(
+    process.env.YOUTUBE_CLIENT_ID,
+    process.env.YOUTUBE_CLIENT_SECRET,
+    process.env.YOUTUBE_REDIRECT_URI
+  );
+
+  oauth2Client.setCredentials({
+    access_token: accessToken,
+    refresh_token: refreshToken
+  });
+
+  return oauth2Client;
+}
 
 export async function fetchYouTubeComments(token, metadata) {
   console.log('   Calling YouTube Comments API...');
   console.log(metadata);
 
-  const youtubeToken = {
-    accessToken: token.sub.access_token,
-    channelId: token.sub.channelId
-  };
+  const accessToken = token.sub.access_token;
+  const refreshToken = token.sub.refresh_token;
+
+  const oauth2Client = createOAuth2Client(accessToken, refreshToken);
+  const youtube = google.youtube({ version: 'v3', auth: oauth2Client });
 
   const commentsData = {
     totalComments: 0,
@@ -15,27 +34,27 @@ export async function fetchYouTubeComments(token, metadata) {
     videos: []
   };
 
-  const youtubeData = await getChannelVideos(youtubeToken);
+  const youtubeData = await getChannelVideos(youtube);
 
-  if (youtubeData && youtubeData.data && youtubeData.data.videos) {
-    commentsData.totalVideos = youtubeData.data.videos.length;
-    
-    for (const video of youtubeData.data.videos) {
-      const videoComments = await getVideoComments(youtubeToken, video.id);
-      const comments = videoComments.data || [];
-      
+  if (youtubeData && youtubeData.videos) {
+    commentsData.totalVideos = youtubeData.videos.length;
+
+    for (const video of youtubeData.videos) {
+      const videoComments = await getVideoComments(youtube, video.id);
+      const comments = videoComments || [];
+
       commentsData.totalComments += comments.length;
       commentsData.videos.push({
         platform: 'youtube',
         videoId: video.id,
-        videoTitle: video.title || 'No title',
+        videoTitle: video.snippet?.title || 'No title',
         commentCount: comments.length,
         comments: comments.map(comment => ({
           id: comment.id,
           author: comment.authorDisplayName || 'Unknown',
           text: comment.textDisplay || '',
           likeCount: comment.likeCount || 0,
-          replyCount: comment.replyCount || 0,
+          replyCount: comment.totalReplyCount || 0,
           publishedAt: comment.publishedAt || ''
         }))
       });
@@ -53,137 +72,74 @@ export async function fetchYouTubeComments(token, metadata) {
 }
 
 
-async function getVideoComments(token, videoId, limit = 100) {
+async function getVideoComments(youtube, videoId, limit = 100) {
   try {
-    const { accessToken } = token;
-
     console.log('Fetching comments for video:', videoId);
 
-    const url = 'https://www.googleapis.com/youtube/v3/commentThreads';
-
-    const params = {
-      part: 'snippet',
+    const response = await youtube.commentThreads.list({
+      part: ['snippet'],
       videoId: videoId,
       maxResults: limit,
-      access_token: accessToken,
       textFormat: 'plainText'
-    };
-
-    const response = await axios.get(url, { 
-      params,
-      validateStatus: function (status) {
-        return status < 500;
-      }
     });
 
-    console.log('YouTube comments API response status:', response.status);
+    console.log('Comments fetched for video', videoId, ':', response.data.items?.length || 0, 'comments');
 
-    if (response.data.error) {
-      console.warn('YouTube API returned an error:', response.data.error);
-      return {
-        data: [],
-        status: response.status
-      };
-    }
-
-    const comments = (response.data.items || []).map(item => item.snippet.topLevelComment.snippet);
-    
-    console.log('Comments fetched for video', videoId, ':', comments.length, 'comments');
-
-    return {
-      data: comments,
-      status: response.status
-    };
+    return (response.data.items || []).map(item => ({
+      id: item.id,
+      ...item.snippet.topLevelComment.snippet,
+      totalReplyCount: item.snippet.totalReplyCount || 0
+    }));
   } catch (error) {
     console.error('Error getting comments for video:', error.message);
-    if (error.response) {
-      console.error('Response status:', error.response.status);
-      console.error('Response data:', JSON.stringify(error.response.data, null, 2));
+
+    if (error.code === 403) {
+      console.warn('Comments disabled for video:', videoId);
     }
-    return {
-      data: [],
-      status: error.response?.status || 500
-    };
+
+    return [];
   }
 }
 
-async function getChannelVideos(token, limit = 25) {
+async function getChannelVideos(youtube, limit = 25) {
   try {
-    const { accessToken, channelId } = token;
-
-    console.log('Fetching YouTube videos for channel:', channelId);
-
-    const channelResponse = await axios.get(
-      'https://www.googleapis.com/youtube/v3/channels',
-      {
-        params: {
-          part: 'contentDetails',
-          id: channelId,
-          access_token: accessToken
-        },
-        validateStatus: function (status) {
-          return status < 500;
-        }
-      }
-    );
+    const channelResponse = await youtube.channels.list({
+      part: ['contentDetails'],
+      mine: true
+    });
 
     if (!channelResponse.data.items || channelResponse.data.items.length === 0) {
-      throw new Error('Channel not found');
+      console.error('No channel found for authenticated user');
+      return { videos: [] };
     }
+
+    const channelId = channelResponse.data.items[0].id;
+    console.log('Authenticated user channel ID:', channelId);
 
     const uploadsPlaylistId = channelResponse.data.items[0].contentDetails.relatedPlaylists.uploads;
 
-    const videosResponse = await axios.get(
-      'https://www.googleapis.com/youtube/v3/playlistItems',
-      {
-        params: {
-          part: 'snippet,contentDetails',
-          playlistId: uploadsPlaylistId,
-          maxResults: limit,
-          access_token: accessToken
-        },
-        validateStatus: function (status) {
-          return status < 500;
-        }
-      }
-    );
+    const videosResponse = await youtube.playlistItems.list({
+      part: ['snippet', 'contentDetails'],
+      playlistId: uploadsPlaylistId,
+      maxResults: limit
+    });
 
-    console.log('YouTube API response status:', videosResponse.status);
+    const videoIds = videosResponse.data.items?.map(item => item.contentDetails.videoId) || [];
 
-    if (videosResponse.data.error) {
-      console.warn('YouTube API returned an error:', videosResponse.data.error);
+    if (videoIds.length === 0) {
+      console.log('No videos found in uploads playlist');
+      return { videos: [] };
     }
 
-    const videoIds = videosResponse.data.items?.map(item => item.contentDetails.videoId).join(',') || '';
-
-    if (!videoIds) {
-      return {
-        data: { videos: [] },
-        status: 200
-      };
-    }
-
-    const statsResponse = await axios.get(
-      'https://www.googleapis.com/youtube/v3/videos',
-      {
-        params: {
-          part: 'statistics,snippet',
-          id: videoIds,
-          access_token: accessToken
-        },
-        validateStatus: function (status) {
-          return status < 500;
-        }
-      }
-    );
+    const statsResponse = await youtube.videos.list({
+      part: ['statistics', 'snippet'],
+      id: videoIds
+    });
 
     console.log('YouTube videos fetched:', statsResponse.data.items?.length || 0, 'videos');
 
     return {
-      data: {
-        videos: statsResponse.data.items || []
-      },
-      status: statsResponse.status
+      videos: statsResponse.data.items || []
     };
   } catch (error) {
     console.error('Error getting YouTube videos:', error.message);
@@ -191,9 +147,6 @@ async function getChannelVideos(token, limit = 25) {
       console.error('Response status:', error.response.status);
       console.error('Response data:', JSON.stringify(error.response.data, null, 2));
     }
-    return {
-      data: { videos: [] },
-      status: error.response?.status || 500
-    };
+    return { videos: [] };
   }
 }
