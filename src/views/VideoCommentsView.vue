@@ -114,6 +114,10 @@
                         class="pl-10 pr-3 py-2 bg-gray-700 text-gray-100 placeholder-gray-500 rounded border border-gray-600 focus:border-orange-500 focus:outline-none transition-colors text-sm w-56" />
                 </div>
             </div>
+            <div class="bg-yellow-50 dark:bg-yellow-900/20 border-b border-yellow-200 dark:border-yellow-800 px-8 py-2">
+                <p class="text-sm text-yellow-800 dark:text-yellow-200">Warning: It may take up to 5 minutes for a
+                    comment to appear here</p>
+            </div>
             <div class="p-8">
                 <div v-if="uploadResults.length === 0"
                     class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-8 text-center">
@@ -239,14 +243,14 @@ interface Comments {
 const route = useRoute()
 const videoId = ref(route.params.id as string)
 const loading = ref(false)
-const error = ref < string | null > (null)
-const uploadResults = ref < UploadResult[] > ([])
-const comments = ref < Comments > ({})
+const error = ref<string | null>(null)
+const uploadResults = ref<UploadResult[]>([])
+const comments = ref<Comments>({})
 
 const selectAll = ref(false)
-const selectedComments = ref(new Set < string > ())
-const sortOrder = ref < 'newest' | 'oldest' | 'author' > ('newest')
-const filterPlatforms = ref < string[] > ([])
+const selectedComments = ref(new Set<string>())
+const sortOrder = ref<'newest' | 'oldest' | 'author'>('newest')
+const filterPlatforms = ref<string[]>([])
 const searchQuery = ref('')
 
 const getFilteredAndSortedComments = computed(() => {

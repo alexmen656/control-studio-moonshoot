@@ -1097,8 +1097,8 @@ https.createServer(options, app).listen(3001, () => {
 
   startJobScheduler(30000);
 
-  startDataCollectionScheduler(40000);
-  //console.log('Data collection scheduler started (40-second intervals)');
+  startDataCollectionScheduler(180000);
+  //console.log('Data collection scheduler started (3-minute intervals)');
 
   startPublishScheduler();
   console.log('Publish scheduler started (30-second intervals)');

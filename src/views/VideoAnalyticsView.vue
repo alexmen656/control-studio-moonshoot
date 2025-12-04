@@ -5,6 +5,9 @@
                 <div>
                     <h1 class="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-2">
                         Video Analytics
+                        <span class="ml-3 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300">
+                            Beta (Only a visual preview, no real data yet)
+                        </span>
                     </h1>
                     <p class="text-gray-600 dark:text-gray-400">
                         Performance across all platforms
