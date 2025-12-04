@@ -1,6 +1,9 @@
 import { updateJobStatus } from "../utils/updateJobStatus.js";
 import { google } from 'googleapis';
 import fs from 'fs';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 export async function uploadToYouTube(token, job) {
     console.log('Starting YouTube video upload...');
@@ -20,7 +23,7 @@ export async function uploadToYouTube(token, job) {
     if (job.video?.tags && Array.isArray(job.video.tags)) {
         videoFile.tags = job.video.tags;
     }
-    
+
     if (job.video?.categoryId) {
         videoFile.categoryId = job.video.categoryId;
     }
@@ -54,47 +57,66 @@ export async function uploadToYouTube(token, job) {
 async function uploadVideo(accessToken, refreshToken, videoFile) {
     console.log('Starting upload process...');
 
+    /*
+    code: 401,
+3|uplod_wo |   errors: [
+3|uplod_wo |     {
+3|uplod_wo |       message: 'Invalid Credentials',
+3|uplod_wo |       domain: 'global',
+3|uplod_wo |       reason: 'authError',
+3|uplod_wo |       location: 'Authorization',
+3|uplod_wo |       locationType: 'header'
+3|uplod_wo |     }
+3|uplod_wo |   ],
+3|uplod_wo |   [Symbol(gaxios-gaxios-error)]: '6.7.1'
+3|uplod_wo | }
+3|uplod_wo | ❌ YouTube upload failed: Invalid Credentials
+8*/
+
+    console.log(process.env.YOUTUBE_CLIENT_ID, process.env.YOUTUBE_CLIENT_SECRET, process.env.YOUTUBE_REDIRECT_URI);
+
     const oauth2Client = new google.auth.OAuth2(
         process.env.YOUTUBE_CLIENT_ID,
         process.env.YOUTUBE_CLIENT_SECRET,
         process.env.YOUTUBE_REDIRECT_URI
     );
 
+
+    console.log(accessToken, refreshToken);
     oauth2Client.setCredentials({
         access_token: accessToken,
         refresh_token: refreshToken
     });
 
+    try {
+        console.log('Refreshing access token...');
+        const { credentials } = await oauth2Client.refreshAccessToken();
+        oauth2Client.setCredentials(credentials);
+        console.log('Access token refreshed successfully');
+    } catch (refreshError) {
+        console.error('Failed to refresh token:', refreshError.message);
+    }
+
     const youtube = google.youtube({ version: 'v3', auth: oauth2Client });
 
-    return new Promise((resolve, reject) => {
-        youtube.videos.insert(
-            {
-                resource: {
-                    snippet: {
-                        title: videoFile.title || 'Untitled Video',
-                        description: videoFile.description || 'Automatically uploaded by my bot!',
-                        tags: videoFile.tags || [],
-                        categoryId: videoFile.categoryId || '22',
-                    },
-                    status: {
-                        privacyStatus: videoFile.privacyStatus || 'public',
-                    },
-                },
-                part: 'snippet,status',
-                media: {
-                    body: fs.createReadStream(videoFile.path),
-                },
+    const response = await youtube.videos.insert({
+        resource: {
+            snippet: {
+                title: videoFile.title || 'Untitled Video',
+                description: videoFile.description || 'Automatically uploaded by my bot!',
+                tags: videoFile.tags || [],
+                categoryId: videoFile.categoryId || '22',
             },
-            (err, response) => {
-                if (err) {
-                    console.error('YouTube API error:', err);
-                    reject(err);
-                    return;
-                }
-                console.log('Video uploaded:', response.data);
-                resolve(response.data);
-            }
-        );
+            status: {
+                privacyStatus: videoFile.privacyStatus || 'public',
+            },
+        },
+        part: 'snippet,status',
+        media: {
+            body: fs.createReadStream(videoFile.path),
+        },
     });
+
+    console.log('Video uploaded:', response.data);
+    return response.data;
 }

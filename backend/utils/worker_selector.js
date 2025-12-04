@@ -43,11 +43,15 @@ export async function selectBestWorker(projectId, platformRequirements = [], wor
       typeFilteredWorkers = workers.filter(w => {
         const capabilities = w.capabilities || {};
         const type = capabilities.type;
-        
+
         if (workerType === 'analytics') {
           return type === 'analytics';
         }
-        
+
+        if (workerType === 'comments') {
+          return type === 'comments';
+        }
+
         return !type || type === workerType;
       });
 
@@ -58,7 +62,7 @@ export async function selectBestWorker(projectId, platformRequirements = [], wor
 
     if (preferredWorkerId) {
       const preferredWorker = typeFilteredWorkers.find(w => w.worker_id === preferredWorkerId);
-      
+
       if (preferredWorker) {
         if (preferredWorker.current_load < preferredWorker.max_concurrent_tasks) {
           console.log(`✓ Selected preferred worker: ${preferredWorker.worker_name}`);
@@ -79,7 +83,7 @@ export async function selectBestWorker(projectId, platformRequirements = [], wor
       }
     }
 
-    const availableWorkers = typeFilteredWorkers.filter(w => 
+    const availableWorkers = typeFilteredWorkers.filter(w =>
       w.current_load < w.max_concurrent_tasks
     );
 
@@ -92,7 +96,7 @@ export async function selectBestWorker(projectId, platformRequirements = [], wor
       eligibleWorkers = availableWorkers.filter(w => {
         const capabilities = w.capabilities || {};
         const supportedPlatforms = capabilities.platforms || [];
-        return platformRequirements.every(platform => 
+        return platformRequirements.every(platform =>
           supportedPlatforms.includes(platform)
         );
       });
@@ -159,7 +163,7 @@ export async function assignJobToWorker(workerId, jobId) {
     );
 
     await db.query('COMMIT');
-    
+
     console.log(`✓ Job ${jobId} assigned to worker ${workerId}`);
     return true;
   } catch (error) {
@@ -181,7 +185,7 @@ export async function releaseWorkerFromJob(workerId, jobId, status, errorMessage
          SET status = $1, completed_at = CURRENT_TIMESTAMP
          WHERE job_id = $2`;
 
-    const params = errorMessage 
+    const params = errorMessage
       ? [status, errorMessage, jobId]
       : [status, jobId];
 
@@ -195,7 +199,7 @@ export async function releaseWorkerFromJob(workerId, jobId, status, errorMessage
     );
 
     await db.query('COMMIT');
-    
+
     console.log(`✓ Worker ${workerId} released from job ${jobId} (Status: ${status})`);
     return true;
   } catch (error) {
