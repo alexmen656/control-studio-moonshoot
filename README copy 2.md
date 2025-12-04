@@ -10,9 +10,9 @@ Reelmia is a comprehensive social media management tool designed to streamline v
 - 🎥 Multi-platform video publishing (Instagram, Facebook, YouTube, TikTok)
 - 📊 Real-time analytics and performance tracking
 - 📅 Advanced scheduling with calendar view
-- 👥 Team collaboration
+- 👥 Team collaboration with role-based access
 - 🔄 Scalable distributed worker system (Docker)
-- 🔐 Secure authentication (OAuth, 2FA, WebAuth)
+- 🔐 Secure authentication (OAuth, 2FA, WebAuthn)
 - 📝 Video comments aggregation
 - 🏗️ Multi-project support
 
@@ -34,138 +34,30 @@ Reelmia is a comprehensive social media management tool designed to streamline v
 
 ## 🏗️ Architecture
 
-Reelmia uses a modern, scalable architecture with four main components:
+Reelmia uses a modern, scalable architecture with three main components:
 
 ```
-┌─────────────────────────────────────────────┐
-│           Frontend (Vue 3 + Vite)           │
-│           http://localhost:5185             │
-└────────────────────┬────────────────────────┘
-                     │
-                     │ HTTP/REST Requests
-                     │
-        ┌────────────┘
-        │                          
-┌───────▼────────┐        ┌──────────────────────┐
-│  Main API      │        │    Worker Backend    │
-│  Server.js     │        │ server_for_worker.js │
-│ (Port 6709)    │        │                      │
-│                │        │ (Port 6710)          │
-│ - User Auth    │        │                      │
-│ - Video Mgmt   │        │ - Job Queue          │
-│ - Analytics    │        │ - Worker Comm.       │
-│ - Publishing   │        │ - Status Updates     │
-└────────┬───────┘        └────────┬─────────────┘
-         │                         │
-         └────────────┬────────────┘
-                      │
-                      │ Database Queries & Updates
-                      │
-                ┌─────▼──────────┐
-                │  PostgreSQL    │
-                │  Database      │
-                │                │
-                │ - Users        │
-                │ - Videos       │
-                │ - Jobs         │
-                │ - Analytics    │
-                └─────┬──────────┘
-                      │
-        ┌─────────────▼───────────────┐
-        │                             │
-        │    Worker Pool (Docker)     │
-        │                             │
-        │  ┌────────────────────────┐ │
-        │  │ Upload Workers (1+)    │ │
-        │  │ - Video to Platforms   │ │
-        │  │ - IDs Management       │ │
-        │  └────────────────────────┘ │
-        │                             │
-        │  ┌────────────────────────┐ │
-        │  │ Analytics Workers (1+) │ │
-        │  │ - Channel Analytics    │ │
-        │  │ - Performance Stats    │ │
-        │  └────────────────────────┘ │
-        │                             │
-        │  ┌────────────────────────┐ │
-        │  │ Comments Workers (1+)  │ │
-        │  │ - Aggregation          │ │
-        │  │ - Engagement Tracking  │ │
-        │  └────────────────────────┘ │
-        │                             │
-        └─────────────────────────────┘
-              ▲
-              │ HTTPS + Certificates
-              │
-         (Secure Communication)
+┌─────────────────┐
+│   Frontend      │  Vue 3 + TypeScript + Tailwind CSS
+│   (Vite)        │
+└────────┬────────┘
+         │
+┌────────▼────────┐
+│   API Server    │  Node.js + Express
+│   (Port 6709)   │
+└────────┬────────┘
+         │
+    ┌────┴───────────────────┐
+    │                        │
+┌───▼─────────┐     ┌────────▼───────┐
+│ Database    │     │  Worker Pool   │
+│(PostgreSQL) │     │  (Docker)      │
+└─────────────┘     └────────────────┘
+                    │ ├─ Upload Worker
+                    │ ├─ Analytics Worker
+                    │ └─ Comments Worker
+                    └─────────────────
 ```
-
-### Communication Flow
-
-1. **Frontend → Main API Server**
-   - User authentication & authorization
-   - Video management requests
-   - Analytics queries
-   - Publishing commands
-
-2. **Main API Server → Database**
-   - Data persistence & retrieval
-   - Job queue management
-   - Status tracking
-
-3. **Main API Server → Worker Backend**
-   - Forwards worker job requests
-   - Monitors worker health
-
-4. **Worker Backend ↔ Workers**
-   - HTTPS with certificate authentication
-   - Job distribution
-   - Result collection
-   - Health monitoring
-
-5. **Workers → Database** (via Main API Server)
-   - Store upload results
-   - Update publish status
-   - Save analytics data
-
-### Component Breakdown
-
-**Frontend** - User Interface
-- Vue 3 with TypeScript
-- Real-time status updates
-- Video management dashboard
-- Only communicates with Main API Server
-
-**Main API Server** (server.js)
-- User authentication & authorization
-- Video upload & metadata
-- Project & team management
-- Analytics API endpoints
-- Platform integrations
-- Routes worker requests
-- Central hub for all API traffic
-
-**Worker Backend** (server_for_worker.js)
-- Separate server for worker communication
-- Worker registration & health checks
-- Job queue management
-- Distributes tasks to workers
-- Collects results from workers
-- Certificate-based worker authentication
-- Syncs results back to main database
-
-**Worker Pool** (Docker Containers)
-- **Upload Workers** - Process video uploads to platforms
-- **Analytics Workers** - Collect performance metrics
-- **Comments Workers** - Aggregate platform comments
-- Auto-scalable based on demand
-- Communicate only with Worker Backend
-
-**Database** (PostgreSQL)
-- Centralized data storage
-- Job queue persistence
-- Analytics & metrics
-- User & project management
 
 ### Worker System
 The core strength of Reelmia is its **distributed worker system**:
@@ -512,7 +404,8 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 For issues and questions:
 1. Check existing GitHub issues
-2. Create a new issue with detailed information
+2. Review documentation in `/docs`
+3. Create a new issue with detailed information
 
 ---
 
