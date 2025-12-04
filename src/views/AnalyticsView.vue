@@ -181,35 +181,35 @@
                                     <span class="text-sm text-gray-600 dark:text-gray-400">Videos</span>
                                     <span class="text-base font-semibold text-gray-900 dark:text-gray-100">{{
                                         formatNumber(stats.videos)
-                                        }}</span>
+                                    }}</span>
                                 </div>
                                 <div
                                     class="flex justify-between items-center py-2 border-b border-gray-100 dark:border-gray-700">
                                     <span class="text-sm text-gray-600 dark:text-gray-400">Views</span>
                                     <span class="text-base font-semibold text-gray-900 dark:text-gray-100">{{
                                         formatNumber(stats.views)
-                                        }}</span>
+                                    }}</span>
                                 </div>
                                 <div
                                     class="flex justify-between items-center py-2 border-b border-gray-100 dark:border-gray-700">
                                     <span class="text-sm text-gray-600 dark:text-gray-400">Likes</span>
                                     <span class="text-base font-semibold text-gray-900 dark:text-gray-100">{{
                                         formatNumber(stats.likes)
-                                        }}</span>
+                                    }}</span>
                                 </div>
                                 <div
                                     class="flex justify-between items-center py-2 border-b border-gray-100 dark:border-gray-700">
                                     <span class="text-sm text-gray-600 dark:text-gray-400">Comments</span>
                                     <span class="text-base font-semibold text-gray-900 dark:text-gray-100">{{
                                         formatNumber(stats.comments)
-                                        }}</span>
+                                    }}</span>
                                 </div>
                                 <div v-if="stats.shares && stats.shares > 0"
                                     class="flex justify-between items-center py-2">
                                     <span class="text-sm text-gray-600 dark:text-gray-400">Shares</span>
                                     <span class="text-base font-semibold text-gray-900 dark:text-gray-100">{{
                                         formatNumber(stats.shares)
-                                        }}</span>
+                                    }}</span>
                                 </div>
                             </div>
                         </div>
@@ -464,7 +464,7 @@ const fetchHourlyData = async () => {
         if (selectedPlatform.value) {
             const PROJECT_ID = localStorage.getItem('currentProjectId');
             const response = await axios.get(
-                `/api/analytics/live/projects/${PROJECT_ID}/platforms/${selectedPlatform.value}/24h?project_id=${PROJECT_ID}`
+                `/analytics/live/projects/${PROJECT_ID}/platforms/${selectedPlatform.value}/24h?project_id=${PROJECT_ID}`
             )
             console.log('Fetched 24h live data:', response.data)
 
@@ -485,7 +485,7 @@ const fetchHourlyData = async () => {
             }
         } else {
             const PROJECT_ID = localStorage.getItem('currentProjectId');
-            const response = await axios.get(`/api/analytics/live/projects/${PROJECT_ID}/latest?project_id=${PROJECT_ID}`)
+            const response = await axios.get(`/analytics/live/projects/${PROJECT_ID}/latest?project_id=${PROJECT_ID}`)
             const platforms = response.data.platforms || []
 
             const filteredPlatforms = platforms.filter((p: any) =>
@@ -512,7 +512,7 @@ const fetchHourlyData = async () => {
             }
 
             const PROJECT_ID = localStorage.getItem('currentProjectId');
-            const response = await axios.get(`/api/analytics/hourly?project_id=${PROJECT_ID}`, { params })
+            const response = await axios.get(`/analytics/hourly?project_id=${PROJECT_ID}`, { params })
             hourlyData.value = response.data
         } catch (fallbackErr) {
             console.error('Error fetching fallback hourly data:', fallbackErr)
@@ -529,8 +529,8 @@ const fetchAnalytics = async () => {
             const PROJECT_ID = localStorage.getItem('currentProjectId');
 
             const [latestResponse, contentResponse] = await Promise.all([
-                axios.get(`/api/analytics/live/projects/${PROJECT_ID}/platforms/${selectedPlatform.value}/24h?project_id=${PROJECT_ID}`),
-                axios.get(`/api/analytics/live/projects/${PROJECT_ID}/platforms/${selectedPlatform.value}/content?limit=50&sortBy=views&project_id=${PROJECT_ID}`),
+                axios.get(`/analytics/live/projects/${PROJECT_ID}/platforms/${selectedPlatform.value}/24h?project_id=${PROJECT_ID}`),
+                axios.get(`/analytics/live/projects/${PROJECT_ID}/platforms/${selectedPlatform.value}/content?limit=50&sortBy=views&project_id=${PROJECT_ID}`),
                 fetchHourlyData()
             ])
 
@@ -565,7 +565,7 @@ const fetchAnalytics = async () => {
         } else {
             const PROJECT_ID = localStorage.getItem('currentProjectId') || '2';
             const [overviewResponse] = await Promise.all([
-                axios.get(`/api/analytics/live/projects/${PROJECT_ID}/overview?project_id=${PROJECT_ID}`),
+                axios.get(`/analytics/live/projects/${PROJECT_ID}/overview?project_id=${PROJECT_ID}`),
                 fetchHourlyData()
             ])
 
@@ -588,7 +588,7 @@ const fetchAnalytics = async () => {
                 try {
                     const PROJECT_ID = localStorage.getItem('currentProjectId') || '2';
                     const contentResponse = await axios.get(
-                        `/api/analytics/live/projects/${PROJECT_ID}/platforms/${platform.platform}/content?limit=10&sortBy=views`
+                        `/analytics/live/projects/${PROJECT_ID}/platforms/${platform.platform}/content?limit=10&sortBy=views`
                     )
                     const content = contentResponse.data.content || []
                     allVideos.push(...content.map((item: any) => ({
@@ -634,7 +634,7 @@ const fetchAnalytics = async () => {
             const PROJECT_ID = localStorage.getItem('currentProjectId') || '2';
 
             const [analyticsResponse] = await Promise.all([
-                axios.get(`/api/analytics/total`, {
+                axios.get(`/analytics/total`, {
                     params: {
                         project_id: PROJECT_ID,
                         ...params

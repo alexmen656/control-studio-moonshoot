@@ -56,11 +56,11 @@
                                 <div
                                     class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
                                     <span class="text-white font-semibold text-lg">{{ getUserInitials(user.username)
-                                    }}</span>
+                                        }}</span>
                                 </div>
                                 <div>
                                     <h4 class="text-base font-semibold text-gray-900 dark:text-white">{{ user.username
-                                    }}</h4>
+                                        }}</h4>
                                     <p class="text-sm text-gray-500 dark:text-gray-400">{{ user.email }}</p>
                                 </div>
                             </div>
@@ -283,7 +283,7 @@ export default {
         loadCurrentProject() {
             const projectId = localStorage.getItem('currentProjectId');
             if (projectId) {
-                axios.get(`/api/projects/${projectId}`)
+                axios.get(`/projects/${projectId}`)
                     .then(res => {
                         this.currentProject = res.data;
                     })
@@ -297,7 +297,7 @@ export default {
             if (!projectId) return;
 
             try {
-                const response = await axios.get(`/api/projects/${projectId}/users`);
+                const response = await axios.get(`/projects/${projectId}/users`);
                 this.projectUsers = response.data;
             } catch (error) {
                 console.error('Error loading project users:', error);
@@ -310,7 +310,7 @@ export default {
             }
 
             try {
-                const response = await axios.get(`/api/users/search?q=${this.searchQuery}`);
+                const response = await axios.get(`/users/search?q=${this.searchQuery}`);
                 // Filter out users already in the project
                 this.searchResults = response.data.filter((user: User) =>
                     !this.projectUsers.some(pu => pu.id === user.id)
@@ -324,7 +324,7 @@ export default {
             if (!projectId) return;
 
             try {
-                await axios.post(`/api/projects/${projectId}/users`, {
+                await axios.post(`/projects/${projectId}/users`, {
                     user_id: user.id
                 });
                 this.projectUsers.push(user);
@@ -345,7 +345,7 @@ export default {
             if (!projectId) return;
 
             try {
-                await axios.delete(`/api/projects/${projectId}/users/${userId}`);
+                await axios.delete(`/projects/${projectId}/users/${userId}`);
                 this.projectUsers = this.projectUsers.filter(u => u.id !== userId);
             } catch (error) {
                 console.error('Error removing user:', error);
@@ -357,7 +357,7 @@ export default {
         },
         async loadAvailableRegions() {
             try {
-                const response = await axios.get('/api/regions');
+                const response = await axios.get('/regions');
                 this.availableRegions = response.data;
             } catch (error) {
                 console.error('Error loading regions:', error);
@@ -368,7 +368,7 @@ export default {
             if (!projectId) return;
 
             try {
-                await axios.patch(`/api/projects/${projectId}/region`, {
+                await axios.patch(`/projects/${projectId}/region`, {
                     region_id: regionId
                 });
 
@@ -394,7 +394,7 @@ export default {
             try {
                 const initials = this.editProjectName.split(' ').map(word => word[0]).join('').toUpperCase().slice(0, 2);
 
-                await axios.patch(`/api/projects/${projectId}`, {
+                await axios.patch(`/projects/${projectId}`, {
                     name: this.editProjectName,
                     initials: initials
                 });
