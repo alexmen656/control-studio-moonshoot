@@ -6,6 +6,7 @@ import { fileURLToPath } from 'url';
 import { authMiddleware, projectAccessMiddleware } from '../utils/auth.js';
 import * as db from '../utils/db.js'
 import { createUploadJobs } from '../utils/job_creator.js';
+import { generateThumbnail, getVideoDuration, deleteThumbnail, thumbnailsDir } from '../utils/thumbnail.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -106,13 +107,18 @@ router.post('/upload', authMiddleware, projectAccessMiddleware, upload.single('v
 
     const stats = getVideoStats(req.file.path);
 
+    const [thumbnailResult, duration] = await Promise.all([
+      generateThumbnail(req.file.path, req.file.filename),
+      getVideoDuration(req.file.path)
+    ]);
+
     const newVideo = {
       id: Date.now().toString(),
       title: req.body.title || req.file.originalname.replace(/\.[^/.]+$/, ''),
       filename: req.file.filename,
       originalName: req.file.originalname,
-      thumbnail: req.body.thumbnail || 'https://via.placeholder.com/400x225',
-      duration: '0:00',
+      thumbnail: thumbnailResult.thumbnailFilename || null,
+      duration: duration,
       size: stats.size,
       sizeBytes: stats.sizeBytes,
       uploadDate: new Date().toISOString(),
@@ -147,13 +153,19 @@ router.post('/upload-multiple', upload.array('videos', 10), async (req, res) => 
     for (let index = 0; index < req.files.length; index++) {
       const file = req.files[index];
       const stats = getVideoStats(file.path);
+      
+      const [thumbnailResult, duration] = await Promise.all([
+        generateThumbnail(file.path, file.filename),
+        getVideoDuration(file.path)
+      ]);
+
       const newVideo = {
         id: (Date.now() + index).toString(),
         title: file.originalname.replace(/\.[^/.]+$/, ''),
         filename: file.filename,
         originalName: file.originalname,
-        thumbnail: 'https://via.placeholder.com/400x225',
-        duration: '0:00',
+        thumbnail: thumbnailResult.thumbnailFilename || null,
+        duration: duration,
         size: stats.size,
         sizeBytes: stats.sizeBytes,
         uploadDate: new Date().toISOString(),

@@ -8,6 +8,7 @@ import dotenv from 'dotenv';
 import multer from 'multer';
 import { startJobScheduler } from './utils/job_scheduler.js';
 import * as db from './utils/db.js'
+import { generateThumbnail, getVideoDuration } from './utils/thumbnail.js';
 
 // routes
 import workersRoutes from './routes/workers.js';
@@ -68,6 +69,12 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use('/uploads', express.static(uploadsDir));
 
+const thumbnailsDir = path.join(uploadsDir, 'thumbnails');
+if (!fs.existsSync(thumbnailsDir)) {
+  fs.mkdirSync(thumbnailsDir, { recursive: true });
+}
+app.use('/thumbnails', express.static(thumbnailsDir));
+
 const getVideoStats = (filePath) => {
   const stats = fs.statSync(filePath)
   const fileSizeInBytes = stats.size
@@ -94,13 +101,18 @@ app.post('/api/upload', authMiddleware, projectAccessMiddleware, upload.single('
 
     const stats = getVideoStats(req.file.path)
 
+    const [thumbnailResult, duration] = await Promise.all([
+      generateThumbnail(req.file.path, req.file.filename),
+      getVideoDuration(req.file.path)
+    ]);
+
     const newVideo = {
       id: Date.now().toString(),
       title: req.body.title || req.file.originalname.replace(/\.[^/.]+$/, ''),
       filename: req.file.filename,
       originalName: req.file.originalname,
-      thumbnail: req.body.thumbnail || 'https://via.placeholder.com/400x225',
-      duration: '0:00',
+      thumbnail: thumbnailResult.thumbnailFilename || null,
+      duration: duration,
       size: stats.size,
       sizeBytes: stats.sizeBytes,
       uploadDate: new Date().toISOString(),

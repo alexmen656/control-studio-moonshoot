@@ -134,12 +134,6 @@ const loadVideos = async () => {
         ...v,
         uploadDate: new Date(v.uploadDate)
       }))
-
-      videos.value.forEach(async (video) => {
-        if (video.duration === '0:00' && video.filename) {
-          updateVideoDuration(video)
-        }
-      })
     }
   } catch (error) {
     console.error('Error loading videos:', error)
@@ -158,36 +152,6 @@ const loadConnectedPlatforms = async () => {
     }
   } catch (error) {
     console.error('Error loading connected platforms:', error)
-  }
-}
-
-const updateVideoDuration = async (video: Video) => {
-  try {
-    const videoElement = document.createElement('video')
-    videoElement.preload = 'metadata'
-
-    videoElement.onloadedmetadata = async () => {
-      const duration = videoElement.duration
-      const minutes = Math.floor(duration / 60)
-      const seconds = Math.floor(duration % 60)
-      const formattedDuration = `${minutes}:${seconds.toString().padStart(2, '0')}`
-
-      const index = videos.value.findIndex(v => v.id === video.id)
-      if (index !== -1 && videos.value[index]) {
-        videos.value[index].duration = formattedDuration
-      }
-
-      await axios.patch(`/videos/${video.id}/duration`, {
-        duration: formattedDuration
-      })
-
-      URL.revokeObjectURL(videoElement.src)
-    }
-
-    const uploadURL = import.meta.env.MODE === 'production' ? 'https://api.reelmia.com' : 'http://localhost:6709'
-    videoElement.src = `${uploadURL}/uploads/${video.filename}`
-  } catch (error) {
-    console.error('Error updating video duration:', error)
   }
 }
 
@@ -217,7 +181,7 @@ const uploadFiles = async (files: File[]) => {
       videos.value.unshift({
         id: tempId,
         title: file.name.replace(/\.[^/.]+$/, ''),
-        thumbnail: 'https://via.placeholder.com/400x225',
+        thumbnail: '',
         duration: '0:00',
         size: `${(file.size / (1024 * 1024)).toFixed(2)} MB`,
         uploadDate: new Date(),
@@ -240,7 +204,6 @@ const uploadFiles = async (files: File[]) => {
             status: 'awaiting-details'
           }
           videos.value[index] = updatedVideo
-          updateVideoDuration(updatedVideo)
         }
       } else {
         const index = videos.value.findIndex(v => v.id === tempId)
@@ -647,7 +610,14 @@ const saveVideoDetails = async () => {
         <div v-for="video in filteredVideos" :key="video.id"
           class="group bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-lg border border-gray-200 dark:border-gray-700 transition-all overflow-hidden">
           <div class="relative aspect-video bg-gray-200 dark:bg-gray-700 overflow-hidden">
-            <video v-if="video.filename" class="w-full h-full object-cover" muted preload="metadata"
+            <!-- Use generated thumbnail image if available, fallback to video preview -->
+            <img v-if="video.thumbnail && !video.thumbnail.startsWith('http')" 
+              :src="`${uploadURL}/thumbnails/${video.thumbnail}`"
+              class="w-full h-full object-cover"
+              :alt="video.title"
+              loading="lazy"
+            />
+            <video v-else-if="video.filename" class="w-full h-full object-cover" muted preload="metadata"
               :src="`${uploadURL}/uploads/${video.filename}#t=0.1`">
             </video>
             <div v-else class="w-full h-full flex items-center justify-center">
@@ -750,7 +720,14 @@ const saveVideoDetails = async () => {
               <td class="px-6 py-4">
                 <div class="flex items-center gap-3">
                   <div class="relative w-20 h-12 bg-gray-200 dark:bg-gray-700 rounded overflow-hidden flex-shrink-0">
-                    <video v-if="video.filename" class="w-full h-full object-cover" muted>
+                    <!-- Use generated thumbnail image if available, fallback to video preview -->
+                    <img v-if="video.thumbnail && !video.thumbnail.startsWith('http')" 
+                      :src="`${uploadURL}/thumbnails/${video.thumbnail}`"
+                      class="w-full h-full object-cover"
+                      :alt="video.title"
+                      loading="lazy"
+                    />
+                    <video v-else-if="video.filename" class="w-full h-full object-cover" muted>
                       <source :src="`${uploadURL}/uploads/${video.filename}`" type="video/mp4">
                     </video>
                     <div v-else class="w-full h-full flex items-center justify-center">
