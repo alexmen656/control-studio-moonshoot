@@ -89,10 +89,9 @@
                         </div>
                     </div>
                     <video ref="hiddenVideo" v-if="currentVideoFilename"
-                        :src="`http://localhost:6709/uploads/${currentVideoFilename}`"
-                        @loadedmetadata="onVideoLoadedMetadata" @canplay="generateThumbnail"
-                        @durationchange="updateDuration" class="hidden" muted preload="metadata"
-                        crossorigin="anonymous"></video>
+                        :src="`${uploadURL}/uploads/${currentVideoFilename}`" @loadedmetadata="onVideoLoadedMetadata"
+                        @canplay="generateThumbnail" @durationchange="updateDuration" class="hidden" muted
+                        preload="metadata" crossorigin="anonymous"></video>
                     <canvas ref="thumbnailCanvas" class="hidden"></canvas>
                     <div class="mt-3">
                         <h3 class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-1">
@@ -364,7 +363,8 @@ export default {
     setup() {
         const authStore = useAuthStore()
         const route = useRoute()
-        return { authStore, route }
+        const uploadURL = import.meta.env.MODE === 'production' ? 'https://api.reelmia.com' : 'http://localhost:6709'
+        return { authStore, route, uploadURL }
     },
     data() {
         return {

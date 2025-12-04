@@ -4,12 +4,11 @@ import { useRouter } from 'vue-router'
 import TableHeader from '@/components/TableHeader.vue'
 import StatusFilter from '@/components/StatusFilter.vue'
 import HomeHeader from '@/components/HomeHeader.vue'
-import PostTypeFilter from '@/components/PostTypeFilter.vue'
+//import PostTypeFilter from '@/components/PostTypeFilter.vue'
 
 const router = useRouter()
 const instance = getCurrentInstance()
 const axios = instance?.appContext.config.globalProperties.$axios
-const API_URL = 'http://localhost:6709/api'
 
 interface Video {
   id: string
@@ -185,7 +184,8 @@ const updateVideoDuration = async (video: Video) => {
       URL.revokeObjectURL(videoElement.src)
     }
 
-    videoElement.src = `${API_URL.replace('/api', '')}/uploads/${video.filename}`
+    const uploadURL = import.meta.env.MODE === 'production' ? 'https://api.reelmia.com' : 'http://localhost:6709'
+    videoElement.src = `${uploadURL}/uploads/${video.filename}`
   } catch (error) {
     console.error('Error updating video duration:', error)
   }
