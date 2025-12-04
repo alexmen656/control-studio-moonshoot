@@ -1,12 +1,11 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, getCurrentInstance } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import axios from '../axios'
 
 const route = useRoute()
 const router = useRouter()
 const link = window.location.href
-const instance = getCurrentInstance()
-const axios = instance?.appContext.config.globalProperties.$axios
 const url = import.meta.env.MODE === 'production' ? 'https://api.reelmia.com' : 'http://localhost:6709'
 
 interface Video {
@@ -89,7 +88,7 @@ const publishVideo = async () => {
 
     try {
         const project_id = localStorage.getItem('currentProjectId') || ''
-        const response = await axios.post(`/publish?project_id=${project_id}`, {
+        const response = await axios.post(`/videos/publish?project_id=${project_id}`, {
             videoId: currentVideo.value.id,
             platform: currentVideo.value.platforms
         })
