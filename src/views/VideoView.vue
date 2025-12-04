@@ -4,12 +4,10 @@ import { useRoute, useRouter } from 'vue-router'
 
 const route = useRoute()
 const router = useRouter()
-const API_URL = 'http://localhost:6709/api'
-
 const link = window.location.href
-
 const instance = getCurrentInstance()
 const axios = instance?.appContext.config.globalProperties.$axios
+const url = import.meta.env.MODE === 'production' ? 'https://api.reelmia.com/api' : 'http://localhost:6709/api'
 
 interface Video {
     id: string
@@ -60,7 +58,7 @@ const videoDetailsForm = ref({
 const loadVideo = async () => {
     try {
         isLoading.value = true
-        const response = await axios.get(`${API_URL}/videos/${route.params.id}`)
+        const response = await axios.get(`/videos/${route.params.id}`)
         currentVideo.value = {
             ...response.data,
             uploadDate: new Date(response.data.uploadDate),
@@ -91,7 +89,7 @@ const publishVideo = async () => {
 
     try {
         const project_id = localStorage.getItem('currentProjectId') || ''
-        const response = await axios.post(`${API_URL}/publish?project_id=${project_id}`, {
+        const response = await axios.post(`/publish?project_id=${project_id}`, {
             videoId: currentVideo.value.id,
             platform: currentVideo.value.platforms
         })
@@ -139,7 +137,7 @@ const saveVideoDetails = async () => {
     if (!currentVideo.value) return
 
     try {
-        const response = await axios.patch(`${API_URL}/videos/${currentVideo.value.id}`, {
+        const response = await axios.patch(`/videos/${currentVideo.value.id}`, {
             title: videoDetailsForm.value.title,
             description: videoDetailsForm.value.description,
             tags: videoDetailsForm.value.tags.split(',').map(t => t.trim()).filter(t => t),
@@ -180,7 +178,7 @@ const scheduleVideo = async () => {
             timezoneOffset: scheduledDateTime.getTimezoneOffset()
         })
 
-        const response = await axios.patch(`${API_URL}/videos/${currentVideo.value.id}`, {
+        const response = await axios.patch(`/videos/${currentVideo.value.id}`, {
             status: 'scheduled',
             scheduledDate: scheduledDateTime.toISOString(),
             platforms: selectedPlatforms.value
@@ -205,7 +203,7 @@ const deleteVideo = async () => {
     if (!currentVideo.value || !confirm('Delete this video permanently?')) return
 
     try {
-        await axios.delete(`${API_URL}/videos/${currentVideo.value.id}`)
+        await axios.delete(`/videos/${currentVideo.value.id}`)
         router.push({ name: 'home' })
     } catch (error) {
         console.error('Error deleting video:', error)
@@ -528,7 +526,7 @@ const averageEngagement = computed(() => {
                         <div class="bg-black">
                             <div class="aspect-video flex items-center justify-center">
                                 <video v-if="currentVideo?.filename" controls class="w-full h-full">
-                                    <source :src="`http://localhost:6709/uploads/${currentVideo?.filename}`"
+                                    <source :src="`${url}/uploads/${currentVideo?.filename}`"
                                         type="video/mp4">
                                     Your browser does not support the video tag.
                                 </video>

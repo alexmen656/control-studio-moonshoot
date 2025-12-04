@@ -256,6 +256,8 @@ const getPlatformName = (platform: string) => {
     return names[platform] || platform
 }
 
+const uploadURL = import.meta.env.MODE === 'production' ? 'https://api.reelmia.com' : 'http://localhost:6709'
+
 onMounted(() => {
     loadVideos()
 
@@ -278,7 +280,7 @@ onMounted(() => {
                     </p>
                 </div>
                 <div class="flex items-center gap-3">
-                   <!-- <button @click="today"
+                    <!-- <button @click="today"
                         class="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors font-medium">
                         Today
                     </button>-->
@@ -428,8 +430,7 @@ onMounted(() => {
                                 <div
                                     class="relative w-32 h-20 bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden flex-shrink-0">
                                     <video v-if="entry.video.filename" class="w-full h-full object-cover" muted>
-                                        <source :src="`http://localhost:6709/uploads/${entry.video.filename}`"
-                                            type="video/mp4">
+                                        <source :src="`${uploadURL}/uploads/${entry.video.filename}`" type="video/mp4">
                                     </video>
                                     <div
                                         class="absolute bottom-1 right-1 bg-black/70 text-white text-xs px-1.5 py-0.5 rounded">

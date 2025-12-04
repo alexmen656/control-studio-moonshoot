@@ -366,14 +366,14 @@ async function fetchVideoAnalytics() {
 
     try {
         const PROJECT_ID = localStorage.getItem('currentProjectId')
-        
+
         if (!PROJECT_ID || !videoId.value) {
             error.value = 'Project ID or Video ID not found'
             return
         }
 
         const response = await axios.get(
-            `http://localhost:6709/api/analytics/live/projects/${PROJECT_ID}/videos/${videoId.value}?project_id=${PROJECT_ID}`
+            `/analytics/live/projects/${PROJECT_ID}/videos/${videoId.value}?project_id=${PROJECT_ID}`
         )
 
         const data = response.data
@@ -406,7 +406,7 @@ async function fetchVideoAnalytics() {
     } catch (err) {
         console.error('Error fetching video analytics:', err)
         error.value = err instanceof Error ? err.message : 'Failed to load analytics'
-        
+
         setTimeout(() => {
             initEngagementChart()
         }, 100)

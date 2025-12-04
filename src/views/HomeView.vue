@@ -191,6 +191,8 @@ const updateVideoDuration = async (video: Video) => {
   }
 }
 
+const uploadURL = import.meta.env.MODE === 'production' ? 'https://api.reelmia.com' : 'http://localhost:6709'
+
 const handleFileSelect = async (event: Event) => {
   const input = event.target as HTMLInputElement
   if (!input.files || input.files.length === 0) return
@@ -646,7 +648,7 @@ const saveVideoDetails = async () => {
           class="group bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-lg border border-gray-200 dark:border-gray-700 transition-all overflow-hidden">
           <div class="relative aspect-video bg-gray-200 dark:bg-gray-700 overflow-hidden">
             <video v-if="video.filename" class="w-full h-full object-cover" muted preload="metadata"
-              :src="`http://localhost:6709/uploads/${video.filename}#t=0.1`">
+              :src="`${uploadURL}/uploads/${video.filename}#t=0.1`">
             </video>
             <div v-else class="w-full h-full flex items-center justify-center">
               <svg class="w-16 h-16 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
@@ -749,7 +751,7 @@ const saveVideoDetails = async () => {
                 <div class="flex items-center gap-3">
                   <div class="relative w-20 h-12 bg-gray-200 dark:bg-gray-700 rounded overflow-hidden flex-shrink-0">
                     <video v-if="video.filename" class="w-full h-full object-cover" muted>
-                      <source :src="`http://localhost:6709/uploads/${video.filename}`" type="video/mp4">
+                      <source :src="`${uploadURL}/uploads/${video.filename}`" type="video/mp4">
                     </video>
                     <div v-else class="w-full h-full flex items-center justify-center">
                       <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
