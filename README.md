@@ -22,7 +22,7 @@ Reelmia is a comprehensive social media management tool designed to streamline v
 - **Instagram** - Reels, Stories, Feed Posts
 - **Facebook** - Video Posts, Stories
 - **YouTube** - Video Uploads with Metadata
-- **TikTok** - Short-form Videos
+- **TikTok** - Short-form Videos (only works with private Channels, because of Tiktok policy)
 
 ### 🚧 In Development
 - **X (Twitter)** - Video Tweets
@@ -91,7 +91,7 @@ The core strength of Reelmia is its **distributed worker system**:
 ### 1. Clone & Install Dependencies
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/alexmen656/control-studio-moonshoot
 cd control-studio-moonshoot-1
 npm install
 ```
@@ -100,7 +100,7 @@ npm install
 
 ```bash
 # Development mode with hot reload
-npm run dev
+npm run dev -- --port 5185
 
 # Build for production
 npm run build
@@ -109,7 +109,7 @@ npm run build
 npm run preview
 ```
 
-The frontend will be available at `http://localhost:5173` (Vite default)
+The frontend will be available at `http://localhost:5185` (5185 is important because of oauth requests)
 
 ### 3. Backend Setup
 
@@ -124,7 +124,7 @@ cp .env.example .env
 npm install
 
 # Setup database schema
-npm run migrate  # (if available, or run SQL files from ./sql)
+Create all needed tables like in /backend/sql/
 
 # Start main API server
 node server.js
@@ -392,13 +392,9 @@ psql -U postgres -d reelmia -f sql/analytics_schema.sql
 - Check database has `video_analytics` table
 - Verify platform API access tokens are valid
 
-## 📄 License
-
-[Add your license here]
-
 ## 👨‍💻 Author
 
-[Your name/organization]
+Alex Polan
 
 ## 🤝 Contributing
 
